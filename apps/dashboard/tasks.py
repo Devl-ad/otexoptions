@@ -1,11 +1,14 @@
 import random
 from celery import shared_task
 from django.utils import timezone
+import logging
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from datetime import timedelta
 from decimal import Decimal
 from .models import TradingPair, PriceTick, Wallet, Trade
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -146,7 +149,7 @@ def resolve_trades():
             )
 
         except Exception as e:
-            print(f"Error resolving trade {trade.id}: {e}")
+            logger.error(f"Error resolving trade {trade.id}: {e}")
             continue
 
 

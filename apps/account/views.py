@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.http import require_POST
+import logging
 from .forms import AccountDetailsForm, PersonalInfoForm, AddressForm
 from .models import Details
 from .emails import send_activation_email, send_password_reset_email
@@ -23,6 +24,8 @@ from .forms import (
 from .tokens import account_activation_token, password_reset_token
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
 
 # ── Session key used to hold the pre-2FA authenticated user pk ──────────────
 TOTP_SESSION_KEY = "_totp_user_pk"
@@ -138,7 +141,7 @@ def register(request):
                 return redirect("account:register")
 
             except Exception as e:
-                print(f"Error during registration: {e}")
+                logger.error(f"Error during registration: {e}")
                 messages.error(
                     request,
                     (
@@ -262,9 +265,8 @@ def totp_setup(request):
 
     # Generate a fresh secret if none yet
     if not user.totp_secret:
-        print("Generating secret...")
+
         user.generate_totp_secret()
-        print("Secret:", user.totp_secret)
 
     # Build QR code as inline SVG
     qr = qrcode.make(
@@ -277,11 +279,11 @@ def totp_setup(request):
 
     form = TOTPEnableForm(request.POST or None, user=user)
     if request.method == "POST":
-        print(form.errors)
+
         if form.is_valid():
             user.totp_enabled = True
             user.save(update_fields=["totp_enabled"])
-            print("Saving MK#$", user.totp_enabled)
+            logger.info(f"TOTP enabled for user: {user.email}")
             messages.success(request, "Two-factor authentication is now enabled.")
             return redirect("dashboard")
 
@@ -331,7 +333,7 @@ def password_reset_confirm(request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
-        print(f"Password reset confirm error: {e}")
+        logger.error(f"Password reset confirm error: {e}")
         user = None
 
     valid = user is not None and password_reset_token.check_token(user, token)

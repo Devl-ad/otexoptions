@@ -323,7 +323,6 @@ def deposit_withcrypto_page(request):
         coin = request.POST.get("coin")
         amount = request.POST.get("amount")
         tx_hash = request.POST.get("tx_hash")
-        print(coin, amount, tx_hash)
 
         try:
             amount = Decimal(amount)
