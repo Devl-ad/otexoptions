@@ -11,6 +11,18 @@ from .models import TradingPair, PriceTick, Wallet, Trade
 logger = logging.getLogger(__name__)
 
 
+# Define price ranges per symbol — each lives in its own world
+PAIR_PRICE_RANGES = {
+    "OTV19": (10.0, 99.0),  # low range, tight
+    "OTV22": (100.0, 499.0),  # mid range
+    "OTV59": (500.0, 999.0),  # high range
+    "OTV90": (1000.0, 4999.0),  # very high
+    "OTV115": (5000.0, 9999.0),  # extreme
+}
+
+DEFAULT_PRICE_RANGE = (10.0, 99.0)
+
+
 @shared_task
 def update_prices():
     channel_layer = get_channel_layer()
@@ -18,19 +30,24 @@ def update_prices():
     ticks = []
 
     for pair in pairs:
+        price_range = PAIR_PRICE_RANGES.get(pair.symbol, DEFAULT_PRICE_RANGE)
+        low, high = price_range
+
         last_tick = pair.ticks.first()
-        # each pair starts at a different random price — seeded by symbol
-        rng = random.Random(pair.symbol)
-        last_price = float(last_tick.price) if last_tick else rng.uniform(30, 80)
+        if last_tick:
+            last_price = float(last_tick.price)
+        else:
+            # each pair seeds its own starting price within its range
+            rng = random.Random(pair.symbol)
+            last_price = rng.uniform(low, high)
 
         volatility = float(pair.volatility)
 
-        # more decimal places — price moves feel granular before hitting round numbers
-        change = random.gauss(0, volatility * 0.1)
+        # scale change to the price range so high-value pairs move proportionally
+        change = random.gauss(0, (high - low) * volatility * 0.005)
 
-        new_price = round(
-            max(1.0, min(100.0, last_price + change)), 4
-        )  # 4 decimal places
+        # clamp within the pair's own range
+        new_price = round(max(low, min(high, last_price + change)), 4)
 
         ticks.append(PriceTick(pair=pair, price=new_price))
 
@@ -49,20 +66,15 @@ def update_prices():
 
 @shared_task
 def cleanup_old_ticks():
-    """
-    Keep only the last 100 ticks per pair.
-    Runs frequently — stays lean regardless of tick rate.
-    """
+    """Keep only the last 100 ticks per pair — runs every 10 seconds."""
     pairs = TradingPair.objects.filter(is_active=True)
 
     for pair in pairs:
-        # get the 100th tick's id for this pair
         keep_ids = (
             PriceTick.objects.filter(pair=pair)
             .order_by("-timestamp")
             .values_list("id", flat=True)[:100]
         )
-        # delete everything outside those 100
         PriceTick.objects.filter(pair=pair).exclude(id__in=list(keep_ids)).delete()
 
 
