@@ -14,8 +14,8 @@ class TradingPair(models.Model):
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
-    min_trade = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
-    max_trade = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
+    min_trade = models.DecimalField(max_digits=10, decimal_places=4, default=1.00)
+    max_trade = models.DecimalField(max_digits=10, decimal_places=4, default=1000.00)
     volatility = models.DecimalField(
         max_digits=5, decimal_places=2, default=0.19
     )  # ← add this
@@ -30,7 +30,7 @@ class PriceTick(models.Model):
     pair = models.ForeignKey(
         TradingPair, on_delete=models.CASCADE, related_name="ticks"
     )
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    price = models.DecimalField(max_digits=8, decimal_places=4)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

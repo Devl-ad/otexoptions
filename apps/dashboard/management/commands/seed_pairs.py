@@ -12,29 +12,29 @@ TRADING_PAIRS = [
         "symbol": "OTV22",
         "name": "OTEX Volatility 22",
         "category": "Synthetic",
-        "volatility": 0.22,  # slightly more movement
+        "volatility": 0.22,
         "tick_speed": 1.0,
     },
     {
         "symbol": "OTV59",
         "name": "OTEX Volatility 59",
         "category": "Synthetic",
-        "volatility": 0.59,  # noticeable swings
-        "tick_speed": 1.0,
+        "volatility": 0.59,
+        "tick_speed": 0.8,
     },
     {
         "symbol": "OTV90",
         "name": "OTEX Volatility 90",
         "category": "Synthetic",
-        "volatility": 0.90,  # wild
-        "tick_speed": 1.0,
+        "volatility": 0.90,
+        "tick_speed": 0.6,
     },
     {
         "symbol": "OTV115",
         "name": "OTEX Volatility 115",
         "category": "Synthetic",
-        "volatility": 1.15,  # very wild
-        "tick_speed": 1.0,
+        "volatility": 1.15,
+        "tick_speed": 0.5,
     },
 ]
 

@@ -19,15 +19,18 @@ def update_prices():
 
     for pair in pairs:
         last_tick = pair.ticks.first()
-        last_price = float(last_tick.price) if last_tick else random.uniform(300, 700)
+        # each pair starts at a different random price — seeded by symbol
+        rng = random.Random(pair.symbol)
+        last_price = float(last_tick.price) if last_tick else rng.uniform(30, 80)
 
         volatility = float(pair.volatility)
 
-        # much larger move — scales with price level like real markets
-        change = random.gauss(0, last_price * volatility * 0.01)
+        # more decimal places — price moves feel granular before hitting round numbers
+        change = random.gauss(0, volatility * 0.1)
 
-        # clamp between 10 and 9999 — gives room to breathe
-        new_price = round(max(10.0, min(9999.0, last_price + change)), 2)
+        new_price = round(
+            max(1.0, min(100.0, last_price + change)), 4
+        )  # 4 decimal places
 
         ticks.append(PriceTick(pair=pair, price=new_price))
 
