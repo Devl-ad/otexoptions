@@ -26,12 +26,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env.bool("DEBUG")
-
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+DEBUG = False
+ALLOWED_HOSTS = ["otexoption.com", "www.otexoption.com"]
 
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
@@ -232,3 +228,15 @@ LOGGING = {
 
 # Optional but helps deliverability
 # EMAIL_SUBJECT_PREFIX = "primedriven.live"  # makes it look less spammy
+
+
+# tell Django it's behind a proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# security headers
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
