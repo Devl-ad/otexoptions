@@ -1,0 +1,325 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Transaction logs {% endblock title %}
+<!--  -->
+{% block content %}
+<!-- ════════════════════════════════════════ -->
+
+<style>
+  .transaction-history {
+    padding: 20px 8px;
+  }
+
+  .txn-item {
+    background: #fff;
+    border-radius: 18px;
+    margin-bottom: 14px;
+    border: 1px solid #ececec;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .txn-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    border-radius: 10px;
+  }
+
+  .deposit::before,
+  .trade-win::before {
+    background: #00a878;
+  }
+
+  .withdrawal::before,
+  .trade-loss::before {
+    background: #e85d35;
+  }
+
+  .txn-summary {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .txn-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .txn-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .deposit .txn-icon,
+  .trade-win .txn-icon {
+    background: #e8f8f1;
+    color: #00a878;
+  }
+
+  .withdrawal .txn-icon,
+  .trade-loss .txn-icon {
+    background: #fff0ec;
+    color: #e85d35;
+  }
+
+  .txn-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .txn-meta {
+    margin-top: 4px;
+    color: #1b283c;
+    font-size: 10px;
+    font-weight: 400;
+  }
+
+  .txn-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .txn-amount {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .positive {
+    color: #00a878;
+  }
+
+  .negative {
+    color: #e85d35;
+  }
+
+  .txn-arrow {
+    color: #999;
+    transition: 0.25s;
+    font-size: 20px;
+  }
+
+  .txn-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: #fafafa;
+  }
+
+  .txn-item.active .txn-details {
+    max-height: 250px;
+    padding: 16px;
+  }
+
+  .txn-item.active .txn-arrow {
+    transform: rotate(180deg);
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ececec;
+    font-size: 14px;
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-row span:first-child {
+    color: #8d949f;
+  }
+
+  .detail-row span:last-child {
+    font-weight: 600;
+    color: #111;
+  }
+
+  .status.success {
+    color: #00a878;
+  }
+
+  .status.failed {
+    color: #e85d35;
+  }
+</style>
+<main class="main deposit">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        Transaction History
+      </h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Recent deposits and withdrawals
+      </p>
+    </div>
+  </div>
+
+  <div class="transaction-history">
+    <div class="transaction-history">
+      {% for tx in transactions %}
+      <div
+        class="txn-item {% if tx.transaction_type == 'deposit' %}deposit{% else %}withdrawal{% endif %}"
+      >
+        <div class="txn-summary">
+          <div class="txn-left">
+            <div class="txn-icon">
+              {% if tx.transaction_type == "deposit" %}
+              <i class="ti ti-arrow-down"></i>
+              {% else %}
+              <i class="ti ti-arrow-up"></i>
+              {% endif %}
+            </div>
+
+            <div class="txn-info">
+              <p class="txn-title">{{ tx.get_transaction_type_display }}</p>
+
+              <p class="txn-meta">
+                {{ tx.get_method_display }} • {{ tx.created_at|date:"M d, Y" }}
+              </p>
+            </div>
+          </div>
+
+          <div class="txn-right">
+            <p
+              class="txn-amount {% if tx.transaction_type == 'deposit' %}positive{% else %}negative{% endif %}"
+            >
+              {% if tx.transaction_type == "deposit" %}
+              <!--  -->
+              +${{ tx.amount }} {% else %} -${{ tx.amount }}
+              <!--  -->
+              {% endif %}
+            </p>
+
+            <div class="txn-arrow">
+              <i class="ti ti-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="txn-details">
+          <div class="detail-row">
+            <span>Reference</span>
+            <span>{{ tx.reference }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Transaction Type</span>
+            <span>{{ tx.get_transaction_type_display }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Method</span>
+            <span>{{ tx.method }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Amount</span>
+            <span>${{ tx.amount }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Fee</span>
+            <span>${{ tx.fee }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Net Amount</span>
+            <span>${{ tx.net_amount }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Status</span>
+
+            <span
+              class="status {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'confirmed' %}success{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
+            >
+              {{ tx.get_status_display }}
+            </span>
+          </div>
+
+          {% if tx.agent %}
+          <div class="detail-row">
+            <span>Agent</span>
+            <span>{{ tx.agent }}</span>
+          </div>
+          {% endif %} {% if tx.tx_hash %}
+          <div class="detail-row">
+            <span>Transaction Hash</span>
+            <span
+              style="
+                max-width: 180px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+            >
+              {{ tx.tx_hash }}
+            </span>
+          </div>
+          {% endif %} {% if tx.crypto_address %}
+          <div class="detail-row">
+            <span>Wallet Address</span>
+            <span
+              style="
+                max-width: 180px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              "
+            >
+              {{ tx.crypto_address }}
+            </span>
+          </div>
+          {% endif %} {% if tx.confirmed_at %}
+          <div class="detail-row">
+            <span>Confirmed At</span>
+            <span>{{ tx.confirmed_at|date:"M d, Y H:i" }}</span>
+          </div>
+          {% endif %}
+
+          <div class="detail-row">
+            <span>Created</span>
+            <span>{{ tx.created_at|date:"M d, Y H:i" }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% empty %}
+      <div class="empty-state">
+        <i class="ti ti-folder-off"></i>
+        <h3>No Transactions Found</h3>
+        <p>Your deposits and withdrawals will appear here.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+{% endblock content %} {% block script %}
+
+<script>
+  document.querySelectorAll(".txn-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      item.classList.toggle("active");
+    });
+  });
+</script>
+{% endblock %}

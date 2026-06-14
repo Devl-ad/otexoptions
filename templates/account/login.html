@@ -1,0 +1,77 @@
+{% extends "layouts/auth.html" %}
+<!--  -->
+
+{% block title %}Login into your account{% endblock %}
+<!--  -->
+{% block content %}
+
+<form class="form-box" method="post" action="{% url 'account:login' %}">
+  {% csrf_token %}
+  <a class="logo" href="#">
+    <svg viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+      <rect
+        x="11"
+        y="10"
+        width="6"
+        height="20"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.75"
+      />
+      <rect
+        x="20"
+        y="4"
+        width="6"
+        height="26"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.45"
+      />
+    </svg>
+    <span class="logo-name">OTEX</span>
+  </a>
+
+  <h1>Login to your account</h1>
+
+  <p class="sub">
+    Don't have an account? <a href="/auth/register/">Register </a>
+  </p>
+
+  {% if form.non_field_errors %}
+  <ul class="errorlist nonfield">
+    {% for error in form.non_field_errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <div class="field" style="margin-top: 16px">
+    <label>Email</label>
+    <div class="uk-form-controls">
+      {{form.email}} {% if form.email.errors %}
+      <span class="uk-text-danger uk-text-small">
+        {{ form.email.errors.0 }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Password</label>
+    <div class="uk-form-controls">
+      {{form.password}} {% if form.password.errors %}
+      <span class="uk-text-danger uk-text-small">
+        {{ form.password.errors.0 }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+  <p class="sub" style="font-size: 10px; text-align: center">
+    Forgot your password?
+    <a href="/auth/password/reset/">Reset it here</a>
+  </p>
+  <button type="submit" class="btn">Submit →</button>
+</form>
+
+{% endblock %}

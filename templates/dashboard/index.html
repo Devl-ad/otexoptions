@@ -1,0 +1,246 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block content %}
+
+<main class="main dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Welcome Back, {{user.first_name}}</h1>
+      <p id="date"></p>
+    </div>
+    <div class="topbar-right">
+      <div
+        class="avatar"
+        style="width: 38px; height: 38px; font-size: 13px"
+        onclick="window.location.href = '/dashboard/profile/'"
+      >
+        {{user.get_initials}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Account toggle -->
+  <div class="account-toggle">
+    <button
+      class="acc-btn {% if is_demo %} active {% endif %}"
+      id="btnDemo"
+      onclick="switchAccount('demo')"
+    >
+      Demo Account
+    </button>
+    <button
+      class="acc-btn {% if is_live %} active {% endif %}"
+      id="btnLive"
+      onclick="switchAccount('live')"
+    >
+      Live Account
+    </button>
+  </div>
+
+  <!-- Balance cards -->
+  <div class="balance-cards" style="margin-top: 16px">
+    {% if is_demo %}
+    <div class="balance-card demo">
+      <p class="bc-label">
+        <i class="ti ti-device-desktop" style="font-size: 14px"></i> Demo
+        Balance <span class="bc-badge">DEMO</span>
+      </p>
+      <p class="bc-amount bal-val">${{demo_balance|intcomma}}</p>
+      <div class="bc-actions">
+        <button class="bc-btn reset">
+          <i class="ti ti-refresh" style="font-size: 13px"></i> Reset
+        </button>
+      </div>
+      <div class="bc-watermark">DEMO</div>
+    </div>
+    {% endif %} {% if is_live %}
+    <div class="balance-card live">
+      <p class="bc-label">
+        <i class="ti ti-live-view" style="font-size: 14px"></i> Live Balance
+        <span
+          class="bc-badge"
+          style="background-color: rgb(48, 143, 41) !important"
+          >LIVE</span
+        >
+      </p>
+      <p class="bc-amount bal-val">${{live_balance|intcomma}}</p>
+      <div class="bc-actions">
+        <button
+          class="bc-btn dep-live"
+          onclick="window.location.href = '/dashboard/agents/'"
+        >
+          <i class="ti ti-plus" style="font-size: 13px"></i> Deposit
+        </button>
+        <button
+          class="bc-btn dep-live"
+          onclick="window.location.href = '/dashboard/withdraw-funds/'"
+        >
+          <i class="ti ti-minus" style="font-size: 13px"></i>
+          Withdraw
+        </button>
+      </div>
+      <div class="bc-watermark">LIVE</div>
+    </div>
+
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-row" style="margin-top: 16px">
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="ti ti-trophy"></i>
+      </div>
+      <p class="stat-label">Total Won</p>
+      <p class="stat-val">{{ total_won }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <i class="ti ti-x"></i>
+      </div>
+      <p class="stat-label">Total Lost</p>
+      <p class="stat-val">{{ total_lost }}</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="ti ti-percentage"></i>
+      </div>
+      <p class="stat-label">Win Rate</p>
+      <p class="stat-val">{{ win_rate }}%</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon yellow">
+        <i class="ti ti-clock"></i>
+      </div>
+      <p class="stat-label">Open Trades</p>
+      <p class="stat-val">{{ open_trades }}</p>
+    </div>
+  </div>
+  <!-- Bottom grid -->
+  <div class="bottom-grid" style="margin-top: 16px">
+    <!-- Recent trades -->
+    <div class="card dashboard">
+      <div class="card-header">
+        <p class="card-title">Recent Trades</p>
+        <a href="/dashboard/trade-history/" class="card-link">View all →</a>
+      </div>
+
+      {% for trade in recent_trades %}
+      <div class="trade-item">
+        <div class="trade-left">
+          <div
+            class="trade-dir {% if trade.status == 'WON' %}win{% else %}loss{% endif %}"
+          >
+            {% if trade.status == "WON" %}
+            <i class="ti ti-trending-up"></i>
+            {% elif trade.status == "LOST" %}
+            <i class="ti ti-trending-down"></i>
+            {% else %}
+            <i class="ti ti-clock"></i>
+            {% endif %}
+          </div>
+
+          <div>
+            <p class="trade-pair">
+              {{ trade.pair.symbol }} · {{ trade.get_direction_display }}
+            </p>
+
+            <p class="trade-meta">
+              {{ trade.get_duration_display }}
+              <!--  -->
+              · {{ trade.get_trade_type_display }}
+            </p>
+          </div>
+        </div>
+
+        <div class="trade-right">
+          {% if trade.status == "WON" %}
+          <p class="trade-amount win">+${{ trade.profit|floatformat:2 }}</p>
+
+          {% elif trade.status == "LOST" %}
+          <p class="trade-amount loss">-${{ trade.stake|floatformat:2 }}</p>
+
+          {% else %}
+          <p class="trade-amount">OPEN</p>
+          {% endif %}
+
+          <p class="trade-time">{{ trade.opened_at|timesince }} ago</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="trade-item">
+        <div class="trade-left">
+          <p class="trade-meta">No trades yet</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+{% endblock content %} {% block script %}
+
+<script>
+  function switchAccount(mode) {
+    fetch("/dashboard/account/switch/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: `mode=${mode}`,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          // update UI
+          document
+            .getElementById("btnDemo")
+            .classList.toggle("active", mode === "demo");
+          document
+            .getElementById("btnLive")
+            .classList.toggle("active", mode === "live");
+          // update balance display
+          document.querySelectorAll(".bal-val").forEach((el) => {
+            el.textContent =
+              "$" +
+              parseFloat(data.balance).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+              });
+          });
+          // show mode indicator
+          showNotif(
+            `Switched to ${mode === "demo" ? "Demo" : "Live"} account`,
+            "success",
+          );
+          window.location.reload();
+        } else {
+          showNotif(data.error, "error");
+        }
+      });
+  }
+</script>
+
+<script>
+  function showDate() {
+    const today = new Date();
+
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+
+    document.getElementById("date").textContent = today.toLocaleDateString(
+      "en-US",
+      options,
+    );
+  }
+
+  showDate();
+</script>
+{% endblock script %}

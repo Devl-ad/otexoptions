@@ -1,0 +1,171 @@
+{% extends "layouts/auth.html" %}
+<!--  -->
+
+{% block title %}Register{% endblock %}
+<!--  -->
+{% block content %}
+<div class="form-box">
+  <a class="logo" href="#">
+    <svg viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+      <rect
+        x="11"
+        y="10"
+        width="6"
+        height="20"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.75"
+      />
+      <rect
+        x="20"
+        y="4"
+        width="6"
+        height="26"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.45"
+      />
+    </svg>
+    <span class="logo-name">OTEX</span>
+  </a>
+
+  <h1>Create an account</h1>
+  <p class="sub">
+    Already have an account? <a href="/auth/login/">Login here </a>
+  </p>
+  {% if messages %}
+  <!--  -->
+  {% for message in messages %}
+
+  <div
+    style="
+      text-align: center;
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      padding: 24px;
+      border-radius: 1px;
+      color: #065f46;
+    "
+  >
+    {% if message.tags == "success" %}
+    <svg
+      width="90"
+      height="90"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="12" cy="12" r="10" fill="#00ff55" fill-opacity="0.15" />
+      <circle cx="12" cy="12" r="7" fill="#00ff55" />
+      <path
+        d="M9.5 12L11.3 13.8L14.8 10.3"
+        stroke="white"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <h3 style="margin: 0 0 8px; font-size: 24px; font-weight: 700">
+      Thank You!
+    </h3>
+
+    {% elif message.tags == "error" %}
+    <svg
+      width="90"
+      height="90"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="12" cy="12" r="10" fill="#ff3b30" fill-opacity="0.15" />
+      <circle cx="12" cy="12" r="7" fill="#ff3b30" />
+      <path
+        d="M12 8V12"
+        stroke="white"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+      <circle cx="12" cy="15.5" r="1" fill="white" />
+    </svg>
+
+    <h3 style="margin: 0 0 8px; font-size: 24px; font-weight: 700">Error!</h3>
+    {% endif %}
+
+    <p style="margin: 0; font-size: 16px; color: #047857">{{ message }}</p>
+  </div>
+  {% endfor %}
+  <!--  -->
+  {% else %}
+  <form method="post" action="/auth/register/">
+    {% csrf_token %}
+    <div class="name-row">
+      <div class="field" style="margin-bottom: 0">
+        <label>{{form.first_name.label}}</label>
+        <div class="uk-form-controls">
+          {{form.first_name}} {% if form.first_name.errors %}
+          <span class="uk-text-danger uk-text-small">
+            {{ form.first_name.errors.0 }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="field" style="margin-bottom: 0">
+        <label>{{form.last_name.label}}</label>
+        <div class="uk-form-controls">
+          {{form.last_name}} {% if form.last_name.errors %}
+          <span class="uk-text-danger uk-text-small">
+            {{ form.last_name.errors.0 }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 16px">
+      <label>Email</label>
+      <div class="uk-form-controls">
+        {{form.email}} {% if form.email.errors %}
+        <span class="uk-text-danger uk-text-small">
+          {{ form.email.errors.0 }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <input type="hidden" name="username" value="OT" />
+
+    <div class="field">
+      <label>{{form.password1.label}}</label>
+      <div class="uk-form-controls">
+        {{form.password1}} {% if form.password1.errors %}
+        <span class="uk-text-danger uk-text-small">
+          {{ form.password1.errors.0 }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>{{form.password2.label}}</label>
+      <div class="uk-form-controls">
+        {{form.password2}} {% if form.password2.errors %}
+        <span class="uk-text-danger uk-text-small">
+          {{ form.password2.errors.0 }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="field">
+      <p style="font-size: 12px; color: #6b7280">
+        By signing up, you accept our Terms of Service and Privacy Policy.
+      </p>
+    </div>
+
+    <button class="btn">Submit →</button>
+  </form>
+  {% endif %}
+</div>
+
+{% endblock %}

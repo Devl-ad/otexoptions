@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        background: #f3f4f6;
+      }
+
+      .left-panel {
+        flex: 0 0 58%;
+        background-image: url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&q=80");
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+
+      .left-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 17, 23, 0.55);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 48px 40px;
+      }
+
+      .left-tagline {
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.3;
+        margin-bottom: 12px;
+      }
+
+      .left-tagline span {
+        color: #e85d35;
+      }
+
+      .left-sub {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.6;
+      }
+
+      .right-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        padding: 40px 36px;
+        overflow-y: auto;
+      }
+
+      .form-box {
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 28px;
+        text-decoration: none;
+      }
+
+      .logo-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111;
+        letter-spacing: 0.06em;
+      }
+
+      /* Steps indicator */
+      .steps-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 28px;
+        gap: 0;
+      }
+
+      .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #e5e7eb;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #9ca3af;
+        transition: all 0.2s;
+        position: relative;
+        z-index: 1;
+      }
+
+      .step-circle.active {
+        border-color: #e85d35;
+        background: #e85d35;
+        color: #fff;
+      }
+
+      .step-circle.done {
+        border-color: #e85d35;
+        background: #e85d35;
+        color: #fff;
+      }
+
+      .step-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-align: center;
+        white-space: nowrap;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .step-label.active {
+        color: #e85d35;
+      }
+      .step-label.done {
+        color: #e85d35;
+      }
+
+      .step-line {
+        flex: 1;
+        height: 2px;
+        background: #e5e7eb;
+        margin-top: -18px;
+        transition: background 0.3s;
+      }
+
+      .step-line.done {
+        background: #e85d35;
+      }
+
+      .step-heading {
+        margin-bottom: 20px;
+      }
+
+      .step-heading h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 2px;
+      }
+
+      .step-heading p {
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      /* Form fields */
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        height: 46px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        background: #f9fafb;
+        padding: 0 12px;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        color: #111;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+
+      select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+      }
+
+      input::placeholder {
+        color: #9ca3af;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: #e85d35;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(232, 93, 53, 0.1);
+      }
+
+      textarea {
+        height: auto;
+        min-height: 80px;
+        padding: 10px 12px;
+        resize: none;
+      }
+
+      /* Step panels */
+      .step-panel {
+        display: none;
+      }
+      .step-panel.active {
+        display: block;
+      }
+
+      /* Buttons */
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .btn-back {
+        flex: 0 0 auto;
+        height: 48px;
+        padding: 0 20px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        background: #fff;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .btn-back:hover {
+        background: #f9fafb;
+      }
+
+      .btn-next {
+        flex: 1;
+        height: 48px;
+        background: #e85d35;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .btn-next:hover {
+        background: #d14e28;
+      }
+
+      /* Progress bar */
+      .progress-bar-wrap {
+        height: 3px;
+        background: #f3f4f6;
+        border-radius: 2px;
+        margin-bottom: 28px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        background: #e85d35;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+
+      @media (max-width: 767px) {
+        body {
+          background-image: url("/assets/images/in-signin-image.jpg");
+          background-size: cover;
+          background-position: center;
+        }
+        .left-panel {
+          display: none;
+        }
+        .right-panel {
+          background: rgba(255, 255, 255, 0.93);
+          backdrop-filter: blur(6px);
+          padding: 32px 20px 48px;
+          align-items: center;
+        }
+        .form-box {
+          max-width: 100%;
+        }
+        .row-2 {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% if messages %} {% for msg in messages %}
+    <div
+      style="display: none"
+      class="messages"
+      id="mssggi"
+      data-msg="{{ msg }}"
+    ></div>
+    {% endfor %} {% endif %}
+    <div class="left-panel">
+      <div class="left-overlay">
+        <p class="left-tagline">
+          You're almost in.<br />Complete your <span>profile</span>.
+        </p>
+        <p class="left-sub">
+          We need a few details to keep your account secure and compliant with
+          financial regulations.
+        </p>
+      </div>
+    </div>
+
+    <form method="post" class="right-panel">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="{{ step }}" />
+
+      <div class="form-box">
+        <a class="logo" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+            <rect
+              x="11"
+              y="10"
+              width="6"
+              height="20"
+              rx="2"
+              fill="#E85D35"
+              opacity="0.75"
+            />
+            <rect
+              x="20"
+              y="4"
+              width="6"
+              height="26"
+              rx="2"
+              fill="#E85D35"
+              opacity="0.45"
+            />
+          </svg>
+          <span class="logo-name">OTEX</span>
+        </a>
+
+        <!-- Steps indicator -->
+        <div class="steps-indicator" id="stepsIndicator">
+          <div class="step-item">
+            <div class="step-circle active" id="sc0">1</div>
+            <span class="step-label active" id="sl0">Personal</span>
+          </div>
+          <div class="step-line" id="line0"></div>
+          <div class="step-item">
+            <div class="step-circle" id="sc1">2</div>
+            <span class="step-label" id="sl1">Address</span>
+          </div>
+          <div class="step-line" id="line1"></div>
+          <div class="step-item">
+            <div class="step-circle" id="sc2">3</div>
+            <span class="step-label" id="sl2">Account</span>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-bar-wrap">
+          <div
+            class="progress-bar-fill"
+            id="progressBar"
+            style="width: 33%"
+          ></div>
+        </div>
+        {% if step == 1 %}
+        <!-- Step 1: Personal Info -->
+        <div class="step-panel active" id="step0">
+          <div class="step-heading">
+            <h2>Personal information</h2>
+            <p>Tell us a bit about yourself</p>
+          </div>
+
+          <div class="row-2">
+            <div class="field">
+              <label>Title</label>
+
+              <div class="uk-form-controls">
+                <select name="title" required>
+                  <option value="">Select</option>
+                  <option value="Mr">Mr</option>
+                  <option value="Mrs">Mrs</option>
+                  <option value="Ms">Ms</option>
+                  <option value="Dr">Dr</option>
+                  <option value="Prof">Prof</option>
+                </select>
+                {% if form.title.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.title.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="field">
+              <label>Gender</label>
+
+              <div class="uk-form-controls">
+                <select name="gender" required>
+                  <option value="">Select</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-binary">Non-binary</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                {% if form.gender.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.gender.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Date of birth</label>
+            <div class="uk-form-controls">
+              <input
+                type="date"
+                name="date_of_birth"
+                value="{{form.date_of_birth.value|default:''}}"
+                required
+              />
+              {% if form.date_of_birth.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.date_of_birth.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div class="field">
+              <label>Citizenship</label>
+              <div class="uk-form-controls">
+                <select name="citizenship" required>
+                  <option value="">Select country</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Nigeria">Nigeria</option>
+                  <option value="Ghana">Ghana</option>
+                  <option value="South Africa">South Africa</option>
+                  <option value="Germany">Germany</option>
+                  <option value="France">France</option>
+                  <option value="India">India</option>
+                </select>
+                {% if form.citizenship.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.citizenship.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="field">
+              <label>Place of birth</label>
+              <div class="uk-form-controls">
+                <input
+                  type="text"
+                  name="place_of_birth"
+                  placeholder="City, Country"
+                  value="{{form.place_of_birth.value|default:''}}"
+                  required
+                />
+                {% if form.place_of_birth.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.place_of_birth.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Country of residence</label>
+            <div class="uk-form-controls">
+              <select name="country_of_residence" required>
+                <option value="">Select country</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Nigeria">Nigeria</option>
+                <option value="Ghana">Ghana</option>
+                <option value="South Africa">South Africa</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="India">India</option>
+              </select>
+              {% if form.country_of_residence.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.country_of_residence.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="submit" class="btn-next">Continue →</button>
+          </div>
+        </div>
+        {% elif step == 2 %}
+        <!-- Step 2: Address -->
+        <div class="step-panel active" id="step1">
+          <div class="step-heading">
+            <h2>Your address</h2>
+            <p>Where are you currently located?</p>
+          </div>
+
+          <div class="field">
+            <label>Address line 1</label>
+            <div class="uk-form-controls">
+              <input
+                type="text"
+                name="first_address"
+                placeholder="Street address"
+                value="{{form.first_address.value|default:''}}"
+                required
+              />
+              {% if form.first_address.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.first_address.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="field">
+            <label
+              >Address line 2
+              <span
+                style="color: #9ca3af; font-weight: 400; text-transform: none"
+                >(optional)</span
+              ></label
+            >
+            <div class="uk-form-controls">
+              <input
+                type="text"
+                name="second_address"
+                placeholder="Apt, suite, unit, etc."
+                value="{{form.second_address.value|default:''}}"
+              />
+              {% if form.second_address.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.second_address.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div class="field">
+              <label>City</label>
+              <div class="uk-form-controls">
+                <input
+                  type="text"
+                  name="city"
+                  placeholder="City"
+                  value="{{form.city.value|default:''}}"
+                  required
+                />
+                {% if form.city.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.city.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="field">
+              <label>State / Region</label>
+              <div class="uk-form-controls">
+                <input
+                  type="text"
+                  name="state"
+                  placeholder="State"
+                  value="{{form.state.value|default:''}}"
+                  required
+                />
+                {% if form.state.errors %}
+                <span class="uk-text-danger uk-text-small">
+                  {{ form.state.errors.0 }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Zip / Postal code</label>
+            <div class="uk-form-controls">
+              <input
+                type="text"
+                name="zipcode"
+                placeholder="00000"
+                required
+                value="{{form.zipcode.value|default:''}}"
+              />
+              {% if form.zipcode.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.zipcode.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button
+              type="button"
+              class="btn-back"
+              onclick="window.location.href = '?back=1'"
+            >
+              ← Back
+            </button>
+
+            <button type="submit" class="btn-next">Continue →</button>
+          </div>
+        </div>
+        {% elif step == 3 %}
+        <!-- Step 3: Account Details -->
+        <div class="step-panel active" id="step2">
+          <div class="step-heading">
+            <h2>Account details</h2>
+            <p>Help us set up your trading profile</p>
+          </div>
+
+          <div class="field">
+            <label>Local currency</label>
+            <div class="uk-form-controls">
+              <select name="local_currency" required>
+                <option value="">Select currency</option>
+                <option value="USD">USD – US Dollar</option>
+                <option value="EUR">EUR – Euro</option>
+                <option value="GBP">GBP – British Pound</option>
+                <option value="NGN">NGN – Nigerian Naira</option>
+                <option value="GHS">GHS – Ghanaian Cedi</option>
+                <option value="ZAR">ZAR – South African Rand</option>
+                <option value="CAD">CAD – Canadian Dollar</option>
+                <option value="AUD">AUD – Australian Dollar</option>
+                <option value="INR">INR – Indian Rupee</option>
+              </select>
+              {% if form.local_currency.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.local_currency.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Reason for opening account</label>
+            <div class="uk-form-controls">
+              <select name="account_opening_reason" required>
+                <option value="">Select reason</option>
+                <option value="Personal investment">Personal investment</option>
+                <option value="Income supplementation">
+                  Income supplementation
+                </option>
+                <option value="Wealth management">Wealth management</option>
+                <option value="Learning & practice">Learning & practice</option>
+                <option value="Business / corporate trading">
+                  Business / corporate trading
+                </option>
+                <option value="Retirement planning">Retirement planning</option>
+              </select>
+              {% if form.account_opening_reason.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.account_opening_reason.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Employment status</label>
+            <div class="uk-form-controls">
+              <select name="employment_status" required>
+                <option value="">Select</option>
+                <option>Employed</option>
+                <option>Self-employed</option>
+                <option>Student</option>
+                <option>Retired</option>
+                <option>Unemployed</option>
+              </select>
+              {% if form.employment_status.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.employment_status.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Annual income range</label>
+            <div class="uk-form-controls">
+              <select name="annual_income_range" required>
+                <option value="">Select range</option>
+                <option>Under $10,000</option>
+                <option>$10,000 – $30,000</option>
+                <option>$30,000 – $60,000</option>
+                <option>$60,000 – $100,000</option>
+                <option>Over $100,000</option>
+              </select>
+              {% if form.annual_income_range.errors %}
+              <span class="uk-text-danger uk-text-small">
+                {{ form.annual_income_range.errors.0 }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button
+              type="button"
+              class="btn-back"
+              onclick="window.location.href = '?back=1'"
+            >
+              ← Back
+            </button>
+
+            <button class="btn-next" type="submit">Complete profile ✓</button>
+          </div>
+        </div>
+
+        {% endif %}
+      </div>
+    </form>
+
+    <script>
+      const total = 3;
+      const currentStep = {{ step }} - 1;
+
+      document.addEventListener('DOMContentLoaded', function () {
+        for (let i = 0; i < currentStep; i++) {
+          updateIndicator(i, 'done');
+        }
+        updateIndicator(currentStep, 'active');
+
+        document.getElementById('progressBar').style.width = ({{ step }} / total * 100) + '%';
+      });
+
+      function updateIndicator(idx, state) {
+        const circle = document.getElementById('sc' + idx);
+        const label = document.getElementById('sl' + idx);
+        circle.className = 'step-circle ' + state;
+        label.className = 'step-label ' + state;
+        if (state === 'done') {
+          circle.innerHTML = '✓';
+          if (idx < total - 1) document.getElementById('line' + idx).classList.add('done');
+        }
+        if (state === 'active') {
+          circle.innerHTML = idx + 1;
+        }
+      }
+    </script>
+  </body>
+</html>

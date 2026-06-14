@@ -1,0 +1,694 @@
+{% extends "layouts/users.html" %}
+<!--  -->
+{% load humanize %}
+<!--  -->
+{% block content %}
+<main class="main trade">
+  <div class="topbar">
+    <p class="topbar-title">Trade</p>
+    <div class="topbar-right">
+      <div
+        class="avatar"
+        style="width: 36px; height: 36px; font-size: 13px"
+        onclick="window.location.href = '/dashboard/profile/'"
+      >
+        {{user.get_initials}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Balance strip -->
+  <div class="balance-strip">
+    <div class="balance-strip-left">
+      <div>
+        <p class="bal-label">Balance</p>
+        {% if is_demo %}
+        <p class="bal-val">${{demo_balance|intcomma}}</p>
+        {% elif is_live %}
+
+        <p class="bal-val">${{live_balance|intcomma}}</p>
+        {% endif %}
+      </div>
+      <!-- <div class="bal-badge">Demo account</div> -->
+    </div>
+    {% if is_demo %}
+    <button class="dep-btn">DEMO</button>
+    {% elif is_live %}
+    <button
+      class="dep-btn"
+      style="
+        background-color: rgb(45, 175, 69) !important;
+        color: #fff !important;
+      "
+    >
+      LIVE
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Trade type tabs -->
+  <div class="type-tabs">
+    <div class="type-tab active" id="tt-risefall" onclick="setType('risefall')">
+      <i class="ti ti-arrows-up-down" aria-hidden="true"></i> Rise / Fall
+    </div>
+    <div class="type-tab" id="tt-overunder" onclick="setType('overunder')">
+      <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Over /
+      Under
+    </div>
+    <div class="type-tab" id="tt-accumulator" onclick="setType('accumulator')">
+      <i class="ti ti-trending-up" aria-hidden="true"></i> Accumulator
+    </div>
+  </div>
+
+  <!-- Pair bar -->
+  <div class="pair-bar" id="pairBar">
+    <div class="pair-chip active" data-sym="OTV19" onclick="selectPair(this)">
+      OTV19<span class="pair-chip-sub">Vol 19</span>
+    </div>
+    <div class="pair-chip" data-sym="OTV22" onclick="selectPair(this)">
+      OTV22<span class="pair-chip-sub">Vol 22</span>
+    </div>
+    <div class="pair-chip" data-sym="OTV59" onclick="selectPair(this)">
+      OTV59<span class="pair-chip-sub">Vol 59</span>
+    </div>
+    <div class="pair-chip" data-sym="OTV90" onclick="selectPair(this)">
+      OTV90<span class="pair-chip-sub">Vol 90</span>
+    </div>
+    <div class="pair-chip" data-sym="OTV115" onclick="selectPair(this)">
+      OTV115<span class="pair-chip-sub">Vol 115</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Price panel -->
+    <div class="price-panel">
+      <div class="pair-header">
+        <div class="pair-info">
+          <div class="pair-icon" id="pairIcon">19</div>
+          <div>
+            <p class="pair-name" id="pairName">OTV19</p>
+            <p class="pair-sub">OTEX Volatility 19 · Synthetic</p>
+          </div>
+        </div>
+        <div class="pct-badge up" id="pctBadge">▲ Live</div>
+      </div>
+
+      <div class="live-row">
+        <span class="live-dot"></span>
+        <span class="live-num" id="livePrice">—</span>
+        <span class="live-chg up" id="liveChg"></span>
+      </div>
+
+      <div class="ba-row">
+        <div class="ba-box bid">
+          <p class="ba-label">Bid</p>
+          <p class="ba-val" id="bidPrice">—</p>
+        </div>
+        <div class="ba-box ask">
+          <p class="ba-label">Ask</p>
+          <p class="ba-val" id="askPrice">—</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <p class="stat-label">Session High</p>
+          <p class="stat-val up" id="sHigh">—</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-label">Session Low</p>
+          <p class="stat-val dn" id="sLow">—</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-label">Average</p>
+          <p class="stat-val" id="sAvg">—</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-label">Ticks</p>
+          <p class="stat-val" id="sTicks">0</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-label">Spread</p>
+          <p class="stat-val" id="sSpread">—</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-label">Volatility</p>
+          <p class="stat-val" id="sVol">19</p>
+        </div>
+      </div>
+
+      <!-- All pairs ticker -->
+      <div class="ticker">
+        <p class="ticker-title">All pairs</p>
+        <div class="ticker-row">
+          <span class="t-sym">OTV19</span><span class="t-price" id="tk0">—</span
+          ><span class="t-pct up" id="tkp0">Live</span>
+        </div>
+        <div class="ticker-row">
+          <span class="t-sym">OTV22</span><span class="t-price" id="tk1">—</span
+          ><span class="t-pct up" id="tkp1">Live</span>
+        </div>
+        <div class="ticker-row">
+          <span class="t-sym">OTV59</span><span class="t-price" id="tk2">—</span
+          ><span class="t-pct up" id="tkp2">Live</span>
+        </div>
+        <div class="ticker-row">
+          <span class="t-sym">OTV90</span><span class="t-price" id="tk3">—</span
+          ><span class="t-pct up" id="tkp3">Live</span>
+        </div>
+        <div class="ticker-row">
+          <span class="t-sym">OTV115</span
+          ><span class="t-price" id="tk4">—</span
+          ><span class="t-pct up" id="tkp4">Live</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order panel -->
+    <div class="order-panel">
+      <p class="op-title" id="opTitle">Rise / Fall</p>
+
+      <div class="type-desc" id="typeDesc">
+        Predict whether the exit price will be
+        <strong>higher (Rise)</strong> or <strong>lower (Fall)</strong> than the
+        entry price at the end of the duration.
+      </div>
+
+      <!-- Direction buttons — Rise/Fall -->
+      <div id="rfBtns">
+        <p class="flabel">Direction</p>
+        <div class="direction-row">
+          <button class="dir-btn rise" onclick="placeTrade('Rise')">
+            <i class="ti ti-trending-up" aria-hidden="true"></i> Rise
+          </button>
+          <button class="dir-btn fall" onclick="placeTrade('Fall')">
+            <i class="ti ti-trending-down" aria-hidden="true"></i> Fall
+          </button>
+        </div>
+      </div>
+
+      <!-- Direction buttons — Over/Under -->
+      <div id="ouBtns" style="display: none">
+        <p class="flabel">Direction</p>
+        <div class="direction-row">
+          <button class="dir-btn over" onclick="placeTrade('Over')">
+            <i class="ti ti-chevron-up" aria-hidden="true"></i> Over
+          </button>
+          <button class="dir-btn under" onclick="placeTrade('Under')">
+            <i class="ti ti-chevron-down" aria-hidden="true"></i> Under
+          </button>
+        </div>
+      </div>
+
+      <!-- Accumulator button -->
+      <div id="acBtns" style="display: none">
+        <p class="flabel">Action</p>
+        <div class="direction-row">
+          <button class="dir-btn accum" onclick="placeTrade('Accumulate')">
+            <i class="ti ti-plus" aria-hidden="true"></i> Start Accumulating
+          </button>
+        </div>
+      </div>
+
+      <!-- Barrier (Over/Under only) -->
+      <div class="barrier-wrap" id="barrierWrap">
+        <p class="flabel">Barrier</p>
+        <input
+          class="finput"
+          type="number"
+          id="barrierInput"
+          placeholder="Enter barrier value"
+          step="0.01"
+        />
+      </div>
+
+      <!-- Growth rate (Accumulator only) -->
+      <div class="grow-wrap" id="growWrap">
+        <p class="flabel">Growth rate</p>
+        <div style="display: flex; gap: 8px">
+          <div class="dur-pill active" onclick="setGrowth(this, '1%')">1%</div>
+          <div class="dur-pill" onclick="setGrowth(this, '2%')">2%</div>
+          <div class="dur-pill" onclick="setGrowth(this, '3%')">3%</div>
+          <div class="dur-pill" onclick="setGrowth(this, '4%')">4%</div>
+          <div class="dur-pill" onclick="setGrowth(this, '5%')">5%</div>
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <div id="durWrap">
+        <p class="flabel">Duration</p>
+        <div class="dur-row">
+          <div class="dur-pill" onclick="setDur(this, '1t')">1 tick</div>
+          <div class="dur-pill active" onclick="setDur(this, '5t')">
+            5 ticks
+          </div>
+          <div class="dur-pill" onclick="setDur(this, '10t')">10 ticks</div>
+          <div class="dur-pill" onclick="setDur(this, '1m')">1 min</div>
+          <div class="dur-pill" onclick="setDur(this, '5m')">5 min</div>
+          <div class="dur-pill" onclick="setDur(this, '15m')">15 min</div>
+        </div>
+      </div>
+
+      <!-- Stake -->
+      <div>
+        <p class="flabel">Stake (USD)</p>
+        <input
+          class="finput"
+          type="number"
+          id="stakeInput"
+          placeholder="0.00"
+          min="1"
+          step="1"
+          value="10"
+          oninput="updateSummary()"
+        />
+        <div class="preset-row">
+          <div class="preset" onclick="setStake(5)">$5</div>
+          <div class="preset" onclick="setStake(10)">$10</div>
+          <div class="preset" onclick="setStake(25)">$25</div>
+          <div class="preset" onclick="setStake(50)">$50</div>
+          <div class="preset" onclick="setStake(100)">$100</div>
+        </div>
+      </div>
+
+      <!-- Allow equals toggle (Rise/Fall) -->
+      <div
+        id="equalsWrap"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        "
+      >
+        <span style="font-size: 13px; color: #6b7280; font-weight: 500"
+          >Allow equals</span
+        >
+        <div
+          id="toggleWrap"
+          onclick="toggleEquals()"
+          style="
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            background: #e5e7eb;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+          "
+        >
+          <div
+            id="toggleThumb"
+            style="
+              width: 18px;
+              height: 18px;
+              border-radius: 50%;
+              background: #fff;
+              position: absolute;
+              top: 3px;
+              left: 3px;
+              transition: left 0.2s;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            "
+          ></div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary">
+        <div class="sum-row">
+          <span>Entry price</span><span id="sumEntry">—</span>
+        </div>
+        <div class="sum-row">
+          <span>Duration</span><span id="sumDur">5 ticks</span>
+        </div>
+        <div class="sum-row">
+          <span>Stake</span><span id="sumStake">$10.00</span>
+        </div>
+        <div class="sum-row">
+          <span>Payout (85%)</span><span id="sumPayout">$18.50</span>
+        </div>
+      </div>
+
+      <div class="payout-row">
+        <span class="payout-label">Est. payout</span>
+        <span class="payout-val" id="payoutVal">$18.50</span>
+      </div>
+
+      <div class="bal-row">
+        <span>Available balance</span>
+        <span>${{ balance|intcomma }}</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock content %} {% block script %}
+<script>
+  const PAIRS = {
+    OTV19: { label: "19", vol: 0.19, name: "OTEX Volatility 19" },
+    OTV22: { label: "22", vol: 0.22, name: "OTEX Volatility 22" },
+    OTV59: { label: "59", vol: 0.59, name: "OTEX Volatility 59" },
+    OTV90: { label: "90", vol: 0.9, name: "OTEX Volatility 90" },
+    OTV115: { label: "115", vol: 1.15, name: "OTEX Volatility 115" },
+  };
+
+  const keys = Object.keys(PAIRS);
+  const prices = {};
+  const highs = {};
+  const lows = {};
+  const avgs = {};
+  const ticks = {};
+  const prevPrices = {};
+
+  keys.forEach((k) => {
+    prices[k] = +(40 + Math.random() * 20).toFixed(2);
+    prevPrices[k] = prices[k];
+    highs[k] = prices[k];
+    lows[k] = prices[k];
+    avgs[k] = prices[k];
+    ticks[k] = 0;
+  });
+
+  let currentPair = "OTV19";
+  let currentType = "risefall";
+  let currentDur = "5t";
+  let allowEquals = false;
+  let growthRate = "1%";
+
+  function fmt(n) {
+    return n.toFixed(2);
+  }
+
+  function tick() {
+    keys.forEach((k, i) => {
+      const p = PAIRS[k];
+      const prev = prices[k];
+      const chg = (Math.random() - 0.5) * p.vol * 0.5;
+      const np = Math.max(1, Math.min(100, +(prev + chg).toFixed(2)));
+      prevPrices[k] = prev;
+      prices[k] = np;
+      ticks[k] = (ticks[k] || 0) + 1;
+      if (np > highs[k]) highs[k] = np;
+      if (np < lows[k]) lows[k] = np;
+      avgs[k] = +((avgs[k] * (ticks[k] - 1) + np) / ticks[k]).toFixed(2);
+
+      const el = document.getElementById("tk" + i);
+      const ep = document.getElementById("tkp" + i);
+      if (el) el.textContent = fmt(np);
+      if (ep) {
+        const diff = np - prev;
+        ep.textContent = (diff >= 0 ? "▲" : "▼") + Math.abs(diff).toFixed(2);
+        ep.className = "t-pct " + (diff >= 0 ? "up" : "dn");
+      }
+    });
+    updateMainPanel();
+    updateSummary();
+  }
+
+  function updateMainPanel() {
+    const p = prices[currentPair];
+    const prev = prevPrices[currentPair];
+    const diff = p - prev;
+    const el = document.getElementById("livePrice");
+    if (el) {
+      el.textContent = fmt(p);
+      el.style.color = diff >= 0 ? "#00A878" : "#E85D35";
+      setTimeout(() => {
+        el.style.color = "#111";
+      }, 400);
+    }
+    const chgEl = document.getElementById("liveChg");
+    if (chgEl) {
+      chgEl.textContent = (diff >= 0 ? "+" : "") + diff.toFixed(2);
+      chgEl.className = "live-chg " + (diff >= 0 ? "up" : "dn");
+    }
+    const bid = p - 0.01;
+    const ask = p + 0.01;
+    document.getElementById("bidPrice").textContent = fmt(bid);
+    document.getElementById("askPrice").textContent = fmt(ask);
+    document.getElementById("sHigh").textContent = fmt(highs[currentPair]);
+    document.getElementById("sLow").textContent = fmt(lows[currentPair]);
+    document.getElementById("sAvg").textContent = fmt(avgs[currentPair]);
+    document.getElementById("sTicks").textContent = ticks[currentPair];
+    document.getElementById("sSpread").textContent = "0.02";
+    document.getElementById("sVol").textContent = PAIRS[currentPair].label;
+    document.getElementById("sumEntry").textContent = fmt(p);
+
+    const badge = document.getElementById("pctBadge");
+    badge.textContent = diff >= 0 ? "▲ Live" : "▼ Live";
+    badge.className = "pct-badge " + (diff >= 0 ? "up" : "dn");
+  }
+
+  function updateSummary() {
+    const stake = parseFloat(document.getElementById("stakeInput").value) || 0;
+    const payout = +(stake * 1.85).toFixed(2);
+    document.getElementById("sumStake").textContent = "$" + stake.toFixed(2);
+    document.getElementById("sumPayout").textContent = "$" + payout.toFixed(2);
+    document.getElementById("payoutVal").textContent = "$" + payout.toFixed(2);
+    document.getElementById("sumDur").textContent = durLabel(currentDur);
+  }
+
+  function durLabel(d) {
+    const map = {
+      "1t": "1 tick",
+      "5t": "5 ticks",
+      "10t": "10 ticks",
+      "1m": "1 min",
+      "5m": "5 min",
+      "15m": "15 min",
+    };
+    return map[d] || d;
+  }
+
+  function selectPair(el) {
+    document
+      .querySelectorAll(".pair-chip")
+      .forEach((c) => c.classList.remove("active"));
+    el.classList.add("active");
+    currentPair = el.dataset.sym;
+    document.getElementById("pairName").textContent = currentPair;
+    document.getElementById("pairIcon").textContent = PAIRS[currentPair].label;
+    updateMainPanel();
+  }
+
+  function setType(t) {
+    currentType = t;
+    document
+      .querySelectorAll(".type-tab")
+      .forEach((b) => b.classList.remove("active"));
+    document.getElementById("tt-" + t).classList.add("active");
+
+    const titles = {
+      risefall: "Rise / Fall",
+      overunder: "Over / Under",
+      accumulator: "Accumulator",
+    };
+    const descs = {
+      risefall:
+        "Predict whether the exit price will be <strong>higher (Rise)</strong> or <strong>lower (Fall)</strong> than the entry price at the end of the duration.",
+      overunder:
+        "Predict whether the exit price will be <strong>over</strong> or <strong>under</strong> the barrier value you set.",
+      accumulator:
+        "Your stake grows by the selected <strong>growth rate</strong> each tick, as long as the price stays within the range. Exit anytime to take profit.",
+    };
+
+    document.getElementById("opTitle").textContent = titles[t];
+    document.getElementById("typeDesc").innerHTML = descs[t];
+
+    document.getElementById("rfBtns").style.display =
+      t === "risefall" ? "block" : "none";
+    document.getElementById("ouBtns").style.display =
+      t === "overunder" ? "block" : "none";
+    document.getElementById("acBtns").style.display =
+      t === "accumulator" ? "block" : "none";
+    document.getElementById("barrierWrap").style.display =
+      t === "overunder" ? "block" : "none";
+    document.getElementById("growWrap").style.display =
+      t === "accumulator" ? "block" : "none";
+    document.getElementById("equalsWrap").style.display =
+      t === "risefall" ? "flex" : "none";
+    document.getElementById("durWrap").style.display =
+      t === "accumulator" ? "none" : "block";
+  }
+
+  function setDur(el, d) {
+    document
+      .querySelectorAll(".dur-pill")
+      .forEach((p) => p.classList.remove("active"));
+    el.classList.add("active");
+    currentDur = d;
+    updateSummary();
+  }
+
+  function setGrowth(el, g) {
+    document
+      .querySelectorAll("#growWrap .dur-pill")
+      .forEach((p) => p.classList.remove("active"));
+    el.classList.add("active");
+    growthRate = g;
+  }
+
+  function setStake(v) {
+    document.getElementById("stakeInput").value = v;
+    updateSummary();
+  }
+
+  function toggleEquals() {
+    allowEquals = !allowEquals;
+    const tw = document.getElementById("toggleWrap");
+    const tt = document.getElementById("toggleThumb");
+    tw.style.background = allowEquals ? "#E85D35" : "#E5E7EB";
+    tt.style.left = allowEquals ? "23px" : "3px";
+  }
+
+  const sockets = {};
+
+  function connectAll() {
+    keys.forEach((k) => {
+      connectPair(k);
+    });
+  }
+
+  function connectPair(symbol) {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(
+      `${protocol}://${window.location.host}/ws/price/${symbol}/`,
+    );
+
+    ws.onopen = function () {
+      console.log(`✅ Connected: ${symbol}`);
+    };
+
+    ws.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      const k = data.symbol;
+      const np = parseFloat(data.price);
+
+      // update state
+      prevPrices[k] = prices[k] || np;
+      prices[k] = np;
+      ticks[k] = (ticks[k] || 0) + 1;
+
+      if (!highs[k] || np > highs[k]) highs[k] = np;
+      if (!lows[k] || np < lows[k]) lows[k] = np;
+      avgs[k] = +(((avgs[k] || np) * (ticks[k] - 1) + np) / ticks[k]).toFixed(
+        2,
+      );
+
+      // update ticker row for this pair
+      const i = keys.indexOf(k);
+      const el = document.getElementById("tk" + i);
+      const ep = document.getElementById("tkp" + i);
+      if (el) el.textContent = fmt(np);
+      if (ep) {
+        const diff = np - prevPrices[k];
+        ep.textContent = (diff >= 0 ? "▲" : "▼") + Math.abs(diff).toFixed(2);
+        ep.className = "t-pct " + (diff >= 0 ? "up" : "dn");
+      }
+
+      // if this is the active pair, update the main panel
+      if (k === currentPair) {
+        updateMainPanel();
+        updateSummary();
+      }
+    };
+
+    ws.onclose = function () {
+      console.log(`❌ ${symbol} disconnected — reconnecting in 3s`);
+      setTimeout(() => connectPair(symbol), 3000);
+    };
+
+    ws.onerror = function (err) {
+      console.error(`WebSocket error [${symbol}]:`, err);
+    };
+
+    sockets[symbol] = ws;
+  }
+
+  // start all connections
+  connectAll();
+  updateSummary();
+</script>
+<script>
+  async function placeTrade(direction) {
+    const stake = parseFloat(document.getElementById("stakeInput").value) || 0;
+    if (!stake) {
+      showNotif("Please enter a stake amount.", "error");
+      return;
+    }
+
+    const barrier = document.getElementById("barrierInput")?.value || null;
+
+    // duration — figure out unit
+    const tickDurations = ["1t", "5t", "10t"];
+    const durUnit = tickDurations.includes(currentDur) ? "ticks" : "seconds";
+    const durMap = {
+      "1t": 1,
+      "5t": 5,
+      "10t": 10,
+      "1m": 60,
+      "5m": 300,
+      "15m": 900,
+    };
+    const durVal = durMap[currentDur] || 5;
+
+    const payload = {
+      pair: currentPair,
+      trade_type:
+        currentType === "risefall"
+          ? "RISE_FALL"
+          : currentType === "overunder"
+            ? "OVER_UNDER"
+            : "ACCUMULATOR",
+      direction: direction.toUpperCase(),
+      stake: stake,
+      duration: durVal,
+      duration_unit: durUnit,
+      barrier: barrier,
+    };
+
+    // disable buttons while submitting
+    document.querySelectorAll(".dir-btn").forEach((b) => (b.disabled = true));
+
+    try {
+      const res = await fetch("/dashboard/trade/place/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showNotif(
+          `✅ ${direction} placed! Entry: ${data.entry_price} | Payout: $${data.est_payout}`,
+          "success",
+        );
+        // update balance display
+        document.querySelectorAll(".bal-val").forEach((el) => {
+          el.textContent =
+            "$" +
+            parseFloat(data.balance).toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+            });
+        });
+        // start watching this trade for result
+        console.log(data.trade_id);
+      } else {
+        showNotif(data.error || "Trade failed.", "error");
+      }
+    } catch (err) {
+      showNotif("Network error. Please try again.", "error");
+      console.error(err);
+    } finally {
+      document
+        .querySelectorAll(".dir-btn")
+        .forEach((b) => (b.disabled = false));
+    }
+  }
+</script>
+
+{% endblock script %}

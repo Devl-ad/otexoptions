@@ -1,0 +1,46 @@
+import logging
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+logger = logging.getLogger(__name__)
+
+
+class PriceConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.symbol = self.scope["url_route"]["kwargs"]["symbol"]
+        self.group = f"price_{self.symbol}"
+
+        await self.channel_layer.group_add(self.group, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, code):
+        logger.info(f"❌ WebSocket disconnected: {self.symbol} code={code}")
+        await self.channel_layer.group_discard(self.group, self.channel_name)
+
+    async def price_update(self, event):
+        try:
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "symbol": event["symbol"],
+                        "price": event["price"],
+                        "time": event["time"],
+                    }
+                )
+            )
+        except Exception as e:
+            logger.info(f"Send error: {e}")
+
+
+class TradeConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope["user"].id
+        self.group = f"trade_{self.user_id}"
+        await self.channel_layer.group_add(self.group, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(self.group, self.channel_name)
+
+    async def trade_result(self, event):
+        await self.send(text_data=json.dumps(event))

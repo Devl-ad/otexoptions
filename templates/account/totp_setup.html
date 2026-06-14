@@ -1,0 +1,153 @@
+{% extends "layouts/auth.html" %}
+<!--  -->
+{% block title %}Setup 2FA{% endblock %} {% block content %}
+<div class="form-box" method="post" action="{% url 'account:totp_setup' %}">
+  <a class="logo" href="#">
+    <svg viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+      <rect
+        x="11"
+        y="10"
+        width="6"
+        height="20"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.75"
+      />
+      <rect
+        x="20"
+        y="4"
+        width="6"
+        height="26"
+        rx="2"
+        fill="#E85D35"
+        opacity="0.45"
+      />
+    </svg>
+    <span class="logo-name">OTEX</span>
+  </a>
+
+  <h1>Setup 2FA</h1>
+
+  {% if user.totp_enabled %}
+  <!--  -->
+  <form method="post" action="/auth/2fa/disable/">
+    <!--  -->
+    {% csrf_token %}
+    <div
+      class="uk-alert uk-alert-success"
+      style="font-size: 12px; color: #16a34a"
+    >
+      2FA is currently <strong>enabled</strong> on your account.
+    </div>
+    <button type="submit" class="btn">Disable 2FA →</button>
+  </form>
+  {% else %}
+  <form method="post" action="{% url 'account:totp_setup' %}">
+    {% csrf_token %}
+    <p
+      class="sub"
+      style="
+        font-size: 10px;
+        color: #111;
+
+        font-weight: 400;
+      "
+    >
+      Scan the QR code below with your TOTP app (e.g. Google Authenticator,
+      Authy) and enter the generated code to enable 2FA on your account.
+    </p>
+
+    <div style="margin-bottom: 24px; text-align: center">
+      {% autoescape off %}{{ qr_svg }}{% endautoescape %}
+    </div>
+    <div class="sub">
+      <span
+        >Can't scan the QR code? Enter this secret key in your TOTP app:</span
+      >
+      <br />
+      <div style="display: flex; gap: 8px; margin-top: 10px">
+        <input
+          type="text"
+          value="{{ secret }}"
+          id="secretKey"
+          readonly
+          style="
+            flex: 1;
+            height: 46px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+            padding: 0 12px;
+            font-family: &quot;Inter&quot;, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            outline: none;
+          "
+        />
+        <button
+          type="button"
+          onclick="copySecret()"
+          id="copyBtn"
+          style="
+            height: 46px;
+            padding: 0 16px;
+            background: #e85d35;
+            color: #fff;
+            border: none;
+            border-radius: 1px;
+            font-family: &quot;Inter&quot;, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+          "
+        >
+          Copy
+        </button>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 16px">
+      <label>OTP Code</label>
+      <div class="uk-form-controls">
+        {{form.code}} {% if form.code.errors %}
+        <span
+          class="uk-text-danger uk-text-small"
+          style="font-size: 12px; color: #e85d35"
+        >
+          {{ form.code.errors.0 }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% if form.non_field_errors %}
+    <div
+      class="uk-alert uk-alert-danger"
+      style="font-size: 12px; color: #e85d35"
+    >
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+    <button type="submit" class="btn">Enable 2FA →</button>
+  </form>
+  {% endif %}
+</div>
+
+<script>
+  function copySecret() {
+    const input = document.getElementById("secretKey");
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied ✓";
+      btn.style.background = "#16a34a";
+      setTimeout(() => {
+        btn.textContent = "Copy";
+        btn.style.background = "#E85D35";
+      }, 2000);
+    });
+  }
+</script>
+
+{% endblock %}

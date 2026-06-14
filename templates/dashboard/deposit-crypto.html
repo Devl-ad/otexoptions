@@ -1,0 +1,349 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Cryptocurrency Deposit {% endblock title %}
+<!--  -->
+{% block content %}
+<!-- ════════════════════════════════════════ -->
+<main class="main deposit">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        Deposit Funds
+      </h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Choose a method to add funds to your account
+      </p>
+    </div>
+  </div>
+
+  <div class="dep-page-inner" style="padding: 0 28px 28px">
+    <!-- Method tabs -->
+    <div class="dep-method-tabs" role="tablist" aria-label="Deposit method">
+      <button
+        class="dep-method-tab"
+        role="tab"
+        aria-selected="true"
+        data-panel="agents"
+        onclick="window.location.href = '/dashboard/agents/'"
+      >
+        <i class="ti ti-users" aria-hidden="true"></i> Agents
+      </button>
+      <button
+        class="dep-method-tab active"
+        role="tab"
+        aria-selected="false"
+        data-panel="crypto"
+        onclick="window.location.href = '/dashboard/deposit-funds/crypto/'"
+      >
+        <i class="ti ti-currency-bitcoin" aria-hidden="true"></i> Cryptocurrency
+      </button>
+      <button
+        class="dep-method-tab disabled"
+        role="tab"
+        aria-disabled="true"
+        tabindex="-1"
+      >
+        <i class="ti ti-building-bank" aria-hidden="true"></i> Bank Transfer
+        <span class="coming-soon-badge">Soon</span>
+      </button>
+    </div>
+
+    <!-- ── CRYPTO PANEL ── -->
+    <div id="panel-crypto" class="dep-panel active" role="tabpanel">
+      <div class="crypto-wrap">
+        <!-- Left: form -->
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          class="crypto-form-card"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="coin" id="selectedCoin" value="btc" />
+          <div>
+            <div class="flabel" style="margin-bottom: 10px">Select Coin</div>
+            <div class="coin-selector" id="coinSelector">
+              <div
+                class="coin-option active"
+                data-coin="btc"
+                onclick="selectCoin('btc', this)"
+              >
+                <span class="coin-icon btc">₿</span> Bitcoin (BTC)
+              </div>
+              <div
+                class="coin-option"
+                data-coin="usdt"
+                onclick="selectCoin('usdt', this)"
+              >
+                <span class="coin-icon usdt">₮</span> USDT TRC20
+              </div>
+              <div
+                class="coin-option"
+                data-coin="eth"
+                onclick="selectCoin('eth', this)"
+              >
+                <span class="coin-icon eth">Ξ</span> Ethereum (ETH)
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Deposit Address</div>
+            <div style="margin-top: 8px" class="address-box">
+              <span class="address-text" id="cryptoAddress"
+                >bc1qc6eamxfuk860hg8nzyrk9t4m2xjnldxuusjvmd</span
+              >
+              <button
+                class="copy-btn"
+                onclick="copyAddress()"
+                title="Copy address"
+                aria-label="Copy address"
+              >
+                <i class="ti ti-copy" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Amount (USD)</div>
+            <input
+              type="number"
+              class="finput"
+              id="depAmount"
+              placeholder="Enter amount e.g. 100"
+              min="20"
+              style="margin-top: 6px"
+              name="amount"
+              required
+            />
+            <div class="preset-row">
+              <span class="preset" onclick="setAmount(20)">$20</span>
+              <span class="preset" onclick="setAmount(50)">$500</span>
+              <span class="preset" onclick="setAmount(150)">$150</span>
+              <span class="preset" onclick="setAmount(500)">$500</span>
+              <span class="preset" onclick="setAmount(1000)">$1,000</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Transaction Hash</div>
+            <input
+              type="text"
+              class="finput"
+              id="txHash"
+              name="tx_hash"
+              required
+              placeholder="Paste your transaction hash / TxID"
+              style="margin-top: 6px; font-family: monospace; font-size: 12px"
+            />
+          </div>
+
+          <!-- <div>
+            <div class="flabel" style="margin-bottom: 8px">
+              Upload Screenshot (optional)
+            </div>
+            <label class="hash-upload" for="proofUpload">
+              <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+              <p>
+                <strong>Click to upload</strong> or drag and drop<br />PNG, JPG
+                up to 5MB
+              </p>
+              <input
+                type="file"
+                id="proofUpload"
+                accept="image/*"
+                style="display: none"
+                name="proof"
+              />
+            </label>
+          </div> -->
+
+          <div class="dep-warning">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            <div>
+              <strong>Important:</strong> Crypto deposits usually take
+              <strong>2–4 hours</strong> to reflect in your account after
+              network confirmation. Always double-check the address before
+              sending — funds sent to the wrong address cannot be recovered.
+            </div>
+          </div>
+
+          <button type="submit" class="dep-submit-btn">
+            <i class="ti ti-send" aria-hidden="true"></i> Submit Deposit Request
+          </button>
+        </form>
+
+        <!-- Right: info -->
+        <div class="crypto-info-card">
+          <div class="qr-wrap">
+            <div class="qr-box">
+              <i class="ti ti-qrcode" aria-hidden="true"></i>
+            </div>
+            <div class="qr-label">Scan QR code to copy address</div>
+          </div>
+
+          <div>
+            <div
+              style="
+                font-size: 14px;
+                font-weight: 700;
+                color: #111;
+                margin-bottom: 12px;
+              "
+            >
+              How it works
+            </div>
+            <div class="step-list">
+              <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                  <strong>Choose your coin</strong> — BTC, USDT TRC20, or ETH.
+                  Make sure you send on the correct network.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                  <strong>Copy the deposit address</strong> or scan the QR code.
+                  Send your desired amount from your wallet or exchange.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                  <strong>Enter the transaction hash</strong> (TxID) from your
+                  wallet after sending. This helps us verify your deposit
+                  faster.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                  <strong>Submit the form</strong> and wait 2–4 hours. Your
+                  balance will be updated automatically once confirmed.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dep-warning">
+            <i class="ti ti-shield-exclamation" aria-hidden="true"></i>
+            <div>
+              Never send funds from a non-custodial wallet if you are unsure
+              about the network.
+              <strong
+                >Sending USDT on the wrong network will result in permanent
+                loss.</strong
+              >
+            </div>
+          </div>
+
+          <div
+            style="
+              background: #f9fafb;
+              border-radius: 10px;
+              padding: 14px 16px;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin-bottom: 2px;
+              "
+            >
+              Minimum Deposits
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">Bitcoin (BTC)</span
+              ><strong>$30</strong>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">USDT TRC20</span><strong>$20</strong>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">Ethereum (ETH)</span
+              ><strong>$20</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /crypto panel -->
+  </div>
+</main>
+<!-- ════════════════════════════════════════ -->
+
+{% endblock content %}
+<!--  -->
+{% block script %}
+
+<script>
+  const ADDRESSES = {
+    btc: "bc1qc6eamxfuk860hg8nzyrk9t4m2xjnldxuusjvmd",
+    usdt: "TY6SS4Z8Ep1sM5AMGKpUWfxxBsnmP9eVUe",
+    eth: "0xadbB55a61B9732B130B0B24BD227609663bACFE5",
+  };
+
+  function switchDepPanel(name, btn) {
+    document
+      .querySelectorAll(".dep-panel")
+      .forEach((p) => p.classList.remove("active"));
+    document.querySelectorAll(".dep-method-tab").forEach((t) => {
+      t.classList.remove("active");
+      t.setAttribute("aria-selected", "false");
+    });
+    document.getElementById("panel-" + name).classList.add("active");
+    btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
+  }
+
+  function selectCoin(coin, el) {
+    document
+      .querySelectorAll(".coin-option")
+      .forEach((c) => c.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("cryptoAddress").textContent = ADDRESSES[coin];
+    document.getElementById("selectedCoin").value = coin;
+  }
+
+  function copyAddress() {
+    const addr = document.getElementById("cryptoAddress").textContent;
+    navigator.clipboard.writeText(addr).then(() => {
+      const btn = document.querySelector(".copy-btn");
+      btn.innerHTML = '<i class="ti ti-check" style="color:#00a878"></i>';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="ti ti-copy"></i>';
+      }, 1800);
+    });
+  }
+
+  function setAmount(val) {
+    document.getElementById("depAmount").value = val;
+  }
+</script>
+
+{% endblock script %}

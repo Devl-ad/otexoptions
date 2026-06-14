@@ -1,0 +1,1710 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Deposit Funds {% endblock title %}
+<!--  -->
+{% block style %}
+<style>
+  .main.kyc {
+    margin-left: 220px;
+    flex: 1;
+    padding: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+  .kyc-inner {
+    padding: 0 28px 40px;
+  }
+
+  /* ── Status banner ── */
+  .kyc-status-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    border: 1.5px solid;
+  }
+  .kyc-status-banner.unverified {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
+  }
+  .kyc-status-banner.pending {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+  }
+  .kyc-status-banner.verified {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+  }
+  .kyc-status-banner.rejected {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+  }
+  .kyc-banner-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .kyc-status-banner.unverified .kyc-banner-icon {
+    background: #fef9c3;
+    color: #ca8a04;
+  }
+  .kyc-status-banner.pending .kyc-banner-icon {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+  .kyc-status-banner.verified .kyc-banner-icon {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  .kyc-status-banner.rejected .kyc-banner-icon {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .kyc-banner-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .kyc-banner-text p {
+    font-size: 12px;
+    opacity: 0.85;
+    line-height: 1.5;
+  }
+
+  /* ── Steps ── */
+  .kyc-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .kyc-steps::-webkit-scrollbar {
+    display: none;
+  }
+  .kyc-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+  .kyc-step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #9ca3af;
+    transition: all 0.2s;
+  }
+  .kyc-step.done .kyc-step-circle {
+    background: #00a878;
+    border-color: #00a878;
+    color: #fff;
+  }
+  .kyc-step.active .kyc-step-circle {
+    background: #e85d35;
+    border-color: #e85d35;
+    color: #fff;
+  }
+  .kyc-step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .kyc-step.done .kyc-step-label {
+    color: #00a878;
+  }
+  .kyc-step.active .kyc-step-label {
+    color: #e85d35;
+  }
+  .kyc-step-line {
+    flex: 1;
+    height: 2px;
+    background: #e5e7eb;
+    margin: 0 4px;
+    margin-bottom: 22px;
+    min-width: 24px;
+  }
+  .kyc-step-line.done {
+    background: #00a878;
+  }
+
+  /* ── Grid ── */
+  .kyc-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── Cards ── */
+  .kyc-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 28px;
+  }
+  .kyc-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kyc-card-title i {
+    font-size: 20px;
+    color: #e85d35;
+  }
+  .kyc-card-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 24px;
+  }
+
+  /* ── Fields ── */
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .flabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .finput {
+    width: 100%;
+    height: 44px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 0 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+    outline: none;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .finput:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+  select.finput {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+  .field-error {
+    color: #e85d35;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* ── Doc type ── */
+  .doc-type-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .doc-type-option {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .doc-type-option:hover {
+    border-color: #e85d35;
+  }
+  .doc-type-option.active {
+    border-color: #e85d35;
+    background: #fef0ec;
+  }
+  .doc-type-option i {
+    font-size: 24px;
+    color: #9ca3af;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .doc-type-option.active i {
+    color: #e85d35;
+  }
+  .doc-type-option span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+  .doc-type-option.active span {
+    color: #e85d35;
+  }
+
+  /* ── Upload zones ── */
+  .upload-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .upload-zone {
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 10px;
+    padding: 22px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+    background: #fafafa;
+    position: relative;
+  }
+  .upload-zone:hover {
+    border-color: #e85d35;
+    background: #fef9f7;
+  }
+  .upload-zone.has-file {
+    border-color: #00a878;
+    background: #f0fdf9;
+  }
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .upload-zone i {
+    font-size: 28px;
+    color: #d1d5db;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .upload-zone.has-file i {
+    color: #00a878;
+  }
+  .upload-zone-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 3px;
+  }
+  .upload-zone-sub {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  .upload-zone.has-file .upload-zone-title {
+    color: #00a878;
+  }
+
+  .selfie-zone {
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 10px;
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    background: #fafafa;
+    position: relative;
+  }
+  .selfie-zone:hover {
+    border-color: #e85d35;
+  }
+  .selfie-zone.has-file {
+    border-color: #00a878;
+    background: #f0fdf9;
+  }
+  .selfie-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .selfie-zone i {
+    font-size: 40px;
+    color: #d1d5db;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .selfie-zone.has-file i {
+    color: #00a878;
+  }
+
+  /* ── Submit ── */
+  .kyc-submit-btn {
+    width: 100%;
+    height: 50px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .kyc-submit-btn:hover {
+    opacity: 0.88;
+  }
+  .kyc-submit-btn i {
+    font-size: 18px;
+  }
+  .kyc-submit-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* ── Sidebar ── */
+  .kyc-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .kyc-info-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 20px;
+  }
+  .kyc-info-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .kyc-info-card-title i {
+    font-size: 17px;
+    color: #e85d35;
+  }
+
+  .tier-card {
+    border-radius: 10px;
+    border: 1.5px solid #f3f4f6;
+    padding: 14px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .tier-card:last-child {
+    margin-bottom: 0;
+  }
+  .tier-card.current {
+    border-color: #e85d35;
+  }
+  .tier-badge {
+    position: absolute;
+    top: -1px;
+    right: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 0 0 6px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tier-badge.current {
+    background: #e85d35;
+    color: #fff;
+  }
+  .tier-badge.locked {
+    background: #f3f4f6;
+    color: #9ca3af;
+  }
+  .tier-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+  }
+  .tier-limits {
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+  .tier-limits strong {
+    color: #111;
+  }
+
+  .req-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .req-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.5;
+  }
+  .req-item i {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .req-item i.ok {
+    color: #00a878;
+  }
+  .req-item i.warn {
+    color: #f59e0b;
+  }
+  .req-item i.err {
+    color: #e85d35;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid #f3f4f6;
+    padding: 10px 0;
+  }
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+  .faq-q {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .faq-q i {
+    font-size: 16px;
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .faq-q.open i {
+    transform: rotate(180deg);
+  }
+  .faq-a {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-top: 8px;
+    display: none;
+  }
+  .faq-a.open {
+    display: block;
+  }
+
+  /* ── Alert box ── */
+  .form-alert {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    border: 1px solid #fca5a5;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+  .form-alert i {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #dc2626;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .main.kyc {
+      margin-left: 0 !important;
+      padding: 0 0 90px !important;
+    }
+    .kyc-inner {
+      padding: 0 16px 24px;
+    }
+    .kyc-grid {
+      grid-template-columns: 1fr;
+    }
+    .kyc-sidebar {
+      order: -1;
+    }
+    .field-row {
+      grid-template-columns: 1fr;
+    }
+    .upload-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 480px) {
+    .kyc-card {
+      padding: 18px;
+    }
+    .doc-type-option {
+      padding: 10px 6px;
+    }
+    .doc-type-option i {
+      font-size: 20px;
+    }
+  }
+</style>
+{% endblock style %}
+<!--  -->
+{% block content %}
+
+<main class="main kyc">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        KYC Verification
+      </h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Verify your identity to unlock higher deposit limits and full platform
+        access
+      </p>
+    </div>
+  </div>
+
+  <div class="kyc-inner">
+    <!-- ══ STATUS BANNER ══ -->
+    <div class="kyc-status-banner {{ banner_class }}">
+      <div class="kyc-banner-icon">
+        {% if banner_class == "verified" %}<i class="ti ti-shield-check"></i>
+        {% elif banner_class == "pending" %}
+        <!--  -->
+        <i class="ti ti-clock"></i> {% elif banner_class == "rejected" %}
+        <!--  -->
+        <i class="ti ti-shield-x"></i> {% else %}<i
+          class="ti ti-alert-circle"
+        ></i>
+        {% endif %}
+      </div>
+      <div class="kyc-banner-text">
+        <strong>{{ banner_title }}</strong>
+        <p>{{ banner_body }}</p>
+      </div>
+    </div>
+
+    <!-- ══ STEP PROGRESS ══ -->
+    <div class="kyc-steps">
+      <div class="kyc-step done">
+        <div class="kyc-step-circle"><i class="ti ti-check"></i></div>
+        <span class="kyc-step-label">Account</span>
+      </div>
+      <div class="kyc-step-line done"></div>
+
+      <div
+        class="kyc-step {% if current_step == 2 %}active{% elif current_step > 2 %}done{% endif %}"
+      >
+        <div class="kyc-step-circle">
+          {% if current_step > 2 %}<i class="ti ti-check"></i>
+          <!--  -->
+          {% else %}2{% endif %}
+        </div>
+        <span class="kyc-step-label">Personal Info</span>
+      </div>
+      <div class="kyc-step-line {% if current_step > 2 %}done{% endif %}"></div>
+
+      <div
+        class="kyc-step {% if current_step == 3 %}active{% elif current_step > 3 %}done{% endif %}"
+      >
+        <div class="kyc-step-circle">
+          {% if current_step > 3 %}<i class="ti ti-check"></i>
+          <!--  -->
+          {% else %}3{% endif %}
+        </div>
+        <span class="kyc-step-label">ID Document</span>
+      </div>
+      <div class="kyc-step-line {% if current_step > 3 %}done{% endif %}"></div>
+
+      <div
+        class="kyc-step {% if current_step == 4 %}active{% elif current_step > 4 %}done{% endif %}"
+      >
+        <div class="kyc-step-circle">
+          {% if current_step > 4 %}
+          <!--  -->
+          <i class="ti ti-check"> <!--  --> </i>{% else %}4{% endif %}
+        </div>
+        <span class="kyc-step-label">Selfie</span>
+      </div>
+      <div class="kyc-step-line {% if current_step > 4 %}done{% endif %}"></div>
+
+      <div class="kyc-step {% if current_step == 5 %}done{% endif %}">
+        <div class="kyc-step-circle">
+          {% if current_step == 5 %}
+          <!--  -->
+          <i class="ti ti-check"> <!--  --> </i>{% else %}5{% endif %}
+        </div>
+        <span class="kyc-step-label">Review</span>
+      </div>
+    </div>
+
+    <!-- ══ MAIN GRID ══ -->
+    <div class="kyc-grid">
+      <!-- ── LEFT: form ── -->
+      <div style="display: flex; flex-direction: column; gap: 20px">
+        {% if kyc and kyc.status == "approved" %}
+
+        <!-- ── VERIFIED STATE ── -->
+        <div class="kyc-card" style="text-align: center; padding: 48px 28px">
+          <i
+            class="ti ti-shield-check"
+            style="
+              font-size: 60px;
+              color: #00a878;
+              display: block;
+              margin-bottom: 16px;
+            "
+          ></i>
+          <div
+            style="
+              font-size: 20px;
+              font-weight: 700;
+              color: #111;
+              margin-bottom: 8px;
+            "
+          >
+            You're Verified
+          </div>
+          <p
+            style="
+              color: #6b7280;
+              font-size: 14px;
+              line-height: 1.7;
+              max-width: 360px;
+              margin: 0 auto;
+            "
+          >
+            Your identity has been confirmed. You now have full access to all
+            platform features and higher limits.
+          </p>
+        </div>
+
+        {% elif kyc and kyc.status == "pending" %}
+
+        <!-- ── PENDING STATE ── -->
+        <div class="kyc-card">
+          <div class="kyc-card-title">
+            <i class="ti ti-clock"></i> Submitted — Under Review
+          </div>
+          <p class="kyc-card-sub">
+            Your documents have been received and are being reviewed by our
+            team.
+          </p>
+          <div
+            style="
+              background: #f9fafb;
+              border-radius: 10px;
+              padding: 16px;
+              display: flex;
+              flex-direction: column;
+              gap: 0;
+            "
+          >
+            {% for label, value in pending_summary %}
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+                padding: 10px 0;
+                border-bottom: 1px solid #f3f4f6;
+              "
+            >
+              <span style="color: #9ca3af">{{ label }}</span>
+              <span style="font-weight: 600; color: #111">{{ value }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% else %}
+
+        <!-- ══ EDITABLE FORM (unverified or rejected) ══ -->
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          id="kycForm"
+          novalidate
+        >
+          {% csrf_token %}
+          <!--  -->
+          {% if form.non_field_errors %}
+          <div class="form-alert">
+            <i class="ti ti-alert-circle"></i>
+            <div>
+              {% for e in form.non_field_errors %}
+              <!--  -->
+              {{ e }}
+              <!--  -->
+              {% if not forloop.last %}
+              <!--  -->
+              <br />{% endif %}
+              <!--  -->
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- STEP 2: Personal Information -->
+          <div class="kyc-card" id="section-personal">
+            <div class="kyc-card-title">
+              <i class="ti ti-user-circle"></i> Personal Information
+            </div>
+            <p class="kyc-card-sub">
+              Enter your details exactly as they appear on your
+              government-issued ID.
+            </p>
+
+            <div class="field-group">
+              <div class="field-row">
+                <div class="field-wrap">
+                  <label class="flabel" for="id_first_name">First Name</label>
+                  <input
+                    class="finput{% if form.first_name.errors %} is-error{% endif %}"
+                    type="text"
+                    id="id_first_name"
+                    name="first_name"
+                    value="{{ form.first_name.value|default:'' }}"
+                    placeholder="John"
+                    autocomplete="given-name"
+                  />
+                  {% if form.first_name.errors %}
+                  <div class="field-error">{{ form.first_name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="field-wrap">
+                  <label class="flabel" for="id_last_name">Last Name</label>
+                  <input
+                    class="finput{% if form.last_name.errors %} is-error{% endif %}"
+                    type="text"
+                    id="id_last_name"
+                    name="last_name"
+                    value="{{ form.last_name.value|default:'' }}"
+                    placeholder="Doe"
+                    autocomplete="family-name"
+                  />
+                  {% if form.last_name.errors %}
+                  <div class="field-error">{{ form.last_name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field-wrap">
+                  <label class="flabel" for="id_date_of_birth"
+                    >Date of Birth</label
+                  >
+                  <input
+                    class="finput{% if form.date_of_birth.errors %} is-error{% endif %}"
+                    type="date"
+                    id="id_date_of_birth"
+                    name="date_of_birth"
+                    value="{{ form.date_of_birth.value|default:'' }}"
+                    autocomplete="bday"
+                  />
+                  {% if form.date_of_birth.errors %}
+                  <!--  -->
+                  <div class="field-error">
+                    {{ form.date_of_birth.errors.0 }}
+                    <!--  -->
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="field-wrap">
+                  <label class="flabel" for="id_gender">Gender</label>
+                  <select class="finput" id="id_gender" name="gender">
+                    <option
+                      value=""
+                      disabled
+                      {%
+                      if
+                      not
+                      form.gender.value
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      Select gender
+                    </option>
+                    <option
+                      value="male"
+                      {%
+                      if
+                      form.gender.value=""
+                      ="male"
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      Male
+                    </option>
+                    <option
+                      value="female"
+                      {%
+                      if
+                      form.gender.value=""
+                      ="female"
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      Female
+                    </option>
+                    <option
+                      value="prefer_not_say"
+                      {%
+                      if
+                      form.gender.value=""
+                      ="prefer_not_say"
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      Prefer not to say
+                    </option>
+                  </select>
+                  {% if form.gender.errors %}
+                  <div class="field-error">{{ form.gender.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field-wrap">
+                  <label class="flabel" for="id_nationality">Nationality</label>
+                  <input
+                    class="finput{% if form.nationality.errors %} is-error{% endif %}"
+                    type="text"
+                    id="id_nationality"
+                    name="nationality"
+                    value="{{ form.nationality.value|default:'' }}"
+                    placeholder="e.g. Ghanaian"
+                  />
+                  {% if form.nationality.errors %}
+                  <div class="field-error">{{ form.nationality.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="field-wrap">
+                  <label class="flabel" for="id_phone">Phone Number</label>
+                  <input
+                    class="finput{% if form.phone.errors %} is-error{% endif %}"
+                    type="tel"
+                    id="id_phone"
+                    name="phone"
+                    value="{{ form.phone.value|default:'' }}"
+                    placeholder="+233 20 000 0000"
+                    autocomplete="tel"
+                  />
+                  {% if form.phone.errors %}
+                  <div class="field-error">{{ form.phone.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="field-wrap">
+                <label class="flabel" for="id_address"
+                  >Residential Address</label
+                >
+                <input
+                  class="finput{% if form.address.errors %} is-error{% endif %}"
+                  type="text"
+                  id="id_address"
+                  name="address"
+                  value="{{ form.address.value|default:'' }}"
+                  placeholder="Street address, city, region"
+                  autocomplete="street-address"
+                />
+                {% if form.address.errors %}
+                <div class="field-error">{{ form.address.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <div class="field-row">
+                <div class="field-wrap">
+                  <label class="flabel" for="id_city">City</label>
+                  <input
+                    class="finput{% if form.city.errors %} is-error{% endif %}"
+                    type="text"
+                    id="id_city"
+                    name="city"
+                    value="{{ form.city.value|default:'' }}"
+                    placeholder="Accra"
+                    autocomplete="address-level2"
+                  />
+                  {% if form.city.errors %}
+                  <div class="field-error">{{ form.city.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="field-wrap">
+                  <label class="flabel" for="id_postal_code"
+                    >Postal / Zip Code</label
+                  >
+                  <input
+                    class="finput"
+                    type="text"
+                    id="id_postal_code"
+                    name="postal_code"
+                    value="{{ form.postal_code.value|default:'' }}"
+                    placeholder="00233"
+                    autocomplete="postal-code"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Identity Document -->
+          <div class="kyc-card" id="section-document">
+            <div class="kyc-card-title">
+              <i class="ti ti-id-badge"></i> Identity Document
+            </div>
+            <p class="kyc-card-sub">
+              Upload a clear, unobstructed photo of your government-issued ID.
+              All four corners must be visible.
+            </p>
+
+            {# Hidden field for doc type — set by the JS card selector #}
+            <input
+              type="hidden"
+              id="id_document_type"
+              name="document_type"
+              value="{{ form.document_type.value|default:'passport' }}"
+            />
+
+            <div class="flabel" style="margin-bottom: 10px">Document Type</div>
+            <div class="doc-type-row">
+              <div
+                class="doc-type-option {% if form.document_type.value == 'passport' or not form.document_type.value %}active{% endif %}"
+                data-type="passport"
+                onclick="selectDocType('passport', this)"
+              >
+                <i class="ti ti-passport"></i><span>Passport</span>
+              </div>
+              <div
+                class="doc-type-option {% if form.document_type.value == 'national_id' %}active{% endif %}"
+                data-type="national_id"
+                onclick="selectDocType('national_id', this)"
+              >
+                <i class="ti ti-id-badge-2"></i><span>National ID</span>
+              </div>
+              <div
+                class="doc-type-option {% if form.document_type.value == 'drivers_license' %}active{% endif %}"
+                data-type="drivers_license"
+                onclick="selectDocType('drivers_license', this)"
+              >
+                <i class="ti ti-license"></i><span>Driver's License</span>
+              </div>
+            </div>
+
+            <div class="field-wrap" style="margin-bottom: 20px">
+              <label class="flabel" for="id_document_number"
+                >Document Number</label
+              >
+              <input
+                class="finput{% if form.document_number.errors %} is-error{% endif %}"
+                type="text"
+                id="id_document_number"
+                name="document_number"
+                value="{{ form.document_number.value|default:'' }}"
+                placeholder="e.g. GHA-A12345678"
+                style="margin-top: 6px; font-family: monospace"
+              />
+              {% if form.document_number.errors %}
+              <div class="field-error">{{ form.document_number.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="flabel" style="margin-bottom: 10px">Upload Photos</div>
+            <div class="upload-row">
+              <label
+                class="upload-zone {% if kyc and kyc.document_front %}has-file{% endif %}"
+                id="zone-front"
+                for="id_document_front"
+              >
+                <input
+                  type="file"
+                  id="id_document_front"
+                  name="document_front"
+                  accept="image/*"
+                  onchange="handleUpload('zone-front', 'front-label', this)"
+                />
+                <i class="ti ti-photo-up"></i>
+                <div class="upload-zone-title" id="front-label">
+                  {% if kyc and kyc.document_front %}
+                  <!--  -->
+                  ✓ Front uploaded{% else %}
+                  <!--  -->
+                  Front Side{% endif %}
+                </div>
+                <div class="upload-zone-sub">JPG, PNG up to 10MB</div>
+              </label>
+              <label
+                class="upload-zone {% if kyc and kyc.document_back %}has-file{% endif %}"
+                id="zone-back"
+                for="id_document_back"
+              >
+                <input
+                  type="file"
+                  id="id_document_back"
+                  name="document_back"
+                  accept="image/*"
+                  onchange="handleUpload('zone-back', 'back-label', this)"
+                />
+                <i class="ti ti-photo-up"></i>
+                <div class="upload-zone-title" id="back-label">
+                  {% if kyc and kyc.document_back %}✓ Back uploaded
+                  <!--  -->
+                  {% else %}
+                  <!--  -->
+                  Back Side{% endif %}
+                </div>
+                <div class="upload-zone-sub">Not required for passport</div>
+              </label>
+            </div>
+            {% if form.document_front.errors %}
+            <div class="field-error" style="margin-bottom: 6px">
+              {{ form.document_front.errors.0 }}
+            </div>
+            {% endif %} {% if form.document_back.errors %}
+            <div class="field-error" style="margin-bottom: 6px">
+              {{ form.document_back.errors.0 }}
+            </div>
+            {% endif %}
+
+            <div
+              style="
+                background: #f9fafb;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-top: 4px;
+              "
+            >
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: 700;
+                  color: #9ca3af;
+                  text-transform: uppercase;
+                  letter-spacing: 0.04em;
+                  margin-bottom: 8px;
+                "
+              >
+                Photo Requirements
+              </div>
+              <div class="req-list">
+                <div class="req-item">
+                  <i class="ti ti-circle-check ok"></i>All four corners of the
+                  document clearly visible
+                </div>
+                <div class="req-item">
+                  <i class="ti ti-circle-check ok"></i>No glare, blur, or
+                  shadows covering the text
+                </div>
+                <div class="req-item">
+                  <i class="ti ti-circle-check ok"></i>Document must be valid
+                  and not expired
+                </div>
+                <div class="req-item">
+                  <i class="ti ti-alert-triangle warn"></i>Scanned photocopies
+                  are not accepted
+                </div>
+                <div class="req-item">
+                  <i class="ti ti-alert-triangle warn"></i>Screenshots from a
+                  phone screen are not accepted
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: Selfie -->
+          <div class="kyc-card" id="section-selfie">
+            <div class="kyc-card-title">
+              <i class="ti ti-camera"></i> Selfie with Document
+            </div>
+            <p class="kyc-card-sub">
+              Take a clear selfie holding your ID next to your face. Both must
+              be clearly readable.
+            </p>
+
+            <label
+              class="selfie-zone {% if kyc and kyc.selfie %}has-file{% endif %}"
+              id="zone-selfie"
+              for="id_selfie"
+            >
+              <input
+                type="file"
+                id="id_selfie"
+                name="selfie"
+                accept="image/*"
+                capture="user"
+                onchange="handleUpload('zone-selfie', 'selfie-label', this)"
+              />
+              <i class="ti ti-user-scan"></i>
+              <div
+                class="upload-zone-title"
+                id="selfie-label"
+                style="font-size: 14px; margin-bottom: 4px"
+              >
+                {% if kyc and kyc.selfie %}✓ Selfie uploaded{% else %}Tap to
+                take selfie or upload photo{% endif %}
+              </div>
+              <div class="upload-zone-sub">
+                Hold your ID beside your face — both must be visible
+              </div>
+            </label>
+            {% if form.selfie.errors %}
+            <div class="field-error" style="margin-top: 6px">
+              {{ form.selfie.errors.0 }}
+            </div>
+            {% endif %}
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 16px;
+              "
+            >
+              <div
+                style="
+                  background: #f0fdf9;
+                  border-radius: 10px;
+                  padding: 12px;
+                  text-align: center;
+                "
+              >
+                <i
+                  class="ti ti-circle-check"
+                  style="
+                    font-size: 22px;
+                    color: #00a878;
+                    display: block;
+                    margin-bottom: 6px;
+                  "
+                ></i>
+                <div style="font-size: 11px; font-weight: 600; color: #166534">
+                  Face clearly visible<br />Good lighting
+                </div>
+              </div>
+              <div
+                style="
+                  background: #fef2f2;
+                  border-radius: 10px;
+                  padding: 12px;
+                  text-align: center;
+                "
+              >
+                <i
+                  class="ti ti-circle-x"
+                  style="
+                    font-size: 22px;
+                    color: #e85d35;
+                    display: block;
+                    margin-bottom: 6px;
+                  "
+                ></i>
+                <div style="font-size: 11px; font-weight: 600; color: #991b1b">
+                  No sunglasses<br />No face coverings
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 5: Review & Submit -->
+          <div class="kyc-card" id="section-review">
+            <div class="kyc-card-title">
+              <i class="ti ti-file-check"></i> Review & Submit
+            </div>
+            <p class="kyc-card-sub">
+              By submitting you confirm that all information is accurate and the
+              documents belong to you.
+            </p>
+
+            <div
+              style="
+                background: #f9fafb;
+                border-radius: 10px;
+                padding: 16px;
+                margin-bottom: 20px;
+              "
+            >
+              <div style="display: flex; flex-direction: column; gap: 0">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  "
+                >
+                  <span style="color: #9ca3af">Full Name</span>
+                  <span style="font-weight: 600; color: #111" id="review-name">
+                    {{ form.first_name.value|default:"—" }}
+                    <!--  -->
+                    {{ form.last_name.value|default:"" }}
+                    <!--  -->
+                  </span>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  "
+                >
+                  <span style="color: #9ca3af">Date of Birth</span>
+                  <span style="font-weight: 600; color: #111" id="review-dob"
+                    >{{ form.date_of_birth.value|default:"—" }}</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  "
+                >
+                  <span style="color: #9ca3af">Nationality</span>
+                  <span
+                    style="font-weight: 600; color: #111"
+                    id="review-nationality"
+                    >{{ form.nationality.value|default:"—" }}</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  "
+                >
+                  <span style="color: #9ca3af">Document Type</span>
+                  <span
+                    style="font-weight: 600; color: #111"
+                    id="review-doctype"
+                  >
+                    {% if form.document_type.value == "national_id" %}
+                    <!--  -->
+                    National ID
+                    <!--  -->
+                    {% elif form.document_type.value == "drivers_license" %}
+                    <!--  -->
+                    Driver's License {% else %}
+                    <!--  -->
+                    Passport{% endif %}
+                  </span>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                    border-bottom: 1px solid #f3f4f6;
+                  "
+                >
+                  <span style="color: #9ca3af">Document Number</span>
+                  <span
+                    style="
+                      font-weight: 600;
+                      color: #111;
+                      font-family: monospace;
+                    "
+                    id="review-docnum"
+                    >{{ form.document_number.value|default:"—" }}</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                    padding: 9px 0;
+                  "
+                >
+                  <span style="color: #9ca3af">Files Uploaded</span>
+                  <span
+                    style="font-weight: 600; color: #e85d35"
+                    id="review-files"
+                  >
+                    {% if kyc %}
+                    <!--  -->
+                    {{ kyc.document_front|yesno:"1,0" }}
+                    <!--  -->
+                    {% else %}0{% endif %} / 2
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <label
+              style="
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                cursor: pointer;
+                margin-bottom: 20px;
+              "
+            >
+              <input
+                type="checkbox"
+                id="consentCheck"
+                style="
+                  margin-top: 3px;
+                  accent-color: #e85d35;
+                  width: 16px;
+                  height: 16px;
+                  flex-shrink: 0;
+                "
+              />
+              <span style="font-size: 12px; color: #6b7280; line-height: 1.6">
+                I confirm that all submitted information is accurate and the
+                documents belong to me. I consent to OTEX processing my personal
+                data for identity verification in accordance with the
+                <a style="color: #e85d35; font-weight: 600">Privacy Policy</a>.
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              class="kyc-submit-btn"
+              id="submitBtn"
+              onclick="return checkConsent();"
+            >
+              <i class="ti ti-send"></i>
+              {% if kyc and kyc.status == "rejected" %}Resubmit for
+              Verification{% else %}Submit for Verification{% endif %}
+            </button>
+
+            <p
+              style="
+                font-size: 11px;
+                color: #9ca3af;
+                text-align: center;
+                margin-top: 12px;
+                line-height: 1.6;
+              "
+            >
+              Verification usually takes
+              <strong style="color: #111">1–3 business days</strong>. You will
+              be notified by email once reviewed.
+            </p>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+      <!-- /left -->
+
+      <!-- ── RIGHT: sidebar ── -->
+      <div class="kyc-sidebar">
+        <div class="kyc-info-card">
+          <div class="kyc-info-card-title">
+            <i class="ti ti-shield-check"></i> Verification Tiers
+          </div>
+
+          <div
+            class="tier-card {% if not kyc or kyc.status == 'unverified' or kyc.status == 'rejected' %}current{% endif %}"
+          >
+            <span
+              class="tier-badge {% if not kyc or kyc.status == 'unverified' or kyc.status == 'rejected' %}current{% else %}locked{% endif %}"
+            >
+              <!-- {% if not kyc or kyc.status == 'unverified' or kyc.status == 'rejected' %}   -->
+              <!--  -->
+              Current{% else %}<i class="ti ti-lock" style="font-size: 9px"></i>
+              Past{% endif %}
+            </span>
+            <div class="tier-name">Tier 1 — Unverified</div>
+            <div class="tier-limits">
+              Deposit: <strong>$0 – $1000 / day</strong><br />
+              Withdrawal: <strong>Not available</strong><br />
+              Trading: <strong>Demo / Live</strong>
+            </div>
+          </div>
+
+          <div
+            class="tier-card {% if kyc and kyc.status == 'approved' %}current{% endif %}"
+          >
+            <span
+              class="tier-badge {% if kyc and kyc.status == 'approved' %}current{% else %}locked{% endif %}"
+            >
+              {% if kyc and kyc.status == 'approved' %}Current{% else %}<i
+                class="ti ti-lock"
+                style="font-size: 9px"
+              ></i>
+              Locked{% endif %}
+            </span>
+            <div class="tier-name">Tier 2 — Basic KYC</div>
+            <div class="tier-limits">
+              Deposit: <strong>Up to $5,000 / day</strong><br />
+              Withdrawal: <strong>Up to $2,000 / day</strong><br />
+              Trading: <strong>Full live access</strong>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <span class="tier-badge locked"
+              ><i class="ti ti-lock" style="font-size: 9px"></i> Locked</span
+            >
+            <div class="tier-name">Tier 3 — Advanced KYC</div>
+            <div class="tier-limits">
+              Deposit: <strong>Unlimited</strong><br />
+              Withdrawal: <strong>Up to $50,000 / day</strong><br />
+              Trading: <strong>VIP access + bonus</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="kyc-info-card">
+          <div class="kyc-info-card-title">
+            <i class="ti ti-checklist"></i> What You Need
+          </div>
+          <div class="req-list">
+            <div class="req-item">
+              <i class="ti ti-circle-check ok"></i>Valid government-issued photo
+              ID
+            </div>
+            <div class="req-item">
+              <i class="ti ti-circle-check ok"></i>Selfie holding the ID next to
+              your face
+            </div>
+            <div class="req-item">
+              <i class="ti ti-circle-check ok"></i>Must be 18 years or older
+            </div>
+            <div class="req-item">
+              <i class="ti ti-circle-check ok"></i>Stable internet connection
+              for uploads
+            </div>
+            <div class="req-item">
+              <i class="ti ti-circle-x err"></i>Expired documents not accepted
+            </div>
+            <div class="req-item">
+              <i class="ti ti-circle-x err"></i>Non-English documents need a
+              certified translation
+            </div>
+          </div>
+        </div>
+
+        <div class="kyc-info-card">
+          <div class="kyc-info-card-title">
+            <i class="ti ti-help-circle"></i> FAQs
+          </div>
+          <div>
+            <div class="faq-item">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                How long does verification take?
+                <i class="ti ti-chevron-down"></i>
+              </div>
+              <div class="faq-a">
+                Most applications are reviewed within 1–3 business days. During
+                peak periods it may take up to 5 days.
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                Is my data secure? <i class="ti ti-chevron-down"></i>
+              </div>
+              <div class="faq-a">
+                Yes. All documents are encrypted at rest and in transit. We do
+                not share your data with third parties except as required by
+                law.
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                What if my application is rejected?
+                <i class="ti ti-chevron-down"></i>
+              </div>
+              <div class="faq-a">
+                You will receive an email explaining the reason. You can
+                resubmit after correcting the issue — most rejections are due to
+                blurry photos or mismatched information.
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                Can I use a passport from any country?
+                <i class="ti ti-chevron-down"></i>
+              </div>
+              <div class="faq-a">
+                Yes, any valid international passport is accepted regardless of
+                country of issue, as long as it is not expired.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /sidebar -->
+    </div>
+  </div>
+</main>
+
+{% endblock content %}
+<!--  -->
+{% block script %}
+<script>
+  /* ── Doc type selector ── */
+  let selectedDocType = "{{ form.document_type.value|default:'passport' }}";
+
+  function selectDocType(type, el) {
+    selectedDocType = type;
+    document.querySelectorAll(".doc-type-option").forEach(o => o.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("id_document_type").value = type;
+
+    const back    = document.getElementById("zone-back");
+    const backSub = back.querySelector(".upload-zone-sub");
+    if (type === "passport") {
+      backSub.textContent      = "Not required for passport";
+      back.style.opacity       = "0.5";
+      back.style.pointerEvents = "none";
+    } else {
+      backSub.textContent      = "Back side of ID";
+      back.style.opacity       = "1";
+      back.style.pointerEvents = "";
+    }
+
+    const labels = { passport:"Passport", national_id:"National ID", drivers_license:"Driver's License" };
+    document.getElementById("review-doctype").textContent = labels[type];
+  }
+
+  /* ── File upload handler ── */
+  let uploadedFiles = {
+    front: {{ kyc.document_front|yesno:"true,false" }},
+    back:  {{ kyc.document_back|yesno:"true,false" }},
+    selfie:{{ kyc.selfie|yesno:"true,false" }},
+  };
+
+  function handleUpload(zoneId, labelId, input) {
+    if (input.files && input.files[0]) {
+      const name  = input.files[0].name;
+      const zone  = document.getElementById(zoneId);
+      const label = document.getElementById(labelId);
+      zone.classList.add("has-file");
+      label.textContent = name.length > 24 ? name.slice(0,22) + "…" : name;
+      const key = zoneId === "zone-front" ? "front" : zoneId === "zone-back" ? "back" : "selfie";
+      uploadedFiles[key] = true;
+      updateReview();
+    }
+  }
+
+  /* ── Live review summary ── */
+  function updateReview() {
+    const first = document.getElementById("id_first_name").value.trim();
+    const last  = document.getElementById("id_last_name").value.trim();
+    document.getElementById("review-name").textContent = (first || last) ? `${first} ${last}`.trim() : "—";
+
+    const dob = document.getElementById("id_date_of_birth").value;
+    document.getElementById("review-dob").textContent = dob
+      ? new Date(dob + "T00:00:00").toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })
+      : "—";
+
+    document.getElementById("review-nationality").textContent =
+      document.getElementById("id_nationality").value.trim() || "—";
+
+    document.getElementById("review-docnum").textContent =
+      document.getElementById("id_document_number").value.trim() || "—";
+
+    const count = Object.values(uploadedFiles).filter(Boolean).length;
+    const total = selectedDocType === "passport" ? 2 : 3;
+    const el    = document.getElementById("review-files");
+    el.textContent = `${count} / ${total}`;
+    el.style.color = count >= total ? "#00a878" : "#e85d35";
+  }
+
+  ["id_first_name","id_last_name","id_date_of_birth","id_nationality","id_document_number"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", updateReview);
+  });
+
+  /* ── Consent check ── */
+  function checkConsent() {
+    if (!document.getElementById("consentCheck").checked) {
+      alert("Please read and accept the consent statement before submitting.");
+      return false;
+    }
+    return true;
+  }
+
+  /* ── FAQ toggle ── */
+  function toggleFaq(el) {
+    const ans    = el.nextElementSibling;
+    const isOpen = ans.classList.contains("open");
+    document.querySelectorAll(".faq-a").forEach(a => a.classList.remove("open"));
+    document.querySelectorAll(".faq-q").forEach(q => q.classList.remove("open"));
+    if (!isOpen) { ans.classList.add("open"); el.classList.add("open"); }
+  }
+
+  /* ── Init ── */
+  window.addEventListener("DOMContentLoaded", () => {
+    // Set correct back-zone state for saved doc type
+    const current = document.getElementById("id_document_type")?.value || "passport";
+    const activeEl = document.querySelector(`.doc-type-option[data-type="${current}"]`);
+    if (activeEl) selectDocType(current, activeEl);
+    updateReview();
+  });
+</script>
+{% endblock script %}

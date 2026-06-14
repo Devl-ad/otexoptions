@@ -1,0 +1,1120 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Withdraw funds {% endblock title %}
+<!--  -->
+{% block style %}
+<style>
+  /* ══════════════════════════════════════
+         Withdrawal Page
+      ══════════════════════════════════════ */
+
+  @media (max-width: 767px) {
+    .main.withdraw .topbar-right {
+      display: none !important;
+    }
+  }
+
+  .main.withdraw {
+    margin-left: 220px;
+    flex: 1;
+    min-height: 100vh;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .wd-inner {
+    padding: 0 28px 40px;
+  }
+
+  /* ── Balance strip ── */
+  .wd-balance-strip {
+    background: #0f1117;
+    border-radius: 4px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .wd-bal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .wd-bal-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .wd-bal-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .wd-bal-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 2px;
+  }
+  .wd-bal-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .wd-bal-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .wd-stat {
+    text-align: right;
+  }
+  .wd-stat-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+  .wd-stat-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .wd-kyc-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1a3a2a;
+    color: #00d4aa;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .wd-kyc-pill.unverified {
+    background: #3a1a0a;
+    color: #f59e0b;
+  }
+  .wd-kyc-pill i {
+    font-size: 14px;
+  }
+
+  /* ── Method tabs ── */
+  .wd-method-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .wd-method-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .wd-method-tab:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .wd-method-tab.active {
+    background: #e85d35;
+    border-color: #e85d35;
+    color: #fff;
+  }
+  .wd-method-tab.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .wd-method-tab i {
+    font-size: 18px;
+  }
+  .coming-soon-badge {
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    background: #6b7280;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── Panel ── */
+  .wd-panel {
+    display: none;
+  }
+  .wd-panel.active {
+    display: block;
+  }
+
+  /* ── Grid ── */
+  .wd-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── Form card ── */
+  .wd-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 26px;
+  }
+  .wd-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .wd-card-title i {
+    font-size: 20px;
+    color: #e85d35;
+  }
+  .wd-card-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 22px;
+  }
+
+  /* ── Fields ── */
+  .field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .flabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .finput {
+    width: 100%;
+    height: 46px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 0 14px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+    outline: none;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .finput:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+  .finput.mono {
+    font-family: monospace;
+    font-size: 13px;
+  }
+  select.finput {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  /* Amount field with currency prefix */
+  .amount-wrap {
+    position: relative;
+  }
+  .amount-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+  .amount-wrap .finput {
+    padding-left: 30px;
+  }
+  .amount-suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  /* Preset chips */
+  .preset-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .preset {
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+
+  /* ── Network selector (crypto) ── */
+  .network-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .network-chip {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .network-chip:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .network-chip.active {
+    border-color: #e85d35;
+    background: #fef0ec;
+    color: #e85d35;
+  }
+  .network-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Fee breakdown ── */
+  .fee-box {
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 18px;
+  }
+  .fee-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+  }
+  .fee-row:last-child {
+    border-bottom: none;
+  }
+  .fee-row.total {
+    font-weight: 700;
+  }
+  .fee-key {
+    color: #6b7280;
+  }
+  .fee-val {
+    font-weight: 600;
+    color: #111;
+  }
+  .fee-val.green {
+    color: #00a878;
+  }
+  .fee-val.red {
+    color: #e85d35;
+  }
+
+  /* ── Warning / info boxes ── */
+  .wd-warning {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: #92400e;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .wd-warning i {
+    font-size: 18px;
+    color: #f59e0b;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .wd-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: #1e40af;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .wd-info i {
+    font-size: 18px;
+    color: #3b82f6;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .wd-danger {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: #991b1b;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .wd-danger i {
+    font-size: 18px;
+    color: #dc2626;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Submit ── */
+  .wd-submit-btn {
+    width: 100%;
+    height: 50px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .wd-submit-btn:hover {
+    opacity: 0.88;
+  }
+  .wd-submit-btn i {
+    font-size: 18px;
+  }
+  .wd-submit-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* ── Sidebar info cards ── */
+  .wd-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .wd-info-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 20px;
+  }
+  .wd-info-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .wd-info-card-title i {
+    font-size: 17px;
+    color: #e85d35;
+  }
+
+  /* Recent withdrawals list */
+  .wd-history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f9fafb;
+  }
+  .wd-history-item:last-child {
+    border-bottom: none;
+  }
+  .wd-history-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .wd-history-icon.crypto {
+    background: #f5f3ff;
+    color: #7c3aed;
+  }
+  .wd-history-icon.agent {
+    background: #fef0ec;
+    color: #e85d35;
+  }
+  .wd-history-icon.bank {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  .wd-history-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111;
+  }
+  .wd-history-sub {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 1px;
+  }
+  .wd-history-right {
+    margin-left: auto;
+    text-align: right;
+  }
+  .wd-history-amount {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  }
+  .wd-history-status {
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 2px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+  .wd-history-status.completed {
+    background: #e6f8f2;
+    color: #00a878;
+  }
+  .wd-history-status.pending {
+    background: #fffbeb;
+    color: #d97706;
+  }
+  .wd-history-status.failed {
+    background: #fef0ec;
+    color: #e85d35;
+  }
+
+  /* Limits table */
+  .limits-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .limits-table th {
+    text-align: left;
+    padding: 6px 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .limits-table td {
+    padding: 9px 0;
+    border-bottom: 1px solid #f9fafb;
+    color: #374151;
+  }
+  .limits-table tr:last-child td {
+    border-bottom: none;
+  }
+  .limits-table td:last-child {
+    text-align: right;
+    font-weight: 600;
+    color: #111;
+  }
+
+  /* Step list */
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fef0ec;
+    color: #e85d35;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text {
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.6;
+  }
+  .step-text strong {
+    color: #111;
+    font-weight: 600;
+  }
+
+  /* KYC lock overlay */
+  .kyc-lock-overlay {
+    background: #fff;
+    border-radius: 14px;
+    border: 1.5px dashed #fca5a5;
+    padding: 40px 28px;
+    text-align: center;
+  }
+  .kyc-lock-overlay i {
+    font-size: 52px;
+    color: #fca5a5;
+    display: block;
+    margin-bottom: 16px;
+  }
+  .kyc-lock-overlay h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 8px;
+  }
+  .kyc-lock-overlay p {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  .kyc-lock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #e85d35;
+    color: #fff;
+    padding: 11px 24px;
+    border-radius: 9px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
+  }
+  .kyc-lock-btn:hover {
+    opacity: 0.88;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .main.withdraw {
+      margin-left: 0 !important;
+      padding-bottom: 90px;
+    }
+    .wd-inner {
+      padding: 0 14px 24px;
+    }
+    .wd-grid {
+      grid-template-columns: 1fr;
+    }
+    .wd-sidebar {
+      order: -1;
+    }
+  }
+  @media (max-width: 480px) {
+    .wd-balance-strip {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .wd-bal-right {
+      flex-direction: row;
+      gap: 16px;
+    }
+    .wd-bal-divider {
+      display: none;
+    }
+    .wd-card {
+      padding: 18px;
+    }
+  }
+</style>
+
+{% endblock style %}
+<!--  -->
+{% block content %}
+
+<main class="main withdraw">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        Withdraw Funds
+      </h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Transfer your earnings to your preferred account
+      </p>
+    </div>
+    <div
+      class="topbar-right"
+      style="display: flex; align-items: center; gap: 10px"
+    >
+      <div class="topbar-btn">
+        <i class="ti ti-bell"></i><span class="badge">3</span>
+      </div>
+      <div class="avatar">JD</div>
+    </div>
+  </div>
+
+  <div class="wd-inner">
+    <!-- ── Balance strip ── -->
+    <div class="wd-balance-strip">
+      <div class="wd-bal-group">
+        <div class="wd-bal-label">Available Balance</div>
+        <div class="wd-bal-val">${{live_balance|intcomma}}</div>
+        <div class="wd-bal-sub">Real account • Updated just now</div>
+      </div>
+      <div class="wd-bal-right">
+        <div class="wd-bal-divider"></div>
+
+        <div class="wd-kyc-pill">
+          <i class="ti ti-shield-check"></i> KYC Verified
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Method tabs ── -->
+    <div class="wd-method-tabs">
+      <button
+        class="wd-method-tab active"
+        data-panel="crypto"
+        onclick="switchPanel('crypto', this)"
+      >
+        <i class="ti ti-currency-bitcoin"></i> Cryptocurrency
+      </button>
+      <button
+        class="wd-method-tab"
+        data-panel="agent"
+        onclick="window.location.href = '/dashboard/agents/'"
+      >
+        <i class="ti ti-users"></i> Agent (P2P)
+      </button>
+      <button class="wd-method-tab disabled">
+        <i class="ti ti-building-bank"></i> Bank Transfer
+        <span class="coming-soon-badge">Soon</span>
+      </button>
+    </div>
+
+    <!-- ════ CRYPTO PANEL ════ -->
+    <div id="panel-crypto" class="wd-panel active">
+      <div class="wd-grid">
+        <!-- Form -->
+        <form method="post" action="/dashboard/withdraw-funds/" class="wd-card">
+          {% csrf_token %}
+          <input type="hidden" name="coin" id="coinType" value="btc" />
+          <input type="hidden" name="fee" id="withFee" />
+          <div class="wd-card-title">
+            <i class="ti ti-currency-bitcoin"></i> Crypto Withdrawal
+          </div>
+          <p class="wd-card-sub">
+            Withdraw to any cryptocurrency wallet. Processing time is 1–24 hours
+            after approval.
+          </p>
+
+          <!-- Coin selector -->
+          <div class="field-wrap">
+            <div class="flabel">Select Coin</div>
+            <div class="network-row" id="coinRow">
+              <div
+                class="network-chip active"
+                data-coin="btc"
+                onclick="selectCoin('btc', this)"
+              >
+                <span class="network-dot" style="background: #f7931a"></span>
+                Bitcoin (BTC)
+              </div>
+              <div
+                class="network-chip"
+                data-coin="usdt"
+                onclick="selectCoin('usdt', this)"
+              >
+                <span class="network-dot" style="background: #26a17b"></span>
+                USDT TRC20
+              </div>
+              <div
+                class="network-chip"
+                data-coin="eth"
+                onclick="selectCoin('eth', this)"
+              >
+                <span class="network-dot" style="background: #6366f1"></span>
+                Ethereum (ETH)
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet address -->
+          <div class="field-wrap">
+            <label class="flabel" for="walletAddress"
+              >Your Wallet Address</label
+            >
+            <input
+              class="finput mono"
+              type="text"
+              id="walletAddress"
+              placeholder="Paste your BTC wallet address here"
+              name="address"
+              required
+            />
+            <div style="font-size: 11px; color: #9ca3af; margin-top: 4px">
+              Double-check the address — withdrawals to wrong addresses cannot
+              be recovered.
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="field-wrap">
+            <label class="flabel" for="cryptoAmount">Amount (USD)</label>
+            <div class="amount-wrap">
+              <span class="amount-prefix">$</span>
+              <input
+                class="finput"
+                type="number"
+                id="cryptoAmount"
+                placeholder="0.00"
+                min="10"
+                oninput="updateCryptoFees()"
+                required
+                name="amount"
+              />
+              <span class="amount-suffix" id="cryptoMaxLabel"
+                >Max ${{live_balance|intcomma}}</span
+              >
+            </div>
+            <div class="preset-row">
+              <span class="preset" onclick="setCryptoAmount(200)">$200</span>
+              <span class="preset" onclick="setCryptoAmount(500)">$500</span>
+              <span class="preset" onclick="setCryptoAmount(1250)">$1250</span>
+              <span class="preset" onclick="setCryptoAmount(5000)">$5000</span>
+              <span class="preset" onclick="setCryptoAmount({{live_balance}})"
+                >Max</span
+              >
+            </div>
+          </div>
+
+          <!-- Fee breakdown -->
+          <div class="fee-box" id="cryptoFeeBox">
+            <div class="fee-row">
+              <span class="fee-key">Withdrawal Amount</span>
+              <span class="fee-val" id="feeAmount">$0.00</span>
+            </div>
+            <div class="fee-row">
+              <span class="fee-key">Network Fee (1.5%)</span>
+              <span class="fee-val red" id="feeCharge">-$0.00</span>
+            </div>
+            <div class="fee-row total">
+              <span class="fee-key" style="color: #111">You Receive</span>
+              <span class="fee-val green" id="feeNet">$0.00</span>
+            </div>
+          </div>
+
+          <div class="wd-danger">
+            <i class="ti ti-alert-triangle"></i>
+            <div>
+              <strong>Important:</strong> Always send to the correct network.
+              Sending <strong>USDT on the wrong network</strong> will result in
+              permanent loss of funds. Verify the wallet address before
+              confirming.
+            </div>
+          </div>
+
+          <button class="wd-submit-btn" type="submit">
+            <i class="ti ti-send"></i> Submit Withdrawal Request
+          </button>
+
+          <p
+            style="
+              font-size: 11px;
+              color: #9ca3af;
+              text-align: center;
+              margin-top: 12px;
+              line-height: 1.6;
+            "
+          >
+            Crypto withdrawals are processed within
+            <strong style="color: #111">1–24 hours</strong>
+            after admin approval.
+          </p>
+        </form>
+
+        <!-- Sidebar -->
+        <div class="wd-sidebar">
+          <div class="wd-info-card">
+            <div class="wd-info-card-title">
+              <i class="ti ti-info-circle"></i> How It Works
+            </div>
+            <div class="step-list">
+              <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                  <strong>Choose your coin</strong> and paste your wallet
+                  address.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                  <strong>Enter the amount</strong> you want to withdraw
+                  (minimum $10).
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                  <strong>Submit the request.</strong> Our team reviews and
+                  approves it.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                  <strong>Funds arrive</strong> in your wallet within 1–24 hours
+                  after approval.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="wd-info-card">
+            <div class="wd-info-card-title">
+              <i class="ti ti-table"></i> Crypto Limits & Fees
+            </div>
+            <table class="limits-table">
+              <thead>
+                <tr>
+                  <th>Coin</th>
+                  <th>Min</th>
+                  <th>Fee</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Bitcoin (BTC)</td>
+                  <td>$20</td>
+                  <td>1.5%</td>
+                </tr>
+                <tr>
+                  <td>USDT TRC20</td>
+                  <td>$10</td>
+                  <td>1.5%</td>
+                </tr>
+                <tr>
+                  <td>Ethereum (ETH)</td>
+                  <td>$30</td>
+                  <td>1.5%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /crypto panel -->
+  </div>
+</main>
+
+{% endblock content %}
+<!--  -->
+{% block script %}
+
+<script>
+  const BALANCE = 1284.5;
+  const CRYPTO_FEE_PCT = 1.5;
+
+  /* ── Coin selector ── */
+  let activeCoin = "btc";
+  function selectCoin(coin, el) {
+    activeCoin = coin;
+    document
+      .querySelectorAll("#coinRow .network-chip")
+      .forEach((c) => c.classList.remove("active"));
+    el.classList.add("active");
+    const ph = { btc: "BTC", usdt: "USDT TRC20", eth: "ETH" };
+    document.getElementById("walletAddress").placeholder =
+      `Paste your ${ph[coin]} wallet address here`;
+    document.getElementById("coinType").value = `${coin}`;
+    document.getElementById("walletAddress").updateCryptoFees();
+  }
+
+  /* ── Crypto fee calc ── */
+  function updateCryptoFees() {
+    const amount =
+      parseFloat(document.getElementById("cryptoAmount").value) || 0;
+    const fee = (amount * CRYPTO_FEE_PCT) / 100;
+    const net = Math.max(0, amount - fee);
+    document.getElementById("feeAmount").textContent = "$" + amount.toFixed(2);
+    document.getElementById("feeCharge").textContent = "-$" + fee.toFixed(2);
+    document.getElementById("feeNet").textContent = "$" + net.toFixed(2);
+    document.getElementById("withFee").value = `${fee}`;
+  }
+
+  function setCryptoAmount(v) {
+    document.getElementById("cryptoAmount").value = v;
+    updateCryptoFees();
+  }
+
+  /* ── Payout method toggle ── */
+  document
+    .getElementById("payoutMethod")
+    .addEventListener("change", function () {
+      const momo = document.getElementById("momoField");
+      momo.style.display = this.value === "mobile_money" ? "flex" : "none";
+    });
+  document.getElementById("momoField").style.display = "none";
+
+  /* ── Submit flow ── */
+  let pendingType = null;
+  function submitWithdrawal(type) {
+    pendingType = type;
+    let msg = "";
+
+    if (type === "crypto") {
+      const amount = parseFloat(document.getElementById("cryptoAmount").value);
+      const address = document.getElementById("walletAddress").value.trim();
+      if (!amount || amount < 10) {
+        alert("Please enter a valid amount (minimum $10).");
+        return;
+      }
+      if (!address) {
+        alert("Please enter your wallet address.");
+        return;
+      }
+      if (amount > BALANCE) {
+        alert("Insufficient balance.");
+        return;
+      }
+      const fee = (amount * CRYPTO_FEE_PCT) / 100;
+      const net = (amount - fee).toFixed(2);
+      msg = `You are withdrawing <strong>$${amount.toFixed(2)}</strong> via <strong>${activeCoin.toUpperCase()}</strong>.<br><br>
+                 Network fee: <strong>$${fee.toFixed(2)}</strong><br>
+                 You will receive: <strong>$${net}</strong><br><br>
+                 To address: <code style="font-size:11px;word-break:break-all">${address}</code>`;
+    } else {
+      const amount = parseFloat(document.getElementById("agentAmount").value);
+      const method = document.getElementById("payoutMethod").value;
+      if (!selectedAgent) {
+        alert("Please select an agent.");
+        return;
+      }
+      if (!amount || amount < selectedAgent.min) {
+        alert(`Minimum withdrawal for this agent is $${selectedAgent.min}.`);
+        return;
+      }
+      if (!method) {
+        alert("Please select a payout method.");
+        return;
+      }
+      if (amount > BALANCE) {
+        alert("Insufficient balance.");
+        return;
+      }
+      const fee = (amount * selectedAgent.fee) / 100;
+      const net = (amount - fee).toFixed(2);
+      msg = `You are requesting <strong>$${amount.toFixed(2)}</strong> via <strong>${selectedAgent.name}</strong>.<br><br>
+                 Agent fee: <strong>$${fee.toFixed(2)}</strong><br>
+                 You will receive: <strong>$${net}</strong>`;
+    }
+
+    document.getElementById("confirmMsg").innerHTML = msg;
+    document.getElementById("confirmOverlay").style.display = "flex";
+  }
+
+  function closeConfirm() {
+    document.getElementById("confirmOverlay").style.display = "none";
+    pendingType = null;
+  }
+
+  function confirmWithdrawal() {
+    closeConfirm();
+    const ref = "WD-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+    document.getElementById("successRef").textContent = "Reference: " + ref;
+    document.getElementById("successOverlay").style.display = "flex";
+  }
+
+  function closeSuccess() {
+    document.getElementById("successOverlay").style.display = "none";
+    // Reset forms
+    document.getElementById("cryptoAmount").value = "";
+    document.getElementById("walletAddress").value = "";
+    document.getElementById("agentAmount").value = "";
+    updateCryptoFees();
+    updateAgentFees();
+  }
+</script>
+{% endblock script %}

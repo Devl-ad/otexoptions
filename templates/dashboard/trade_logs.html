@@ -1,0 +1,1140 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Trade History {% endblock title %}
+
+<!--  -->
+{% block content %}
+<style>
+  .main.history {
+    margin-left: 220px;
+    flex: 1;
+    min-height: 100vh;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+  .hist-inner {
+    padding: 0 28px 40px;
+  }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 18px 20px;
+  }
+  .stat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 3px;
+  }
+  .stat-sub.up {
+    color: #00a878;
+    font-weight: 600;
+  }
+  .stat-sub.down {
+    color: #e85d35;
+    font-weight: 600;
+  }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .filter-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .fchip {
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .fchip:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .fchip.active {
+    background: #e85d35;
+    border-color: #e85d35;
+    color: #fff;
+  }
+  .filter-sep {
+    width: 1px;
+    height: 26px;
+    background: #f3f4f6;
+    flex-shrink: 0;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .search-wrap i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+  .search-input {
+    height: 36px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 0 12px 0 32px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    color: #111;
+    outline: none;
+    width: 190px;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+
+  .date-input {
+    height: 36px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 0 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    color: #6b7280;
+    outline: none;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .date-input:focus {
+    border-color: #e85d35;
+  }
+
+  .export-btn {
+    margin-left: auto;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .export-btn:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .export-btn i {
+    font-size: 16px;
+  }
+
+  /* ── Table card ── */
+  .table-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    overflow: hidden;
+  }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .table-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-title i {
+    font-size: 18px;
+    color: #e85d35;
+  }
+  .table-count {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .trade-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 740px;
+  }
+  .trade-table thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #fafafa;
+    border-bottom: 1px solid #f3f4f6;
+    white-space: nowrap;
+  }
+  .trade-table thead th.right {
+    text-align: right;
+  }
+  .trade-table tbody tr {
+    border-bottom: 1px solid #f9fafb;
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  .trade-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .trade-table tbody tr:hover {
+    background: #fafafa;
+  }
+  .trade-table tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #374151;
+    white-space: nowrap;
+  }
+  .trade-table tbody td.right {
+    text-align: right;
+  }
+
+  /* badges */
+  .dir-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .dir-badge.rise {
+    background: #e6f8f2;
+    color: #00a878;
+  }
+  .dir-badge.fall {
+    background: #fef0ec;
+    color: #e85d35;
+  }
+  .dir-badge i {
+    font-size: 13px;
+  }
+
+  .type-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .type-pill.risefall {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  .type-pill.overunder {
+    background: #f5f3ff;
+    color: #7c3aed;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .status-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-pill.win {
+    background: #e6f8f2;
+    color: #00a878;
+  }
+  .status-pill.win::before {
+    background: #00a878;
+  }
+  .status-pill.loss {
+    background: #fef0ec;
+    color: #e85d35;
+  }
+  .status-pill.loss::before {
+    background: #e85d35;
+  }
+  .status-pill.open {
+    background: #fffbeb;
+    color: #d97706;
+  }
+  .status-pill.open::before {
+    background: #d97706;
+    animation: pulse 1.5s infinite;
+  }
+  .status-pill.refunded {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  .status-pill.refunded::before {
+    background: #9ca3af;
+  }
+
+  .pnl-up {
+    color: #00a878;
+    font-weight: 700;
+  }
+  .pnl-down {
+    color: #e85d35;
+    font-weight: 700;
+  }
+  .pnl-neu {
+    color: #9ca3af;
+    font-weight: 600;
+  }
+
+  .asset-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .asset-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #fef0ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #e85d35;
+    flex-shrink: 0;
+  }
+  .asset-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  }
+  .asset-sub {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  /* ── Pagination ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-top: 1px solid #f3f4f6;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .page-info {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+  .page-btns {
+    display: flex;
+    gap: 5px;
+  }
+  .page-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .page-btn:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .page-btn.active {
+    background: #e85d35;
+    border-color: #e85d35;
+    color: #fff;
+  }
+  .page-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .page-btn i {
+    font-size: 14px;
+  }
+
+  /* ── Detail drawer ── */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 200;
+  }
+  .drawer-overlay.open {
+    display: block;
+  }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: -430px;
+    width: 420px;
+    max-width: 100vw;
+    height: 100vh;
+    background: #fff;
+    z-index: 201;
+    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    transition: right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  .drawer.open {
+    right: 0;
+  }
+  .drawer-head {
+    padding: 20px 22px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .drawer-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+  }
+  .drawer-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 18px;
+    transition: all 0.15s;
+  }
+  .drawer-close:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* result hero */
+  .result-hero {
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+  }
+  .result-hero.win {
+    background: linear-gradient(135deg, #e6f8f2, #d1fae5);
+  }
+  .result-hero.loss {
+    background: linear-gradient(135deg, #fef0ec, #fee2e2);
+  }
+  .result-hero.open {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  }
+  .result-hero.refunded {
+    background: #f3f4f6;
+  }
+  .result-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .result-hero.win .result-icon {
+    background: #00a878;
+    color: #fff;
+  }
+  .result-hero.loss .result-icon {
+    background: #e85d35;
+    color: #fff;
+  }
+  .result-hero.open .result-icon {
+    background: #f59e0b;
+    color: #fff;
+  }
+  .result-hero.refunded .result-icon {
+    background: #9ca3af;
+    color: #fff;
+  }
+  .result-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .result-hero.win .result-label {
+    color: #065f46;
+  }
+  .result-hero.loss .result-label {
+    color: #991b1b;
+  }
+  .result-hero.open .result-label {
+    color: #78350f;
+  }
+  .result-hero.refunded .result-label {
+    color: #4b5563;
+  }
+  .result-pnl {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .result-hero.win .result-pnl {
+    color: #00a878;
+  }
+  .result-hero.loss .result-pnl {
+    color: #e85d35;
+  }
+  .result-hero.open .result-pnl {
+    color: #f59e0b;
+  }
+  .result-hero.refunded .result-pnl {
+    color: #6b7280;
+  }
+
+  /* detail rows */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .detail-rows {
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+    overflow: hidden;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px;
+    border-bottom: 1px solid #f9fafb;
+    font-size: 13px;
+  }
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+  .dk {
+    color: #9ca3af;
+    font-weight: 500;
+  }
+  .dv {
+    font-weight: 600;
+    color: #111;
+  }
+
+  .mini-chart {
+    background: #f9fafb;
+    border-radius: 10px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+    font-size: 12px;
+    gap: 7px;
+    border: 1px solid #f3f4f6;
+  }
+  .mini-chart i {
+    font-size: 20px;
+  }
+
+  .empty-state {
+    padding: 56px 20px;
+    text-align: center;
+  }
+  .empty-state i {
+    font-size: 46px;
+    display: block;
+    color: #e5e7eb;
+    margin-bottom: 12px;
+  }
+  .empty-state h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 5px;
+  }
+  .empty-state p {
+    font-size: 13px;
+    color: #9ca3af;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .main.history {
+      margin-left: 0 !important;
+      padding-bottom: 90px;
+    }
+    .hist-inner {
+      padding: 0 14px 24px;
+    }
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .filter-sep {
+      display: none;
+    }
+    .export-btn span {
+      display: none;
+    }
+    .drawer {
+      width: 100vw;
+    }
+    .search-input {
+      width: 140px;
+    }
+  }
+  @media (max-width: 480px) {
+    .stat-value {
+      font-size: 18px;
+    }
+    .date-input {
+      display: none;
+    }
+  }
+</style>
+
+<main class="main history">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        Trade History
+      </h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Click any row for full trade details
+      </p>
+    </div>
+  </div>
+
+  <div class="hist-inner">
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fef0ec; color: #e85d35">
+          <i class="ti ti-history"></i>
+        </div>
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value">{{ total_trades }}</div>
+        <div class="stat-sub">Wins: <strong>{{ won_count }}</strong></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #e6f8f2; color: #00a878">
+          <i class="ti ti-trending-up"></i>
+        </div>
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value">{{ win_rate }}%</div>
+        <div
+          class="stat-sub {% if win_rate >= 50 %}up{% else %}down{% endif %}"
+        >
+          {{ won_count }} of {{ total_trades }} trades
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #e6f8f2; color: #00a878">
+          <i class="ti ti-currency-dollar"></i>
+        </div>
+        <div class="stat-label">Total P&L</div>
+        <div
+          class="stat-value"
+          style="color:{% if total_pnl >= 0 %}#00a878{% else %}#e85d35{% endif %}"
+        >
+          {% if total_pnl >= 0 %}+{% endif %}${{ total_pnl }}
+        </div>
+        <div
+          class="stat-sub {% if total_pnl >= 0 %}up{% else %}down{% endif %}"
+        >
+          All time net profit
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #eff6ff; color: #2563eb">
+          <i class="ti ti-chart-pie"></i>
+        </div>
+        <div class="stat-label">Avg. Stake</div>
+        <div class="stat-value">${{ avg_stake }}</div>
+        <div class="stat-sub">
+          Best trade: <strong style="color: #00a878">+${{ best_trade }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <span class="filter-bar-label">Status:</span>
+      <div class="filter-chips" id="statusChips">
+        <span
+          class="fchip active"
+          data-status="all"
+          onclick="setStatus('all', this)"
+          >All</span
+        >
+        <span class="fchip" data-status="win" onclick="setStatus('win', this)"
+          >Wins</span
+        >
+        <span class="fchip" data-status="loss" onclick="setStatus('loss', this)"
+          >Losses</span
+        >
+        <span class="fchip" data-status="open" onclick="setStatus('open', this)"
+          >Open</span
+        >
+        <span
+          class="fchip"
+          data-status="refunded"
+          onclick="setStatus('refunded', this)"
+          >Refunded</span
+        >
+      </div>
+      <div class="filter-sep"></div>
+      <span class="filter-bar-label">Type:</span>
+      <div class="filter-chips" id="typeChips">
+        <span
+          class="fchip active"
+          data-type="all"
+          onclick="setType('all', this)"
+          >All</span
+        >
+        <span
+          class="fchip"
+          data-type="risefall"
+          onclick="setType('risefall', this)"
+          >Rise/Fall</span
+        >
+        <span
+          class="fchip"
+          data-type="overunder"
+          onclick="setType('overunder', this)"
+          >Over/Under</span
+        >
+      </div>
+      <div class="filter-sep"></div>
+      <input
+        class="date-input"
+        type="date"
+        id="dateFrom"
+        title="From"
+        oninput="render()"
+      />
+      <input
+        class="date-input"
+        type="date"
+        id="dateTo"
+        title="To"
+        oninput="render()"
+      />
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input
+          class="search-input"
+          type="text"
+          id="searchQ"
+          placeholder="Search asset…"
+          oninput="render()"
+        />
+      </div>
+      <button class="export-btn" onclick="exportCSV()">
+        <i class="ti ti-download"></i><span>Export CSV</span>
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title"><i class="ti ti-list"></i> Trades</div>
+        <span class="table-count" id="tradeCount">—</span>
+      </div>
+      <div class="table-scroll">
+        <table class="trade-table">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Type</th>
+              <th>Direction</th>
+              <th>Stake</th>
+              <th>Payout</th>
+              <th class="right">P&amp;L</th>
+              <th>Duration</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>Status</th>
+              <th>Date &amp; Time</th>
+            </tr>
+          </thead>
+          <tbody id="tradeBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display: none">
+          <i class="ti ti-ghost-2"></i>
+          <h3>No trades found</h3>
+          <p>Try adjusting your filters or search term.</p>
+        </div>
+      </div>
+      <div class="pagination">
+        <span class="page-info" id="pageInfo"></span>
+        <div class="page-btns" id="pageBtns"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock content %} {% block script %}
+<script>
+         /* ═══════════════════════════════════════
+              Data  —  replace with Django template / API
+           ═══════════════════════════════════════ */
+        const TRADES = {{ trades_json|safe }};
+        console.log(TRADES)
+
+         const PER_PAGE = 10;
+         let activeStatus = "all",
+           activeType = "all",
+           page = 1;
+
+         function setStatus(v, el) {
+           activeStatus = v;
+           page = 1;
+           document
+             .querySelectorAll("#statusChips .fchip")
+             .forEach((c) => c.classList.remove("active"));
+           el.classList.add("active");
+           render();
+         }
+         function setType(v, el) {
+           activeType = v;
+           page = 1;
+           document
+             .querySelectorAll("#typeChips .fchip")
+             .forEach((c) => c.classList.remove("active"));
+           el.classList.add("active");
+           render();
+         }
+
+      function filtered() {
+          const q = document.getElementById("searchQ").value.trim().toLowerCase();
+          return TRADES.filter(t => {
+          if (activeStatus !== "all" && t.status !== activeStatus) return false;
+          if (activeType   !== "all" && t.trade_type !== activeType) return false;
+          if (q && !t.asset.toLowerCase().includes(q)) return false;
+          return true;
+          });
+    }
+
+      function render() {
+        const data  = filtered();
+        const total = data.length;
+        const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+        page = Math.min(page, pages);
+        const slice = data.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+        document.getElementById("tradeCount").textContent =
+          total ? `Showing ${(page - 1) * PER_PAGE + 1}–${(page - 1) * PER_PAGE + slice.length} of ${total}` : "No results";
+        document.getElementById("emptyState").style.display = slice.length ? "none" : "block";
+
+        document.getElementById("tradeBody").innerHTML = slice.map(t => {
+
+          // ── Direction badge
+          const dirB = ["RISE", "OVER"].includes(t.direction)
+            ? `<span class="dir-badge rise"><i class="ti ti-trending-up"></i>${t.direction}</span>`
+            : `<span class="dir-badge fall"><i class="ti ti-trending-down"></i>${t.direction}</span>`;
+
+          // ── Type pill
+          const typeLabels = { RISE_FALL: "Rise/Fall", OVER_UNDER: "Over/Under", ACCUMULATOR: "Accumulator" };
+          const typeCss    = { RISE_FALL: "risefall",  OVER_UNDER: "overunder",  ACCUMULATOR: "risefall" };
+          const typeP = `<span class="type-pill ${typeCss[t.trade_type] || "risefall"}">${typeLabels[t.trade_type] || t.trade_type}</span>`;
+
+          // ── Status pill
+          const stMap = {
+            WON:     `<span class="status-pill win">Won</span>`,
+            LOST:    `<span class="status-pill loss">Lost</span>`,
+            OPEN:    `<span class="status-pill open">Live</span>`,
+            EXPIRED: `<span class="status-pill refunded">Expired</span>`,
+          };
+
+          // ── P&L
+          let pnlH;
+          if (t.status === "OPEN")         pnlH = `<span class="pnl-neu">—</span>`;
+          else if (t.pnl > 0)              pnlH = `<span class="pnl-up">+$${t.pnl.toFixed(2)}</span>`;
+          else if (t.pnl < 0)             pnlH = `<span class="pnl-down">-$${Math.abs(t.pnl).toFixed(2)}</span>`;
+          else                             pnlH = `<span class="pnl-neu">$0.00</span>`;
+
+          // ── Exit price
+          const exitH = t.exit_price != null
+            ? `$${parseFloat(t.exit_price).toFixed(2)}`
+            : `<span style="color:#f59e0b">Live…</span>`;
+
+          // ── Demo badge
+          const demoTag = t.is_demo
+            ? `<span style="font-size:9px;background:#f3f4f6;color:#9ca3af;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:5px">DEMO</span>`
+            : "";
+
+          return `<tr onclick="openDrawer(${t.id})">
+            <td>
+              <div class="asset-cell">
+                <div class="asset-icon">${t.asset.replace(/[^0-9]/g, "").slice(-3) || t.asset.slice(0,2)}</div>
+                <div>
+                  <div class="asset-name">${t.asset}${demoTag}</div>
+                  <div class="asset-sub">${typeLabels[t.trade_type] || t.trade_type}</div>
+                </div>
+              </div>
+            </td>
+            <td>${typeP}</td>
+            <td>${dirB}</td>
+            <td>$${parseFloat(t.stake).toFixed(2)}</td>
+            <td>${t.payout_pct}%</td>
+            <td class="right">${pnlH}</td>
+            <td>${t.duration}</td>
+            <td>$${parseFloat(t.entry_price).toFixed(2)}</td>
+            <td>${exitH}</td>
+            <td>${stMap[t.status] || t.status}</td>
+            <td style="color:#9ca3af;font-size:12px">${t.opened_at}</td>
+          </tr>`;
+        }).join("");
+
+        // ── Pagination
+        document.getElementById("pageInfo").textContent = `Page ${page} of ${pages}`;
+        let btns = `<button class="page-btn ${page === 1 ? "disabled" : ""}" onclick="goPage(${page - 1})"><i class="ti ti-chevron-left"></i></button>`;
+        const range  = new Set([1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
+        const sorted = [...range].sort((a, b) => a - b);
+        let prev = 0;
+        sorted.forEach(n => {
+          if (prev && n - prev > 1) btns += `<button class="page-btn" disabled>…</button>`;
+          btns += `<button class="page-btn ${n === page ? "active" : ""}" onclick="goPage(${n})">${n}</button>`;
+          prev = n;
+        });
+        btns += `<button class="page-btn ${page === pages ? "disabled" : ""}" onclick="goPage(${page + 1})"><i class="ti ti-chevron-right"></i></button>`;
+        document.getElementById("pageBtns").innerHTML = btns;
+      }
+
+         function goPage(n) {
+           page = n;
+           render();
+           window.scrollTo({ top: 0, behavior: "smooth" });
+         }
+
+         /* ── Drawer ── */
+        function openDrawer(id) {
+    const t = TRADES.find(x => x.id === id);
+    if (!t) return;
+
+    const hc    = { WON:"win", LOST:"loss", OPEN:"open", EXPIRED:"refunded" }[t.status] || "open";
+    const icon  = { WON:"ti-trophy", LOST:"ti-x", OPEN:"ti-clock", EXPIRED:"ti-refresh" }[t.status];
+    const label = { WON:"Trade Won", LOST:"Trade Lost", OPEN:"Trade Open", EXPIRED:"Expired" }[t.status];
+
+    const pnlTxt = t.status === "WON"  ? `+$${t.pnl.toFixed(2)}`
+                 : t.status === "LOST" ? `-$${Math.abs(t.pnl).toFixed(2)}`
+                 : t.status === "EXPIRED" ? `$0.00`
+                 : `$${parseFloat(t.stake).toFixed(2)} at stake`;
+
+    const pnlClass = t.pnl > 0 ? "pnl-up" : t.pnl < 0 ? "pnl-down" : "pnl-neu";
+    const potPayout = t.status === "WON" ? `$${t.payout.toFixed(2)}` : `$${(parseFloat(t.stake) * (1 + parseFloat(t.payout_pct) / 100)).toFixed(2)}`;
+    const typeLabels = { RISE_FALL:"Rise / Fall", OVER_UNDER:"Over / Under", ACCUMULATOR:"Accumulator" };
+
+    document.getElementById("drawerTitle").textContent = `${t.asset} · #${t.id}`;
+    document.getElementById("drawerBody").innerHTML = `
+      <div class="result-hero ${hc}">
+        <div class="result-icon"><i class="ti ${icon}"></i></div>
+        <div class="result-label">${label}</div>
+        <div class="result-pnl">${pnlTxt}</div>
+      </div>
+      <div>
+        <div class="section-label">Trade Info</div>
+        <div class="detail-rows">
+          <div class="detail-row"><span class="dk">Asset</span><span class="dv">${t.asset}</span></div>
+          <div class="detail-row"><span class="dk">Trade Type</span><span class="dv">${typeLabels[t.trade_type] || t.trade_type}</span></div>
+          <div class="detail-row"><span class="dk">Direction</span><span class="dv">${t.direction}</span></div>
+          <div class="detail-row"><span class="dk">Duration</span><span class="dv">${t.duration}</span></div>
+          <div class="detail-row"><span class="dk">Account</span><span class="dv">${t.is_demo ? "Demo" : "Real"}</span></div>
+          <div class="detail-row"><span class="dk">Opened At</span><span class="dv">${t.opened_at}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Price &amp; Payout</div>
+        <div class="detail-rows">
+          <div class="detail-row"><span class="dk">Entry Price</span><span class="dv">$${parseFloat(t.entry_price).toFixed(2)}</span></div>
+          <div class="detail-row"><span class="dk">Exit Price</span><span class="dv">${t.exit_price != null ? "$" + parseFloat(t.exit_price).toFixed(2) : "Live…"}</span></div>
+          ${t.barrier != null ? `<div class="detail-row"><span class="dk">Barrier</span><span class="dv">$${parseFloat(t.barrier).toFixed(2)}</span></div>` : ""}
+          <div class="detail-row"><span class="dk">Stake</span><span class="dv">$${parseFloat(t.stake).toFixed(2)}</span></div>
+          <div class="detail-row"><span class="dk">Payout Rate</span><span class="dv">${t.payout_pct}%</span></div>
+          <div class="detail-row"><span class="dk">Total Payout</span><span class="dv">${potPayout}</span></div>
+          <div class="detail-row"><span class="dk">Net P&amp;L</span><span class="dv ${pnlClass}">${pnlTxt}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Price Movement</div>
+        <div class="mini-chart"><i class="ti ti-chart-line"></i><span>Chart coming soon</span></div>
+      </div>
+      <div style="background:#f9fafb;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#9ca3af">Trade ID</span>
+        <span style="font-family:monospace;font-size:12px;font-weight:700;color:#111">#${t.id}</span>
+      </div>`;
+
+    document.getElementById("overlay").classList.add("open");
+    document.getElementById("drawer").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+         function closeDrawer() {
+           document.getElementById("overlay").classList.remove("open");
+           document.getElementById("drawer").classList.remove("open");
+           document.body.style.overflow = "";
+         }
+
+         /* ── CSV Export ── */
+         function exportCSV() {
+           const headers = [
+             "ID",
+             "Asset",
+             "Type",
+             "Direction",
+             "Stake",
+             "Payout%",
+             "P&L",
+             "Duration",
+             "Entry",
+             "Exit",
+             "Status",
+             "Date",
+           ];
+           const rows = TRADES.map((t) => [
+             t.id,
+             t.asset,
+             t.type,
+             t.dir,
+             t.stake,
+             t.payout,
+             t.pnl,
+             t.dur,
+             t.entry,
+             t.exit ?? "",
+             t.status,
+             t.ts,
+           ]);
+           const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+           const a = document.createElement("a");
+           a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+           a.download = "otex-trade-history.csv";
+           a.click();
+         }
+
+         render();
+</script>
+
+{% endblock script %}

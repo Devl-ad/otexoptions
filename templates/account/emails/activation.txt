@@ -1,0 +1,12 @@
+Hi {{ user.first_name }},
+
+Thanks for signing up with OTEX. Please activate your account by visiting the link below:
+
+{{ protocol }}://{{ domain }}{% url 'account:activate' uid token %}
+
+This link expires in 24 hours.
+
+If you didn't create an account with OTEX, you can safely ignore this email.
+
+---
+© OTEX. All rights reserved.

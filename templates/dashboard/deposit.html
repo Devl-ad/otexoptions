@@ -1,0 +1,355 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Deposit Funds {% endblock title %}
+<!--  -->
+{% block content %}
+<!-- ════════════════════════════════════════ -->
+<main class="main deposit">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">Agents</h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        <a href="/dashboard/transaction-logs/"> View Transactions </a>
+      </p>
+    </div>
+  </div>
+
+  <div class="dep-page-inner" style="padding: 0 28px 28px">
+    <!-- Method tabs -->
+    <div class="dep-method-tabs" role="tablist" aria-label="Deposit method">
+      <button
+        class="dep-method-tab active"
+        role="tab"
+        aria-selected="true"
+        data-panel="agents"
+        onclick="window.location.href = '/dashboard/agents/'"
+      >
+        <i class="ti ti-users" aria-hidden="true"></i> Agents
+      </button>
+      <button
+        class="dep-method-tab"
+        role="tab"
+        aria-selected="false"
+        data-panel="crypto"
+        onclick="window.location.href = '/dashboard/deposit-funds/crypto/'"
+      >
+        <i class="ti ti-currency-bitcoin" aria-hidden="true"></i> Cryptocurrency
+      </button>
+      <button
+        class="dep-method-tab disabled"
+        role="tab"
+        aria-disabled="true"
+        tabindex="-1"
+      >
+        <i class="ti ti-building-bank" aria-hidden="true"></i> Bank Transfer
+        <span class="coming-soon-badge">Soon</span>
+      </button>
+    </div>
+
+    <!-- ── AGENTS PANEL ── -->
+    <div id="panel-agents" class="dep-panel active" role="tabpanel">
+      <div class="dep-info" style="margin-bottom: 20px">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <span
+          >Choose an available agent below. Click
+          <strong>Contact on WhatsApp</strong> to send them a message and
+          arrange your deposit. Funds are credited once confirmed by the
+          agent.</span
+        >
+      </div>
+
+      <div class="agent-grid">
+        <!-- Agent 1 -->
+        {% for ag in agents %}
+        <div class="agent-card">
+          <div class="agent-top">
+            <div class="agent-avatar">{{ag.initials}}</div>
+            <div>
+              <div class="agent-name">{{ag.name}}</div>
+              <div class="agent-location">
+                <i class="ti ti-map-pin" aria-hidden="true"></i>{{ag.city}},
+                {{ag.country}}
+              </div>
+            </div>
+            <div class="agent-online">
+              <span class="agent-dot"></span> {{ag.status}}
+            </div>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-meta-item">
+              <div class="agent-meta-label">Trades</div>
+              <div class="agent-meta-val">{{ag.total_trades}}</div>
+            </div>
+            <div class="agent-meta-item">
+              <div class="agent-meta-label">Rating</div>
+              <div class="agent-meta-val" style="color: #f59e0b">
+                ★ {{ag.rating}}
+              </div>
+            </div>
+            <div class="agent-meta-item">
+              <div class="agent-meta-label">Speed</div>
+              <div class="agent-meta-val" style="color: #00a878">
+                ~{{ag.avg_speed_minutes}} M
+              </div>
+            </div>
+          </div>
+          <div class="agent-limits">
+            <span>Min: <strong>${{ag.min_deposit}}</strong></span>
+            <span>Max: <strong>${{ag.max_deposit}}</strong></span>
+            <span>Fee: <strong>1.5%</strong></span>
+          </div>
+          <a
+            href="{{ag.whatsapp_url}}"
+            class="agent-contact-btn"
+            target="_blank"
+            rel="noopener"
+          >
+            <i class="ti ti-brand-whatsapp" aria-hidden="true"></i> Contact on
+            WhatsApp
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- /agents panel -->
+
+    <!-- ── CRYPTO PANEL ── -->
+    <div id="panel-crypto" class="dep-panel" role="tabpanel">
+      <div class="crypto-wrap">
+        <!-- Left: form -->
+        <div class="crypto-form-card">
+          <div>
+            <div class="flabel" style="margin-bottom: 10px">Select Coin</div>
+            <div class="coin-selector" id="coinSelector">
+              <div
+                class="coin-option active"
+                data-coin="btc"
+                onclick="selectCoin('btc', this)"
+              >
+                <span class="coin-icon btc">₿</span> Bitcoin (BTC)
+              </div>
+              <div
+                class="coin-option"
+                data-coin="usdt"
+                onclick="selectCoin('usdt', this)"
+              >
+                <span class="coin-icon usdt">₮</span> USDT TRC20
+              </div>
+              <div
+                class="coin-option"
+                data-coin="eth"
+                onclick="selectCoin('eth', this)"
+              >
+                <span class="coin-icon eth">Ξ</span> Ethereum (ETH)
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Deposit Address</div>
+            <div style="margin-top: 8px" class="address-box">
+              <span class="address-text" id="cryptoAddress"
+                >bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span
+              >
+              <button
+                class="copy-btn"
+                onclick="copyAddress()"
+                title="Copy address"
+                aria-label="Copy address"
+              >
+                <i class="ti ti-copy" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Amount (USD)</div>
+            <input
+              type="number"
+              class="finput"
+              id="depAmount"
+              placeholder="Enter amount e.g. 100"
+              min="10"
+              style="margin-top: 6px"
+            />
+            <div class="preset-row">
+              <span class="preset" onclick="setAmount(50)">$50</span>
+              <span class="preset" onclick="setAmount(100)">$100</span>
+              <span class="preset" onclick="setAmount(250)">$250</span>
+              <span class="preset" onclick="setAmount(500)">$500</span>
+              <span class="preset" onclick="setAmount(1000)">$1,000</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flabel">Transaction Hash</div>
+            <input
+              type="text"
+              class="finput"
+              id="txHash"
+              placeholder="Paste your transaction hash / TxID"
+              style="margin-top: 6px; font-family: monospace; font-size: 12px"
+            />
+          </div>
+
+          <div>
+            <div class="flabel" style="margin-bottom: 8px">
+              Upload Screenshot (optional)
+            </div>
+            <label class="hash-upload" for="proofUpload">
+              <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+              <p>
+                <strong>Click to upload</strong> or drag and drop<br />PNG, JPG
+                up to 5MB
+              </p>
+              <input
+                type="file"
+                id="proofUpload"
+                accept="image/*"
+                style="display: none"
+              />
+            </label>
+          </div>
+
+          <div class="dep-warning">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            <div>
+              <strong>Important:</strong> Crypto deposits usually take
+              <strong>2–4 hours</strong> to reflect in your account after
+              network confirmation. Always double-check the address before
+              sending — funds sent to the wrong address cannot be recovered.
+            </div>
+          </div>
+
+          <button class="dep-submit-btn" onclick="submitCryptoDeposit()">
+            <i class="ti ti-send" aria-hidden="true"></i> Submit Deposit Request
+          </button>
+        </div>
+
+        <!-- Right: info -->
+        <div class="crypto-info-card">
+          <div class="qr-wrap">
+            <div class="qr-box">
+              <i class="ti ti-qrcode" aria-hidden="true"></i>
+            </div>
+            <div class="qr-label">Scan QR code to copy address</div>
+          </div>
+
+          <div>
+            <div
+              style="
+                font-size: 14px;
+                font-weight: 700;
+                color: #111;
+                margin-bottom: 12px;
+              "
+            >
+              How it works
+            </div>
+            <div class="step-list">
+              <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                  <strong>Choose your coin</strong> — BTC, USDT TRC20, or ETH.
+                  Make sure you send on the correct network.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                  <strong>Copy the deposit address</strong> or scan the QR code.
+                  Send your desired amount from your wallet or exchange.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                  <strong>Enter the transaction hash</strong> (TxID) from your
+                  wallet after sending. This helps us verify your deposit
+                  faster.
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                  <strong>Submit the form</strong> and wait 2–4 hours. Your
+                  balance will be updated automatically once confirmed.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dep-warning">
+            <i class="ti ti-shield-exclamation" aria-hidden="true"></i>
+            <div>
+              Never send funds from a non-custodial wallet if you are unsure
+              about the network.
+              <strong
+                >Sending USDT on the wrong network will result in permanent
+                loss.</strong
+              >
+            </div>
+          </div>
+
+          <div
+            style="
+              background: #f9fafb;
+              border-radius: 10px;
+              padding: 14px 16px;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin-bottom: 2px;
+              "
+            >
+              Minimum Deposits
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">Bitcoin (BTC)</span
+              ><strong>$20</strong>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">USDT TRC20</span><strong>$10</strong>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+              "
+            >
+              <span style="color: #6b7280">Ethereum (ETH)</span
+              ><strong>$30</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /crypto panel -->
+  </div>
+</main>
+<!-- ════════════════════════════════════════ -->
+
+{% endblock content %}
+<!--  -->

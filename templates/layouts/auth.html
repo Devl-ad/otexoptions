@@ -1,0 +1,223 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OTEX - {% block title %}Auth{% endblock %}</title>
+    <link
+      rel="preload"
+      href="{% static '/js/vendors/uikit.min.js' %}"
+      as="script"
+    />
+    <link
+      rel="preload"
+      href="{% static '/css/vendors/uikit.min.css' %}"
+      as="style"
+    />
+    <link rel="stylesheet" href="{% static '/css/vendors/uikit.min.css' %}" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        display: flex;
+      }
+
+      .left-panel {
+        flex: 0 0 58%;
+        background-image: url("/assets/images/in-signin-image.jpg");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .right-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        padding: 48px 40px;
+        overflow-y: auto;
+      }
+
+      .form-box {
+        width: 100%;
+        max-width: 380px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 28px;
+        text-decoration: none;
+      }
+
+      .logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .logo-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: #111;
+        letter-spacing: 0.06em;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 4px;
+      }
+
+      .sub {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 28px;
+      }
+
+      .sub a {
+        color: #e85d35;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .name-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .field {
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        height: 48px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0px;
+        background: #0e1c29;
+        padding: 0 14px;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        color: #111;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+
+      input::placeholder {
+        color: #9ca3af;
+      }
+
+      input:focus {
+        border-color: #e85d35;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(232, 93, 53, 0.12);
+      }
+
+      .btn {
+        width: 100%;
+        height: 50px;
+        background: #e85d35;
+        color: #fff;
+        border: none;
+        border-radius: 0px;
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 4px;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+
+      .btn:hover {
+        background: #d14e28;
+      }
+      .btn:active {
+        transform: scale(0.99);
+      }
+
+      @media (max-width: 767px) {
+        body {
+          background-image: url(/assets/images/loginhero.png);
+          background-size: cover;
+          background-position: center;
+        }
+        .left-panel {
+          display: none;
+        }
+        .right-panel {
+          background: transparent;
+          backdrop-filter: blur(6px);
+          padding: 36px 24px 48px;
+          align-items: center;
+        }
+        .form-box {
+          max-width: 100%;
+        }
+        h1 {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% if messages %} {% for msg in messages %}
+    <div
+      style="display: none"
+      class="messages"
+      id="mssggi"
+      data-msg="{{ msg }}"
+    ></div>
+    {% endfor %} {% endif %}
+    <div class="left-panel"></div>
+
+    <div class="right-panel">{% block content %}{% endblock %}</div>
+
+    <script src="{% static '/js/vendors/uikit.min.js' %}"></script>
+    <script src="{% static '/js/vendors/indonez.min.js' %}"></script>
+    <script src="{% static '/js/config-theme.js' %}"></script>
+
+    {% if messages %}
+    <script>
+      const mssg = document.getElementById("mssggi");
+      let text = mssg.getAttribute("data-msg");
+      document.addEventListener("DOMContentLoaded", function () {
+        UIkit.notification({
+          message: `${text}`,
+          status: "success",
+          pos: "top-right",
+          timeout: 3000,
+        });
+      });
+    </script>
+    {% endif %}
+  </body>
+</html>
