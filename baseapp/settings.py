@@ -213,21 +213,20 @@ LOGGING = {
 }
 
 
-# EMAIL_BACKEND = env("EMAIL_BACKEND")
-# EMAIL_HOST = env("EMAIL_HOST")
-# EMAIL_USE_TLS = env("EMAIL_USE_TLS")
-# EMAIL_PORT = env("EMAIL_PORT")
-# EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-# DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-# EMAIL_USE_SSL = False
+EMAIL_BACKEND = env("EMAIL_BACKEND")
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+EMAIL_USE_SSL = False
 
-# Highly recommended extras
-# must match EMAIL_HOST_USER or a verified alias
-# SERVER_EMAIL = "info@primedriven.live"
 
-# Optional but helps deliverability
-# EMAIL_SUBJECT_PREFIX = "primedriven.live"  # makes it look less spammy
+SERVER_EMAIL = "support@otexoption.com"
+
+
+EMAIL_SUBJECT_PREFIX = "otexoption.com"
 
 
 # tell Django it's behind a proxy
