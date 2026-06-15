@@ -190,7 +190,7 @@ body {
 .balance-strip {
   margin: 0 28px 16px;
   background: #0f1117;
-  border-radius: 1px;
+  border-radius: 10px !important;
   padding: 14px 20px;
   display: flex;
   align-items: center;
@@ -900,6 +900,7 @@ body {
   padding: 24px;
   position: relative;
   overflow: hidden;
+  border-radius: 10px !important;
 }
 .balance-card.demo {
   background: #0f1117;

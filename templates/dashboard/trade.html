@@ -87,7 +87,9 @@
           <div class="pair-icon" id="pairIcon">19</div>
           <div>
             <p class="pair-name" id="pairName">OTV19</p>
-            <p class="pair-sub">OTEX Volatility 19 · Synthetic</p>
+            <p class="pair-sub" id="pairfName">
+              OTEX Volatility 19 · Synthetic
+            </p>
           </div>
         </div>
         <div class="pct-badge up" id="pctBadge">▲ Live</div>
@@ -468,6 +470,7 @@
     currentPair = el.dataset.sym;
     document.getElementById("pairName").textContent = currentPair;
     document.getElementById("pairIcon").textContent = PAIRS[currentPair].label;
+    document.getElementById("pairfName").textContent = PAIRS[currentPair].name;
     updateMainPanel();
   }
 

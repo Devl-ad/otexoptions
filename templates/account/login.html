@@ -5,7 +5,11 @@
 <!--  -->
 {% block content %}
 
-<form class="form-box" method="post" action="{% url 'account:login' %}">
+<form
+  class="form-box .loading-form"
+  method="post"
+  action="{% url 'account:login' %}"
+>
   {% csrf_token %}
   <a class="logo" href="/">
     <svg viewBox="0 0 32 32" fill="none">
@@ -71,7 +75,7 @@
     Forgot your password?
     <a href="/auth/password/reset/">Reset it here</a>
   </p>
-  <button type="submit" class="btn">Submit →</button>
+  <button type="submit" class="btn loading-submit-btn">Submit →</button>
 </form>
 
 {% endblock %}

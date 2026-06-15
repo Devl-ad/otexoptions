@@ -97,7 +97,7 @@
   {% endfor %}
   <!--  -->
   {% else %}
-  <form method="post" action="/auth/register/">
+  <form method="post" class="loading-form" action="/auth/register/">
     {% csrf_token %}
     <div class="name-row">
       <div class="field" style="margin-bottom: 0">
@@ -163,7 +163,7 @@
       </p>
     </div>
 
-    <button class="btn">Submit →</button>
+    <button class="btn loading-submit-btn">Submit →</button>
   </form>
   {% endif %}
 </div>

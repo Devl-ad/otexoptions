@@ -776,7 +776,11 @@
     <div id="panel-crypto" class="wd-panel active">
       <div class="wd-grid">
         <!-- Form -->
-        <form method="post" action="/dashboard/withdraw-funds/" class="wd-card">
+        <form
+          method="post"
+          action="/dashboard/withdraw-funds/"
+          class="wd-card loading-form"
+        >
           {% csrf_token %}
           <input type="hidden" name="coin" id="coinType" value="btc" />
           <input type="hidden" name="fee" id="withFee" />
@@ -894,7 +898,7 @@
             </div>
           </div>
 
-          <button class="wd-submit-btn" type="submit">
+          <button class="wd-submit-btn loading-submit-btn" type="submit">
             <i class="ti ti-send"></i> Submit Withdrawal Request
           </button>
 
@@ -992,7 +996,24 @@
 {% endblock content %}
 <!--  -->
 {% block script %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".loading-form").forEach((form) => {
+      form.addEventListener("submit", function () {
+        const btn = this.querySelector(".loading-submit-btn");
 
+        if (btn) {
+          btn.disabled = true;
+          btn.dataset.originalText = btn.innerHTML;
+          btn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Processing...
+                `;
+        }
+      });
+    });
+  });
+</script>
 <script>
   const BALANCE = 1284.5;
   const CRYPTO_FEE_PCT = 1.5;

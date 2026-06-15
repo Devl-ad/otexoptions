@@ -88,9 +88,9 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": ["redis://127.0.0.1:6379/1"],
             "capacity": 1500,
-            "expiry": 10,
+            "expiry": 60,
         },
     },
 }
@@ -122,7 +122,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 1.0,
     },
     "cleanup_old_ticks": {
-        "task": "yourapp.tasks.cleanup_old_ticks",
+        "task": "apps.dashboard.tasks.cleanup_old_ticks",
         "schedule": 10.0,
     },
     "resolve-trades-every-second": {
