@@ -300,7 +300,7 @@ def trade_logs(request):
             "barrier": float(t.barrier) if t.barrier is not None else None,
             "status": t.status,
             "is_demo": t.is_demo,
-            "opened_at": t.opened_at.strftime("%d %b %Y, %I:%M %p"),
+            "opened_at": t.opened_at,
         }
         for t in qs.order_by("-opened_at")
     ]
