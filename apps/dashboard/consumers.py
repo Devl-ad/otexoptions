@@ -44,3 +44,42 @@ class TradeConsumer(AsyncWebsocketConsumer):
 
     async def trade_result(self, event):
         await self.send(text_data=json.dumps(event))
+
+
+class BotConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        if not self.scope["user"].is_authenticated:
+            await self.close()
+            return
+
+        self.user_id = self.scope["user"].id
+        self.group_name = f"bot_{self.user_id}"
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+        logger.info(f"Bot WS connected: user {self.user_id}")
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    # individual trade update
+    async def bot_trade_update(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "bot_trade_update",
+                    **event,
+                }
+            )
+        )
+
+    # session complete
+    async def bot_session_complete(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "bot_session_complete",
+                    **event,
+                }
+            )
+        )

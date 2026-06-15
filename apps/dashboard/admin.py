@@ -9,6 +9,10 @@ from .models import (
     Agent,
     Transaction,
     PriceTick,
+    BotKey,
+    BotTrade,
+    BotSession,
+    BotTemplate,
 )
 from django.contrib import admin
 from django.utils.html import format_html
@@ -16,6 +20,10 @@ from django.utils import timezone
 from django.db.models import Sum, Count
 
 admin.site.register(PriceTick)
+admin.site.register(BotKey)
+admin.site.register(BotTrade)
+admin.site.register(BotSession)
+admin.site.register(BotTemplate)
 
 
 @admin.register(HouseSettings)
@@ -387,3 +395,6 @@ class TransactionAdmin(admin.ModelAdmin):
         )
         extra_context["summary"] = totals
         return super().changelist_view(request, extra_context=extra_context)
+
+
+# BOT TRADING

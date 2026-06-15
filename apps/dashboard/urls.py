@@ -19,4 +19,5 @@ urlpatterns = [
     path("withdraw-funds/", views.withdrawal, name="withdrawal"),
     path("profile/", views.settings, name="settings"),
     path("notifications/", views.notification_page, name="notification_page"),
+    path("ai-trading/", views.bot_page, name="ai_trading"),
 ]
