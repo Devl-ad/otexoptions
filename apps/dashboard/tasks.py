@@ -142,7 +142,7 @@ def resolve_trades():
 
             wallet = Wallet.objects.get(user=trade.user)
 
-            result_balance = wallet.get_balance(
+            return_balance = wallet.get_balance(
                 mode="demo" if trade.is_demo else "live"
             )
 
