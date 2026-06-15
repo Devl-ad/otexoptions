@@ -140,22 +140,30 @@ class Wallet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def credit(self, amount, mode="demo"):
+        current_balance = self.demo_balance if mode == "demo" else self.balance
         if mode == "demo":
             self.demo_balance += Decimal(str(amount))
+            current_balance = self.demo_balance
         else:
             self.balance += Decimal(str(amount))
+            current_balance = self.balance
         self.save(update_fields=["balance", "demo_balance", "updated_at"])
+        return current_balance
 
     def debit(self, amount, mode="demo"):
+        current_balance = self.demo_balance if mode == "demo" else self.balance
         if mode == "demo":
             if self.demo_balance < Decimal(str(amount)):
                 raise ValueError("Insufficient demo balance.")
             self.demo_balance -= Decimal(str(amount))
+            current_balance = self.demo_balance
         else:
             if self.balance < Decimal(str(amount)):
                 raise ValueError("Insufficient live balance.")
             self.balance -= Decimal(str(amount))
+            current_balance = self.balance
         self.save(update_fields=["balance", "demo_balance", "updated_at"])
+        return current_balance
 
     @property
     def current_balance(self):

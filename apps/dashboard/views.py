@@ -167,8 +167,7 @@ def place_trade(request):
 
         # --- atomic: debit stake + create trade ---
         with transaction.atomic():
-            wallet.debit(stake, mode=mode)
-            current_balance = float(stake)
+            current_balance = wallet.debit(stake, mode=mode)
 
             trade = Trade.objects.create(
                 user=request.user,
