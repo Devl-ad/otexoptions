@@ -153,7 +153,7 @@ def place_trade(request):
         wallet = request.user.wallet
         current_balance = 0
         if mode == "live":
-            current_balance = wallet.live_balance
+            current_balance = wallet.balance
         elif mode == "demo":
             current_balance = wallet.demo_balance
 
