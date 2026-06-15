@@ -16,6 +16,7 @@ from apps.account.forms import KYCForm
 from .tasks import run_bot_session
 from apps.dashboard.utils import get_account_mode
 from .models import (
+    BotTrade,
     Trade,
     Wallet,
     HouseSettings,
@@ -303,6 +304,37 @@ def trade_logs(request):
         }
         for t in qs.order_by("-opened_at")
     ]
+    bot_trades = BotTrade.objects.filter(
+        session__user=request.user, session__is_demo=(mode == "demo")
+    ).select_related("session")
+    for bt in bot_trades:
+        trades_list.append(
+            {
+                "id": bt.id,
+                "source": "bot",
+                "asset": "BOT",  # or actual asset if available
+                "trade_type": "BOT",
+                "direction": bt.direction,
+                "stake": float(bt.stake),
+                "payout_pct": None,
+                "pnl": float(bt.profit),
+                "payout": (
+                    float(bt.stake) + float(bt.profit) if bt.result == "WON" else 0
+                ),
+                "duration": None,
+                "entry_price": float(bt.entry_price),
+                "exit_price": float(bt.exit_price) if bt.exit_price else None,
+                "status": bt.result,
+                "opened_at": bt.executed_at,
+            }
+        )
+
+    # Sort everything together
+    trades_list.sort(key=lambda x: x["opened_at"], reverse=True)
+
+    # Format dates after sorting
+    for trade in trades_list:
+        trade["opened_at"] = trade["opened_at"].strftime("%d %b %Y, %I:%M %p")
 
     context = {
         "trades_json": json.dumps(trades_list),

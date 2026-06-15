@@ -1,11 +1,1411 @@
-{% extends "layouts/users.html" %} {% load humanize %}
+{% extends "layouts/bot.html" %} {% load static %}
 <!--  -->
-{% block title %} Automated Trading {% endblock title %}
+
+{% block title %} AI Bot {% endblock %}
 <!--  -->
 {% block content %}
-<!-- ════════════════════════════════════════ -->
-<main class="main deposit"></main>
-<!-- ════════════════════════════════════════ -->
+<style>
+  main.bot-page {
+    margin-left: 220px;
+    flex: 1;
+    padding: 28px;
+    min-height: 100vh;
+  }
 
-{% endblock content %}
-<!--  -->
+  @media (max-width: 767px) {
+    main.bot-page .topbar-right {
+      display: none;
+    }
+    main.bot-page {
+      margin-left: 0 !important;
+
+      padding: 0px 6px 80px !important;
+    }
+  }
+</style>
+<main class="main bot-page">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Bots</h1>
+    </div>
+    <div class="topbar-right">
+      <div
+        onclick="window.location.href = ''"
+        class="avatar"
+        style="width: 38px; height: 38px; font-size: 13px"
+      >
+        {{ request.user.get_initials }}
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Key entry -->
+  <div id="stepKey" class="bot-step-key">
+    <div class="bot-key-card">
+      <div class="bot-key-icon"><i class="ti ti-robot"></i></div>
+      <h2>Enter Your Bot Key</h2>
+      <p>Paste the 16-character bot server key to load your bot.</p>
+      <div class="bot-key-row">
+        <input
+          id="botKeyInput"
+          type="text"
+          maxlength="16"
+          placeholder="XXXXXXXXXXXXXXXX"
+          autocomplete="off"
+          spellcheck="false"
+          oninput="
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+          "
+          onkeydown="if (event.key === 'Enter') validateKey();"
+        />
+        <button class="bot-key-btn" onclick="validateKey()">
+          <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+      <p id="keyError" class="key-error" style="display: none"></p>
+    </div>
+  </div>
+
+  <!-- STEP 2: Trading interface -->
+  <div id="stepTrade" style="display: none">
+    <!-- Bot info strip -->
+    <div class="bot-strip">
+      <div class="bot-strip-left">
+        <div class="bot-badge" id="botTypeBadge">—</div>
+        <div>
+          <p class="bot-strip-name" id="botName">—</p>
+          <p class="bot-strip-sub" id="botDesc">—</p>
+        </div>
+      </div>
+      <div class="bot-strip-right">
+        <div class="bst"><span>Risk</span><strong id="botRisk">—</strong></div>
+        <div class="bst">
+          <span>Profit/trade</span><strong id="botProfitPct">—</strong>
+        </div>
+        <div class="bst">
+          <span>Trades/5min</span><strong id="botFreq">—</strong>
+        </div>
+        <button class="strip-change-btn" onclick="changeKey()">
+          <i class="ti ti-refresh"></i> Change key
+        </button>
+      </div>
+    </div>
+
+    <!-- Main trading layout -->
+    <div class="bot-trading-layout">
+      <!-- LEFT: Controls -->
+      <div class="bot-left-panel">
+        <!-- Pair selector with live price -->
+        <div class="bot-panel-card">
+          <p class="panel-title">Select Pair</p>
+          <select
+            id="botPair"
+            class="bot-select"
+            onchange="switchPair(this.value)"
+          >
+            {% for pair in pairs %}
+            <option value="{{ pair.symbol }}">{{ pair.symbol }}</option>
+            {% endfor %}
+          </select>
+
+          <!-- Live price ticker -->
+          <div class="bot-ticker">
+            <div class="ticker-pair-name" id="tickerPairName">—</div>
+            <div class="ticker-price" id="tickerPrice">—</div>
+            <div class="ticker-change" id="tickerChange">—</div>
+            <div class="ticker-row">
+              <div class="ticker-stat">
+                <span>Bid</span>
+                <strong id="tickerBid">—</strong>
+              </div>
+              <div class="ticker-stat">
+                <span>Ask</span>
+                <strong id="tickerAsk">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="bot-panel-card">
+          <p class="panel-title">Run Settings</p>
+
+          <div class="bot-field">
+            <label>Timeframe</label>
+            <div class="tf-row">
+              <button
+                class="tf-btn active"
+                data-tf="5"
+                onclick="selectTF(this)"
+              >
+                5 min
+              </button>
+              <button class="tf-btn" data-tf="10" onclick="selectTF(this)">
+                10 min
+              </button>
+              <button class="tf-btn" data-tf="20" onclick="selectTF(this)">
+                20 min
+              </button>
+              <button class="tf-btn" data-tf="30" onclick="selectTF(this)">
+                30 min
+              </button>
+            </div>
+          </div>
+
+          <div class="bot-field">
+            <label>Stake per Trade</label>
+            <input
+              type="number"
+              id="botStake"
+              class="bot-input"
+              value="10"
+              min="1"
+              oninput="updateEstimate()"
+            />
+            <div class="quick-stakes">
+              <button onclick="setStake(5)">$5</button>
+              <button onclick="setStake(10)">$10</button>
+              <button onclick="setStake(25)">$25</button>
+              <button onclick="setStake(50)">$50</button>
+            </div>
+          </div>
+
+          <div class="bot-field">
+            <label>Account</label>
+            <div class="acc-row">
+              <button
+                class="acc-btn active"
+                id="accDemo"
+                onclick="selectAcc('demo')"
+              >
+                <i class="ti ti-device-desktop"></i> Demo
+              </button>
+              <button class="acc-btn" id="accLive" onclick="selectAcc('live')">
+                <i class="ti ti-live-view"></i> Live
+              </button>
+            </div>
+          </div>
+
+          <!-- Estimate -->
+          <div class="bot-estimate">
+            <div class="est-row">
+              <span>Total trades</span><span id="estTrades">—</span>
+            </div>
+            <div class="est-row">
+              <span>Total at risk</span><span id="estRisk">—</span>
+            </div>
+            <div class="est-row">
+              <span>Max profit</span><span id="estProfit" class="up">—</span>
+            </div>
+          </div>
+
+          <button class="start-btn" id="startBtn" onclick="startBot()">
+            <i class="ti ti-player-play"></i> Start Bot
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Live feed -->
+      <div class="bot-right-panel">
+        <!-- Running stats bar -->
+        <div class="bot-stats-bar" id="statsBar">
+          <div class="sbar-item">
+            <span>Status</span>
+            <strong id="sbarStatus"><span class="dot idle"></span> Idle</strong>
+          </div>
+          <div class="sbar-item">
+            <span>Balance</span>
+            <strong class="bal-val" id="sbarBalance">—</strong>
+          </div>
+          <div class="sbar-item">
+            <span>Net P&L</span>
+            <strong id="sbarPnl">$0.00</strong>
+          </div>
+          <div class="sbar-item">
+            <span>Won / Lost</span>
+            <strong id="sbarWL">0 / 0</strong>
+          </div>
+          <!-- <div class="sbar-item">
+            <span>Progress</span>
+            <strong id="sbarProgress">— / —</strong>
+          </div> -->
+        </div>
+
+        <!-- Progress bar -->
+        <div class="bot-prog-wrap" id="progWrap" style="display: none">
+          <div class="bot-prog-bar">
+            <div class="bot-prog-fill" id="progFill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Live trade feed -->
+        <div class="bot-feed-card">
+          <div class="feed-header">
+            <p class="panel-title" style="margin: 0">Live Trades</p>
+            <div
+              class="feed-pair-pill"
+              id="feedPairPill"
+              style="display: none"
+            ></div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="feed-empty" id="feedEmpty">
+            <i class="ti ti-robot"></i>
+            <p>Trades will appear here once the bot starts.</p>
+          </div>
+
+          <!-- Trade rows -->
+          <div
+            id="tradeList"
+            style="display: none; flex-direction: column; gap: 8px"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Summary Modal -->
+<div class="modal-overlay" id="summaryOverlay" style="display: none">
+  <div class="summary-modal">
+    <div class="summary-outcome" id="summaryOutcome">
+      <div id="outcomeIcon" style="font-size: 52px; margin-bottom: 12px"></div>
+      <h2 id="outcomeTitle">—</h2>
+      <p
+        id="outcomeSubtitle"
+        style="color: #666; font-size: 13px; margin-top: 6px"
+      >
+        —
+      </p>
+    </div>
+    <div class="summary-grid">
+      <div class="sg-item">
+        <span>Total Trades</span><strong id="smTrades">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Won</span><strong class="up" id="smWon">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Lost</span><strong class="dn" id="smLost">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Win Rate</span><strong id="smWinRate">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Total Staked</span><strong id="smStaked">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Profit</span><strong class="up" id="smGProfit">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Loss</span><strong class="dn" id="smGLoss">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Net P&L</span><strong id="smNetPnl">—</strong>
+      </div>
+    </div>
+    <button class="summary-close-btn" onclick="closeModal()">Done</button>
+  </div>
+</div>
+{% endblock %} {% block script %}
+<script>
+  // ── State ─────────────────────────────────────────────────────────────────
+  let botKey = null,
+    botData = null;
+  let selectedTF = 5,
+    selectedAcc = "demo";
+  let sessionId = null,
+    botRunning = false;
+  let tradesWon = 0,
+    tradesLost = 0,
+    currentPnl = 0;
+  let totalTrades = 0,
+    tradesDone = 0;
+  let priceWs = null,
+    botWs = null;
+  let currentPair = "{{ pairs.0.symbol }}";
+  let lastPrice = null;
+
+  // ── Price WebSocket ────────────────────────────────────────────────────────
+  function connectPriceWs(symbol) {
+    if (priceWs) priceWs.close();
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    priceWs = new WebSocket(
+      `${proto}://${window.location.host}/ws/price/${symbol}/`,
+    );
+
+    priceWs.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+
+      if (data.type === "price_update") updateTicker(data);
+    };
+
+    priceWs.onclose = function () {
+      if (currentPair) setTimeout(() => connectPriceWs(currentPair), 2000);
+    };
+  }
+
+  function updateTicker(data) {
+    const price = parseFloat(data.price);
+    const priceEl = document.getElementById("tickerPrice");
+    const changeEl = document.getElementById("tickerChange");
+
+    // price direction flash
+    if (lastPrice !== null) {
+      priceEl.className =
+        "ticker-price " + (price >= lastPrice ? "tick-up" : "tick-dn");
+      const diff = (price - lastPrice).toFixed(4);
+      const pct = (((price - lastPrice) / lastPrice) * 100).toFixed(2);
+      changeEl.textContent = `${diff >= 0 ? "+" : ""}${diff} (${pct}%)`;
+      changeEl.className = "ticker-change " + (diff >= 0 ? "up" : "dn");
+    }
+
+    priceEl.textContent = price.toFixed(4);
+    document.getElementById("tickerBid").textContent = (price - 0.0002).toFixed(
+      4,
+    );
+    document.getElementById("tickerAsk").textContent = (price + 0.0002).toFixed(
+      4,
+    );
+    lastPrice = price;
+
+    // if bot running, update the active trade row price
+    const activeRow = document.querySelector(".trade-row.running");
+    if (activeRow) {
+      const livePrice = activeRow.querySelector(".tr-live-price");
+      if (livePrice) livePrice.textContent = "@ " + price.toFixed(4);
+    }
+  }
+
+  function switchPair(symbol) {
+    currentPair = symbol;
+    lastPrice = null;
+    document.getElementById("tickerPairName").textContent = symbol;
+    document.getElementById("tickerPrice").textContent = "—";
+    document.getElementById("tickerChange").textContent = "—";
+    connectPriceWs(symbol);
+  }
+
+  // ── Bot WebSocket ──────────────────────────────────────────────────────────
+  function connectBotWs() {
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    botWs = new WebSocket(`${proto}://${window.location.host}/ws/bot/`);
+
+    botWs.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+
+      if (data.type === "bot_trade_open") onTradeOpen(data);
+      if (data.type === "bot_trade_result") onTradeResult(data);
+      if (data.type === "bot_session_complete") onSessionComplete(data);
+    };
+
+    botWs.onclose = function () {
+      setTimeout(connectBotWs, 2000);
+    };
+  }
+
+  // ── Key validation ─────────────────────────────────────────────────────────
+  function validateKey() {
+    const key = document.getElementById("botKeyInput").value.trim();
+    if (key.length !== 16) {
+      showKeyErr("Key must be exactly 16 characters.");
+      return;
+    }
+
+    fetch(`/dashboard/bot/validate-key/?key=${key}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.valid) {
+          showKeyErr(data.error || "Invalid key.");
+          return;
+        }
+        botKey = key;
+        botData = data;
+
+        document.getElementById("botName").textContent = data.name;
+        document.getElementById("botTypeBadge").textContent = data.bot_type;
+        document.getElementById("botDesc").textContent =
+          data.description || data.bot_type;
+        document.getElementById("botRisk").textContent = data.risk_level;
+        document.getElementById("botProfitPct").textContent =
+          data.profit_pct + "%";
+        document.getElementById("botFreq").textContent = data.trades_per_5min;
+
+        document.getElementById("stepKey").style.display = "none";
+        document.getElementById("stepTrade").style.display = "block";
+
+        // init pair
+        switchPair(currentPair);
+        document.getElementById("tickerPairName").textContent = currentPair;
+        updateEstimate();
+      });
+  }
+
+  function showKeyErr(msg) {
+    const el = document.getElementById("keyError");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function changeKey() {
+    botKey = null;
+    botData = null;
+    document.getElementById("stepKey").style.display = "flex";
+    document.getElementById("stepTrade").style.display = "none";
+    document.getElementById("botKeyInput").value = "";
+    document.getElementById("keyError").style.display = "none";
+    if (priceWs) priceWs.close();
+  }
+
+  // ── Controls ───────────────────────────────────────────────────────────────
+  function selectTF(btn) {
+    document
+      .querySelectorAll(".tf-btn")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedTF = parseInt(btn.dataset.tf);
+    updateEstimate();
+  }
+
+  function selectAcc(type) {
+    selectedAcc = type;
+    document
+      .getElementById("accDemo")
+      .classList.toggle("active", type === "demo");
+    document
+      .getElementById("accLive")
+      .classList.toggle("active", type === "live");
+  }
+
+  function setStake(val) {
+    document.getElementById("botStake").value = val;
+    updateEstimate();
+  }
+
+  function updateEstimate() {
+    if (!botData) return;
+    const stake = parseFloat(document.getElementById("botStake").value) || 0;
+    const trades = Math.round((selectedTF / 5) * botData.trades_per_5min);
+    totalTrades = trades;
+    document.getElementById("estTrades").textContent = trades;
+    document.getElementById("estRisk").textContent =
+      "$" + (stake * trades).toFixed(2);
+    document.getElementById("estProfit").textContent =
+      "+$" +
+      (stake * trades * (parseFloat(botData.profit_pct) / 100)).toFixed(2);
+    // document.getElementById("sbarProgress").textContent = `0 / ${trades}`;
+  }
+
+  // ── Start bot ──────────────────────────────────────────────────────────────
+  function startBot() {
+    if (botRunning) return;
+    const stake = parseFloat(document.getElementById("botStake").value);
+    const pair = document.getElementById("botPair").value;
+    if (!stake || stake <= 0) {
+      alert("Enter a valid stake.");
+      return;
+    }
+
+    fetch("/dashboard/bot/start/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        key: botKey,
+        pair,
+        stake,
+        timeframe: selectedTF,
+        is_demo: selectedAcc === "demo",
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        sessionId = data.session_id;
+        totalTrades = data.total_trades;
+        botRunning = true;
+        tradesWon = 0;
+        tradesLost = 0;
+        currentPnl = 0;
+        tradesDone = 0;
+
+        // reset feed
+        document.getElementById("feedEmpty").style.display = "none";
+        document.getElementById("tradeList").style.display = "flex";
+        document.getElementById("tradeList").innerHTML = "";
+        document.getElementById("progWrap").style.display = "block";
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("startBtn").innerHTML =
+          '<i class="ti ti-loader ti-spin"></i> Running...';
+        document.getElementById("feedPairPill").style.display = "flex";
+        document.getElementById("feedPairPill").textContent = pair;
+        setStatus("running");
+        updateStatsBar();
+      });
+  }
+
+  // ── Trade open (shows as "Running") ───────────────────────────────────────
+  function onTradeOpen(data) {
+    tradesDone = data.trade_number;
+
+    const row = document.createElement("div");
+    row.className = "trade-row running";
+    row.id = `trade-${data.trade_number}`;
+    row.innerHTML = `
+      <div class="tr-left">
+        <div class="tr-num">#${data.trade_number}</div>
+        <div class="tr-dir-icon neutral"><i class="ti ti-loader ti-spin"></i></div>
+        <div>
+          <p class="tr-pair">${data.pair} · ${data.direction}</p>
+          <p class="tr-live-price">@ ${parseFloat(data.entry_price).toFixed(4)}</p>
+        </div>
+      </div>
+      <div class="tr-right">
+        <p class="tr-status running-label">Running...</p>
+        <p class="tr-stake">Stake $${parseFloat(data.stake).toFixed(2)}</p>
+      </div>
+    `;
+
+    document.getElementById("tradeList").prepend(row);
+
+    // progress
+    const pct = (tradesDone / totalTrades) * 100;
+    document.getElementById("progFill").style.width = pct + "%";
+    // document.getElementById("sbarProgress").textContent =
+    //   `${tradesDone} / ${totalTrades}`;
+  }
+
+  // ── Trade result (updates the row) ────────────────────────────────────────
+  function onTradeResult(data) {
+    const won = data.result === "WON";
+    currentPnl = parseFloat(data.current_pnl);
+    if (won) tradesWon++;
+    else tradesLost++;
+
+    const row = document.getElementById(`trade-${data.trade_number}`);
+    if (row) {
+      row.className = `trade-row ${won ? "win" : "loss"}`;
+      row.innerHTML = `
+        <div class="tr-left">
+          <div class="tr-num">#${data.trade_number}</div>
+          <div class="tr-dir-icon ${won ? "win" : "loss"}">
+            <i class="ti ti-trending-${won ? "up" : "down"}"></i>
+          </div>
+          <div>
+            <p class="tr-pair">${data.pair} · ${data.direction}</p>
+            <p class="tr-live-price">${parseFloat(data.entry_price).toFixed(4)} → ${parseFloat(data.exit_price).toFixed(4)}</p>
+          </div>
+        </div>
+        <div class="tr-right">
+          <p class="tr-amount ${won ? "up" : "dn"}">
+            ${won ? "+" : ""}$${parseFloat(data.profit).toFixed(2)}
+          </p>
+          <p class="tr-stake">Stake $${parseFloat(data.stake).toFixed(2)}</p>
+        </div>
+      `;
+    }
+
+    updateStatsBar(data.balance);
+  }
+
+  function updateStatsBar(balance) {
+    const pnlEl = document.getElementById("sbarPnl");
+    pnlEl.textContent = `${currentPnl >= 0 ? "+" : ""}$${currentPnl.toFixed(2)}`;
+    pnlEl.className = currentPnl >= 0 ? "up" : "dn";
+    document.getElementById("sbarWL").textContent =
+      `${tradesWon} / ${tradesLost}`;
+
+    if (balance) {
+      const fmt =
+        "$" +
+        parseFloat(balance).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+        });
+      document.getElementById("sbarBalance").textContent = fmt;
+      document
+        .querySelectorAll(".bal-val")
+        .forEach((el) => (el.textContent = fmt));
+    }
+  }
+
+  function setStatus(state) {
+    const el = document.getElementById("sbarStatus");
+    if (state === "running") {
+      el.innerHTML = '<span class="dot running"></span> Running';
+    } else {
+      el.innerHTML = '<span class="dot idle"></span> Idle';
+    }
+  }
+
+  // ── Session complete ───────────────────────────────────────────────────────
+  function onSessionComplete(data) {
+    botRunning = false;
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("startBtn").innerHTML =
+      '<i class="ti ti-player-play"></i> Start Bot';
+    setStatus("idle");
+
+    fetch(`/dashboard/bot/summary/${sessionId}/`)
+      .then((r) => r.json())
+      .then((summary) => showModal(summary));
+  }
+
+  function showModal(s) {
+    const pnl = parseFloat(s.net_pnl);
+    const icons = { PROFIT: "🏆", LOSS: "😔", BREAKEVEN: "➖" };
+    const titles = {
+      PROFIT: "Profitable Run!",
+      LOSS: "Better luck next time",
+      BREAKEVEN: "Breakeven",
+    };
+    const colors = { PROFIT: "#22c55e", LOSS: "#ef4444", BREAKEVEN: "#f59e0b" };
+
+    document.getElementById("outcomeIcon").textContent =
+      icons[s.outcome] || "—";
+    document.getElementById("outcomeTitle").textContent =
+      titles[s.outcome] || s.outcome;
+    document.getElementById("outcomeTitle").style.color = colors[s.outcome];
+    document.getElementById("outcomeSubtitle").textContent =
+      pnl >= 0
+        ? `+$${Math.abs(pnl).toFixed(2)} this session`
+        : `-$${Math.abs(pnl).toFixed(2)} this session`;
+
+    document.getElementById("smTrades").textContent = s.total_trades;
+    document.getElementById("smWon").textContent = s.trades_won;
+    document.getElementById("smLost").textContent = s.trades_lost;
+    document.getElementById("smWinRate").textContent = s.win_rate + "%";
+    document.getElementById("smStaked").textContent =
+      "$" + parseFloat(s.total_staked).toFixed(2);
+    document.getElementById("smGProfit").textContent =
+      "+$" + parseFloat(s.gross_profit).toFixed(2);
+    document.getElementById("smGLoss").textContent =
+      "-$" + parseFloat(s.gross_loss).toFixed(2);
+    const pnlEl = document.getElementById("smNetPnl");
+    pnlEl.textContent = `${pnl >= 0 ? "+" : ""}$${pnl.toFixed(2)}`;
+    pnlEl.className = pnl >= 0 ? "up" : "dn";
+
+    document.getElementById("summaryOverlay").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("summaryOverlay").style.display = "none";
+  }
+
+  // ── Page leave warning ─────────────────────────────────────────────────────
+  window.addEventListener("beforeunload", (e) => {
+    if (botRunning) {
+      e.preventDefault();
+      e.returnValue = "Bot is running. Leave?";
+    }
+  });
+
+  function getCookie(name) {
+    const v = `; ${document.cookie}`.split(`; ${name}=`);
+    if (v.length === 2) return v.pop().split(";").shift();
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  connectBotWs();
+</script>
+
+<style>
+  .bot-page {
+    padding-bottom: 60px;
+  }
+
+  /* Key entry */
+  .bot-step-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 65vh;
+  }
+  .bot-key-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08);
+  }
+  .bot-key-icon {
+    width: 64px;
+    height: 64px;
+    background: #fff4f0;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: #e85d35;
+  }
+  .bot-key-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 8px;
+  }
+  .bot-key-card p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .bot-key-row {
+    display: flex;
+    gap: 8px;
+  }
+  .bot-key-row input {
+    flex: 1;
+    padding: 13px 16px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: monospace;
+    letter-spacing: 0.12em;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .bot-key-row input:focus {
+    border-color: #e85d35;
+  }
+  .bot-key-btn {
+    width: 50px;
+    height: 50px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bot-key-btn:hover {
+    background: #d44e28;
+  }
+  .key-error {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  /* Bot strip */
+  .bot-strip {
+    background: #111;
+    border-radius: 14px;
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .bot-strip-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .bot-badge {
+    padding: 6px 12px;
+    background: #e85d35;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .bot-strip-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .bot-strip-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 2px;
+  }
+  .bot-strip-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .bst {
+    text-align: center;
+  }
+  .bst span {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .bst strong {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    margin-top: 2px;
+  }
+  .strip-change-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.55);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .strip-change-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+
+  /* Trading layout */
+  .bot-trading-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .bot-panel-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+  }
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  /* Ticker */
+  .bot-ticker {
+    background: #0d0d0d;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .ticker-pair-name {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .ticker-price {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    transition: color 0.2s;
+  }
+  .ticker-price.tick-up {
+    color: #22c55e;
+  }
+  .ticker-price.tick-dn {
+    color: #ef4444;
+  }
+  .ticker-change {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 4px 0 14px;
+  }
+  .ticker-row {
+    display: flex;
+    gap: 16px;
+  }
+  .ticker-stat span {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ticker-stat strong {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 3px;
+    display: block;
+  }
+
+  /* Fields */
+  .bot-field {
+    margin-bottom: 16px;
+  }
+  .bot-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 7px;
+  }
+  .bot-select,
+  .bot-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 13px;
+    font-family: "Inter", sans-serif;
+    outline: none;
+    transition: border 0.2s;
+    background: #fff;
+  }
+  .bot-select:focus,
+  .bot-input:focus {
+    border-color: #e85d35;
+  }
+
+  .tf-row {
+    display: flex;
+    gap: 6px;
+  }
+  .tf-btn {
+    flex: 1;
+    padding: 9px 0;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #777;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tf-btn.active {
+    border-color: #e85d35;
+    background: #fff4f0;
+    color: #e85d35;
+  }
+
+  .quick-stakes {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .quick-stakes button {
+    flex: 1;
+    padding: 7px 0;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #777;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quick-stakes button:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+
+  .acc-row {
+    display: flex;
+    gap: 8px;
+  }
+  .acc-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #777;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .acc-btn.active {
+    border-color: #e85d35;
+    background: #fff4f0;
+    color: #e85d35;
+  }
+
+  .bot-estimate {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .est-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #777;
+    padding: 3px 0;
+  }
+  .est-row span:last-child {
+    font-weight: 600;
+    color: #111;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 13px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .start-btn:hover:not(:disabled) {
+    background: #d44e28;
+  }
+  .start-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* Stats bar */
+  .bot-stats-bar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  }
+  .sbar-item {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid #f0f2f8;
+    padding: 0 12px;
+  }
+  .sbar-item:last-child {
+    border-right: none;
+  }
+  .sbar-item span {
+    display: block;
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .sbar-item strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  /* Progress */
+  .bot-prog-wrap {
+    margin-bottom: 12px;
+  }
+  .bot-prog-bar {
+    height: 4px;
+    background: #f0f2f8;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .bot-prog-fill {
+    height: 100%;
+    background: #e85d35;
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  /* Feed */
+  .bot-feed-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    min-height: 400px;
+  }
+  .feed-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .feed-pair-pill {
+    background: #111;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .feed-empty {
+    text-align: center;
+    padding: 60px 0;
+    color: #ccc;
+  }
+  .feed-empty i {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .feed-empty p {
+    font-size: 13px;
+  }
+
+  /* Trade rows */
+  .trade-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f8f9fb;
+    border-left: 3px solid #e5e7eb;
+    animation: rowIn 0.3s ease;
+  }
+  .trade-row.win {
+    border-left-color: #22c55e;
+  }
+  .trade-row.loss {
+    border-left-color: #ef4444;
+  }
+  .trade-row.running {
+    border-left-color: #e85d35;
+    background: #fff8f5;
+  }
+
+  @keyframes rowIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tr-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tr-num {
+    font-size: 11px;
+    color: #bbb;
+    font-weight: 600;
+    min-width: 26px;
+  }
+  .tr-dir-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+  .tr-dir-icon.win {
+    background: #f0fdf4;
+    color: #22c55e;
+  }
+  .tr-dir-icon.loss {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+  .tr-dir-icon.neutral {
+    background: #fff4f0;
+    color: #e85d35;
+  }
+  .tr-pair {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111;
+  }
+  .tr-live-price {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
+    font-family: monospace;
+  }
+
+  .tr-right {
+    text-align: right;
+  }
+  .tr-amount {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .tr-status {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .running-label {
+    color: #e85d35;
+  }
+  .tr-stake {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
+  }
+
+  /* Dots */
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  .dot.idle {
+    background: #d1d5db;
+  }
+  .dot.running {
+    background: #22c55e;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .up {
+    color: #22c55e !important;
+  }
+  .dn {
+    color: #ef4444 !important;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+  }
+  .summary-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+    animation: modalPop 0.3s ease;
+  }
+  @keyframes modalPop {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .summary-outcome {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .summary-outcome h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .sg-item {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .sg-item span {
+    display: block;
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .sg-item strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+  }
+  .summary-close-btn {
+    width: 100%;
+    padding: 13px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .summary-close-btn:hover {
+    background: #333;
+  }
+
+  /* Mobile */
+  @media (max-width: 960px) {
+    .bot-trading-layout {
+      grid-template-columns: 1fr;
+    }
+    .bot-stats-bar {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sbar-item {
+      border-right: none;
+      border-bottom: 1px solid #f0f2f8;
+      padding: 8px 0;
+    }
+    .bot-strip {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .summary-modal {
+      margin: 16px;
+    }
+  }
+</style>
+{% endblock %}

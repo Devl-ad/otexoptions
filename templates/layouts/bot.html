@@ -140,13 +140,13 @@
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/trade/'"
         >
-          <i class="ti ti-world" aria-hidden="true"></i>Trade
+          <i class="ti ti-plug" aria-hidden="true"></i>Trade
         </div>
         <div
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/agents/'"
         >
-          <i class="ti ti-wallet" aria-hidden="true"></i>Agents
+          <i class="ti ti-wallet" aria-hidden="true"></i>Deposit
         </div>
         <div
           class="mob-nav-item"
@@ -181,65 +181,6 @@
       }
     </script>
 
-    <script>
-      (function () {
-        const RECONNECT_DELAY = 3000;
-        const MAX_RETRIES = 10;
-        let retries = 0;
-        let ws = null;
-
-        function connect() {
-          const proto = window.location.protocol === "https:" ? "wss" : "ws";
-          ws = new WebSocket(`${proto}://${window.location.host}/ws/trades/`);
-
-          ws.onopen = function () {
-            retries = 0; // reset on successful connection
-            console.log("Trade WS connected");
-          };
-
-          ws.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-
-            if (data.type === "trade_result") {
-              if (data.status === "WON") {
-                showNotif(`🎉 You WON $${data.payout} on ${data.pair}!`, "success");
-              } else {
-                showNotif(`❌ You lost $${data.stake} on ${data.pair}.`, "error");
-              }
-
-              // update any balance element on any page
-              document.querySelectorAll(".bal-val").forEach((el) => {
-                el.textContent = "$" + parseFloat(data.balance).toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                });
-              });
-            }
-          };
-
-          ws.onclose = function (e) {
-            // don't reconnect if user logged out (code 4001) or tab is closing
-            if (e.code === 4001) return;
-            if (retries >= MAX_RETRIES) {
-              console.warn("Trade WS: max retries reached, giving up.");
-              return;
-            }
-            retries++;
-            console.log(`Trade WS closed — reconnecting in ${RECONNECT_DELAY}ms (attempt ${retries})`);
-            setTimeout(connect, RECONNECT_DELAY);
-          };
-
-          ws.onerror = function (err) {
-            console.error("Trade WS error:", err);
-            ws.close(); // triggers onclose → reconnect
-          };
-        }
-
-        // only connect if user is authenticated
-        {% if request.user.is_authenticated %}
-          connect();
-        {% endif %}
-      })();
-    </script>
     {% if messages %}
     <script>
       document.addEventListener("DOMContentLoaded", function () {

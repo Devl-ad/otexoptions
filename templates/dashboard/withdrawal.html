@@ -726,10 +726,12 @@
       class="topbar-right"
       style="display: flex; align-items: center; gap: 10px"
     >
-      <div class="topbar-btn">
-        <i class="ti ti-bell"></i><span class="badge">3</span>
+      <div
+        class="avatar"
+        onclick="window.location.href = '/dashboard/profile/'"
+      >
+        {{user.get_initials}}
       </div>
-      <div class="avatar">JD</div>
     </div>
   </div>
 

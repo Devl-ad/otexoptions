@@ -210,61 +210,35 @@ def determine_result(trade, entry, exit_price):
 
 
 def decide_trade_result(session, trade_number, total_trades, current_pnl):
-    """
-    Decide win/loss per trade — random but nudged toward house outcome
-    as the session approaches its end.
-    """
     template = session.bot_key.template
     house_outcome = session.house_outcome
-    base_win_rate = template.base_win_rate  # e.g. 55
+    base_win_rate = template.base_win_rate
 
     stake = float(session.stake_per_trade)
-    profit_pct = float(template.profit_pct) / 100  # 0.1563
+    profit_pct = float(template.profit_pct) / 100
     breakeven_min = float(template.breakeven_min_pct) / 100
     breakeven_max = float(template.breakeven_max_pct) / 100
     total_staked = stake * total_trades
-
-    # how far through the session are we (0.0 → 1.0)
     progress = trade_number / total_trades
-
-    # remaining trades
-    remaining = total_trades - trade_number
-
-    # current P&L as % of total staked
     pnl_pct = current_pnl / total_staked if total_staked > 0 else 0
 
-    win_rate = base_win_rate  # start with base
+    win_rate = base_win_rate
 
-    # in the last 30% of trades start nudging toward house outcome
     if progress >= 0.7:
         if house_outcome == "PROFIT":
-            # need to be in profit — boost win rate if behind
-            if pnl_pct < 0.05:
-                win_rate = min(85, base_win_rate + 25)
-            else:
-                win_rate = base_win_rate  # already profitable, stay natural
-
+            win_rate = min(85, base_win_rate + 25) if pnl_pct < 0.05 else base_win_rate
         elif house_outcome == "LOSS":
-            # need to be in loss — reduce win rate
-            if pnl_pct > -0.05:
-                win_rate = max(20, base_win_rate - 30)
-            else:
-                win_rate = base_win_rate  # already losing, stay natural
-
+            win_rate = max(20, base_win_rate - 30) if pnl_pct > -0.05 else base_win_rate
         elif house_outcome == "BREAKEVEN":
-            # steer toward breakeven range
             if pnl_pct > breakeven_max:
-                win_rate = max(20, base_win_rate - 25)  # too profitable, lose more
+                win_rate = max(20, base_win_rate - 25)
             elif pnl_pct < breakeven_min:
-                win_rate = min(85, base_win_rate + 25)  # too low, win more
-            else:
-                win_rate = base_win_rate  # in range, stay natural
+                win_rate = min(85, base_win_rate + 25)
 
     return "WON" if random.randint(1, 100) <= win_rate else "LOST"
 
 
 def get_trade_direction(bot_type):
-    """Pick a direction based on bot type."""
     if bot_type == "RISE_FALL":
         return random.choice(["RISE", "FALL"])
     elif bot_type == "OVER_UNDER":
@@ -274,11 +248,12 @@ def get_trade_direction(bot_type):
     return "RISE"
 
 
-@shared_task(bind=True)
-def run_bot_session(self, session_id):
+@shared_task
+def execute_bot_trade(session_id, trade_number):
     """
-    Main bot task — executes all trades for a session sequentially.
-    Each trade fires, waits, resolves, then notifies via WebSocket.
+    Executes a single trade for the session.
+    Schedules the next trade after the interval.
+    This way each trade fires independently — no sleep(), no blocking.
     """
     channel_layer = get_channel_layer()
 
@@ -290,138 +265,243 @@ def run_bot_session(self, session_id):
         logger.error(f"BotSession {session_id} not found")
         return
 
+    # cancelled mid-run
+    if session.status == "CANCELLED":
+        return
+
     template = session.bot_key.template
-    total_trades = int((session.timeframe / 5) * template.trades_per_5min)
-    session.total_trades = total_trades
-    session.status = "RUNNING"
-    session.house_outcome = template.house_outcome
-    session.save(update_fields=["total_trades", "status", "house_outcome"])
-
-    # interval between trades in seconds
-    trade_interval = (session.timeframe * 60) / total_trades
-
+    total_trades = session.total_trades
     stake = Decimal(str(session.stake_per_trade))
     profit_pct = Decimal(str(template.profit_pct)) / 100
-    current_pnl = Decimal("0")
-    trades_won = 0
-    trades_lost = 0
 
+    # get current P&L from existing trades
+    from django.db.models import Sum
+
+    existing = session.bot_trades.aggregate(total=Sum("profit"))
+    current_pnl = float(existing["total"] or 0)
+
+    # get latest price
+    latest_tick = PriceTick.objects.filter(pair=session.pair).first()
+    entry_price = latest_tick.price if latest_tick else Decimal("50.00")
+
+    direction = get_trade_direction(template.bot_type)
+
+    # notify: trade OPENING (shows as "Running..." in feed)
+    async_to_sync(channel_layer.group_send)(
+        f"bot_{session.user.id}",
+        {
+            "type": "bot_trade_open",
+            "trade_number": trade_number,
+            "total_trades": total_trades,
+            "direction": direction,
+            "entry_price": str(entry_price),
+            "stake": str(stake),
+            "pair": session.pair.symbol,
+            "price": str(entry_price),
+        },
+    )
+
+    # simulate trade duration (3 seconds per trade feels natural)
+    TRADE_DURATION = 3  # seconds — trade shows as "running" for this long
+
+    # schedule trade resolution after TRADE_DURATION seconds
+    resolve_bot_trade.apply_async(
+        args=[session_id, trade_number, direction, str(entry_price), current_pnl],
+        countdown=TRADE_DURATION,
+    )
+
+    # schedule next trade after the interval
+    interval = (session.timeframe * 60) / total_trades
+    if trade_number < total_trades:
+        execute_bot_trade.apply_async(
+            args=[session_id, trade_number + 1],
+            countdown=interval,
+        )
+
+
+@shared_task
+def resolve_bot_trade(
+    session_id, trade_number, direction, entry_price_str, current_pnl
+):
+    """
+    Resolves a single trade — determines win/loss, updates wallet,
+    saves to DB, notifies via WebSocket.
+    """
+    channel_layer = get_channel_layer()
+
+    try:
+        session = BotSession.objects.select_related(
+            "bot_key__template", "pair", "user", "user__wallet"
+        ).get(id=session_id)
+    except BotSession.DoesNotExist:
+        return
+
+    if session.status == "CANCELLED":
+        return
+
+    template = session.bot_key.template
+    total_trades = session.total_trades
+    stake = Decimal(str(session.stake_per_trade))
+    profit_pct = Decimal(str(template.profit_pct)) / 100
+    entry_price = Decimal(entry_price_str)
+
+    # get latest price as exit
+    latest_tick = PriceTick.objects.filter(pair=session.pair).first()
+    exit_price = latest_tick.price if latest_tick else entry_price
+
+    result = decide_trade_result(session, trade_number, total_trades, current_pnl)
+
+    if result == "WON":
+        trade_profit = round(stake * profit_pct, 2)
+    else:
+        trade_profit = -stake
+
+    # save trade
+    BotTrade.objects.create(
+        session=session,
+        trade_number=trade_number,
+        direction=direction,
+        entry_price=entry_price,
+        exit_price=exit_price,
+        stake=stake,
+        profit=trade_profit,
+        result=result,
+    )
+
+    # update wallet
     wallet = Wallet.objects.get(user=session.user)
+    mode = "demo" if session.is_demo else "live"
+    if result == "WON":
+        wallet.credit(float(stake + trade_profit), mode=mode)
+    else:
+        wallet.debit(float(stake), mode=mode)
 
-    for trade_number in range(1, total_trades + 1):
-        try:
-            # get latest price
-            latest_tick = PriceTick.objects.filter(pair=session.pair).first()
-            entry_price = latest_tick.price if latest_tick else Decimal("50.00")
+    # update session running totals
+    from django.db.models import Sum, Count
 
-            direction = get_trade_direction(template.bot_type)
+    agg = session.bot_trades.aggregate(
+        total=Count("id"),
+        won=Count(
+            "id", filter=__import__("django.db.models", fromlist=["Q"]).Q(result="WON")
+        ),
+        pnl=Sum("profit"),
+    )
+    new_pnl = float(agg["pnl"] or 0)
 
-            result = decide_trade_result(
-                session, trade_number, total_trades, float(current_pnl)
-            )
+    # notify: trade RESOLVED
+    async_to_sync(channel_layer.group_send)(
+        f"bot_{session.user.id}",
+        {
+            "type": "bot_trade_result",
+            "trade_number": trade_number,
+            "total_trades": total_trades,
+            "direction": direction,
+            "result": result,
+            "entry_price": str(entry_price),
+            "exit_price": str(exit_price),
+            "stake": str(stake),
+            "profit": str(trade_profit),
+            "current_pnl": str(new_pnl),
+            "balance": str(wallet.current_balance),
+            "pair": session.pair.symbol,
+        },
+    )
 
-            # calculate profit/loss
-            if result == "WON":
-                trade_profit = round(stake * profit_pct, 2)
-                trades_won += 1
-                current_pnl += trade_profit
-                wallet.credit(
-                    float(stake + trade_profit),
-                    mode="demo" if session.is_demo else "live",
-                )
-            else:
-                trade_profit = -stake
-                trades_lost += 1
-                current_pnl -= stake
-                wallet.debit(float(stake), mode="demo" if session.is_demo else "live")
+    # check if this was the last trade
+    if trade_number == total_trades:
+        finalize_bot_session.apply_async(
+            args=[session_id],
+            countdown=2,  # short delay so last trade result renders first
+        )
 
-            # save trade
-            bot_trade = BotTrade.objects.create(
-                session=session,
-                trade_number=trade_number,
-                direction=direction,
-                entry_price=entry_price,
-                exit_price=entry_price,  # for bots exit = entry (tick based)
-                stake=stake,
-                profit=trade_profit,
-                result=result,
-            )
 
-            # notify user via WebSocket
-            async_to_sync(channel_layer.group_send)(
-                f"bot_{session.user.id}",
-                {
-                    "type": "bot_trade_update",
-                    "trade_number": trade_number,
-                    "total_trades": total_trades,
-                    "direction": direction,
-                    "result": result,
-                    "stake": str(stake),
-                    "profit": str(trade_profit),
-                    "current_pnl": str(current_pnl),
-                    "balance": str(
-                        wallet.get_balance(
-                            float(stake), mode="demo" if session.is_demo else "live"
-                        )
-                    ),
-                    "pair": session.pair.symbol,
-                    "entry_price": str(entry_price),
-                },
-            )
+@shared_task
+def finalize_bot_session(session_id):
+    """Wraps up the session, computes final outcome, notifies user."""
+    channel_layer = get_channel_layer()
 
-            # wait before next trade
-            import time
+    try:
+        session = BotSession.objects.select_related(
+            "bot_key__template", "user", "user__wallet"
+        ).get(id=session_id)
+    except BotSession.DoesNotExist:
+        return
 
-            time.sleep(trade_interval)
+    from django.db.models import Sum, Count, Q
 
-        except Exception as e:
-            logger.error(f"Bot trade {trade_number} error: {e}")
-            continue
+    agg = session.bot_trades.aggregate(
+        total=Count("id"),
+        won=Count("id", filter=Q(result="WON")),
+        lost=Count("id", filter=Q(result="LOST")),
+        gross_profit=Sum("profit", filter=Q(result="WON")),
+        gross_loss=Sum("profit", filter=Q(result="LOST")),
+        net_pnl=Sum("profit"),
+    )
 
-    # --- session complete ---
-    total_staked = stake * total_trades
-    pnl_pct = float(current_pnl / total_staked) if total_staked > 0 else 0
+    net_pnl = float(agg["net_pnl"] or 0)
+    total_staked = float(session.stake_per_trade) * (agg["total"] or 0)
+    pnl_pct = net_pnl / total_staked if total_staked > 0 else 0
 
+    template = session.bot_key.template
     breakeven_min = float(template.breakeven_min_pct) / 100
     breakeven_max = float(template.breakeven_max_pct) / 100
 
     if breakeven_min <= pnl_pct <= breakeven_max:
         final_outcome = "BREAKEVEN"
-    elif current_pnl > 0:
+    elif net_pnl > 0:
         final_outcome = "PROFIT"
     else:
         final_outcome = "LOSS"
 
-    session.trades_won = trades_won
-    session.trades_lost = trades_lost
-    session.gross_profit = sum(
-        t.profit for t in session.bot_trades.filter(result="WON")
-    )
-    session.gross_loss = abs(
-        sum(t.profit for t in session.bot_trades.filter(result="LOST"))
-    )
-    session.net_pnl = current_pnl
+    session.trades_won = agg["won"] or 0
+    session.trades_lost = agg["lost"] or 0
+    session.gross_profit = agg["gross_profit"] or 0
+    session.gross_loss = abs(agg["gross_loss"] or 0)
+    session.net_pnl = net_pnl
     session.outcome = final_outcome
     session.status = "COMPLETED"
     session.completed_at = timezone.now()
     session.save()
 
-    # notify session complete
+    wallet = Wallet.objects.get(user=session.user)
+
+    session.bot_key.total_uses += 1
+    session.bot_key.save(update_fields=["total_uses"])
+
     async_to_sync(channel_layer.group_send)(
         f"bot_{session.user.id}",
         {
             "type": "bot_session_complete",
             "outcome": final_outcome,
-            "total_trades": total_trades,
-            "trades_won": trades_won,
-            "trades_lost": trades_lost,
-            "net_pnl": str(current_pnl),
+            "total_trades": agg["total"],
+            "trades_won": agg["won"],
+            "trades_lost": agg["lost"],
+            "net_pnl": str(net_pnl),
             "total_staked": str(total_staked),
-            "win_rate": str(round((trades_won / total_trades) * 100, 1)),
+            "win_rate": str(round(((agg["won"] or 0) / (agg["total"] or 1)) * 100, 1)),
             "balance": str(wallet.current_balance),
         },
     )
 
-    # increment key usage
-    session.bot_key.total_uses += 1
-    session.bot_key.save(update_fields=["total_uses"])
+
+@shared_task
+def run_bot_session(session_id):
+    """Entry point — sets up session and fires the first trade."""
+    try:
+        session = BotSession.objects.select_related("bot_key__template").get(
+            id=session_id
+        )
+    except BotSession.DoesNotExist:
+        logger.error(f"BotSession {session_id} not found")
+        return
+
+    template = session.bot_key.template
+    total_trades = int((session.timeframe / 5) * template.trades_per_5min)
+
+    session.total_trades = total_trades
+    session.status = "RUNNING"
+    session.house_outcome = template.house_outcome
+    session.save(update_fields=["total_trades", "status", "house_outcome"])
+
+    # fire first trade immediately — rest are chained via countdown
+    execute_bot_trade.apply_async(args=[session_id, 1], countdown=1)
