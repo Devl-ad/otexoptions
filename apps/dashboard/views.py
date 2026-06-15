@@ -406,7 +406,7 @@ def withdrawal(request):
             amount=amount,
             fee=Decimal(fee),
             net_amount=amount,
-            crypto_address="address",
+            crypto_address=address,
             status=Transaction.Status.PENDING,
         )
 

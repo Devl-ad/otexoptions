@@ -89,7 +89,7 @@ class Trade(models.Model):
     trade_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
     stake = models.DecimalField(max_digits=10, decimal_places=2)
-    payout_pct = models.DecimalField(max_digits=5, decimal_places=2, default=85.00)
+    payout_pct = models.DecimalField(max_digits=5, decimal_places=2, default=43.00)
     entry_price = models.DecimalField(max_digits=10, decimal_places=2)
     exit_price = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
@@ -170,7 +170,7 @@ class HouseSettings(models.Model):
     pair = models.OneToOneField(
         "TradingPair", on_delete=models.CASCADE, related_name="house_settings"
     )
-    payout_pct = models.DecimalField(max_digits=5, decimal_places=2, default=85.00)
+    payout_pct = models.DecimalField(max_digits=5, decimal_places=2, default=43.00)
     house_edge = models.DecimalField(max_digits=5, decimal_places=2, default=15.00)
 
     # favourability — 50 = fair, >50 = users win more, <50 = house wins more
