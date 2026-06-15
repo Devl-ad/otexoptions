@@ -15,6 +15,9 @@
     background-size: cover;
     background-position: center;
   }
+  .cusbtnbox {
+    display: none;
+  }
 
   @media (max-width: 959px) {
     #cusheroheader {
@@ -31,6 +34,7 @@
     }
 
     .cusbtnbox {
+      display: block;
       position: absolute;
       bottom: 78px;
       left: 12px;
@@ -66,12 +70,6 @@
                   href="/auth/register"
                   class="uk-button uk-button-primary uk-border-rounded"
                   >Get Started</a
-                >
-                <a
-                  href="/dashboard/"
-                  class="uk-button uk-button-default uk-border-rounded uk-margin-small-left uk-visible@m"
-                >
-                  trading</a
                 >
               </div>
             </div>
@@ -583,12 +581,12 @@
           <div class="uk-width-expand@m">
             <form class="uk-grid-small" data-uk-grid>
               <div class="uk-width-1-1 uk-width-auto@m">
-                <button
-                  onclick="window.location.href = '/auth/register'"
+                <a
+                  href="/auth/register"
                   class="uk-button uk-button-primary uk-border-rounded uk-width-expand"
                 >
                   Open Account
-                </button>
+                </a>
               </div>
             </form>
           </div>
