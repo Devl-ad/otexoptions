@@ -139,6 +139,11 @@ class Wallet(models.Model):
     is_demo = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_balance(self, mode):
+        if mode == "demo":
+            return self.demo_balance
+        return self.balance
+
     def credit(self, amount, mode="demo"):
         current_balance = self.demo_balance if mode == "demo" else self.balance
         if mode == "demo":

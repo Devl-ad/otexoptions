@@ -93,6 +93,7 @@ def resolve_trades():
                 continue
 
             current_price = float(latest_tick.price)
+            return_balance = 0
             resolved = False
 
             if trade.duration_unit == "ticks":
@@ -138,12 +139,20 @@ def resolve_trades():
             trade.save(update_fields=["exit_price", "status"])
 
             # --- update wallet ---
+
             wallet = Wallet.objects.get(user=trade.user)
+
+            result_balance = wallet.get_balance(
+                mode="demo" if trade.is_demo else "live"
+            )
+
             if final_result == "WON":
                 payout = round(
                     float(trade.stake) * (1 + float(trade.payout_pct) / 100), 2
                 )
-                wallet.credit(payout, mode="demo" if trade.is_demo else "live")
+                return_balance = wallet.credit(
+                    payout, mode="demo" if trade.is_demo else "live"
+                )
 
             # --- notify user ---
             async_to_sync(channel_layer.group_send)(
@@ -157,7 +166,7 @@ def resolve_trades():
                     "stake": str(trade.stake),
                     "payout": str(trade.payout) if final_result == "WON" else "0",
                     "profit": str(trade.profit),
-                    "balance": str(wallet.balance),
+                    "balance": str(return_balance),
                     "pair": trade.pair.symbol,
                     "direction": trade.direction,
                 },
