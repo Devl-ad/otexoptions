@@ -36,6 +36,10 @@ class UserAdmin(BaseUserAdmin):
         (_("2FA"), {"fields": ("totp_enabled", "totp_secret")}),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
         (
+            _("KYC"),
+            {"fields": ("is_verified",)},
+        ),
+        (
             _("Referral"),
             {
                 "fields": ("referred_by",),
