@@ -149,12 +149,16 @@ def reject_kyc(modeladmin, request, queryset):
         user.save(update_fields=["is_verified"])
 
         try:
-            send_mail(
+            _send(
                 subject="OTEX KYC Verification Update",
-                message=f"Hi {user.get_full_name() or user.username}, your KYC was not approved.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=_rejection_email(user, submission.admin_note),
+                to_email=user.email,
+                text_template="emails/kyc_status.txt",
+                html_template="emails/kyc_status.html",
+                context={
+                    "user": user,
+                    "kyc_status": "rejected",
+                    "rejection_reason": submission.admin_note,
+                },
             )
         except Exception as e:
             modeladmin.message_user(
