@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import User, Details, KYCSubmission
+from .models import User, Details, KYCSubmission, Referral, ReferralDeposit
 
 
 @admin.register(User)
@@ -213,3 +213,32 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
                 obj.reviewed_by = request.user
                 obj.reviewed_at = timezone.now()
         super().save_model(request, obj, form, change)
+
+
+class ReferralDepositInline(admin.TabularInline):
+    model = ReferralDeposit
+    readonly_fields = ["amount", "commission_earned", "deposited_at"]
+    extra = 0
+
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = [
+        "referrer",
+        "referred",
+        "status",
+        "total_deposited",
+        "total_commission",
+        "commission_rate",
+        "created_at",
+    ]
+    list_filter = ["status"]
+    list_editable = ["commission_rate"]  # adjust per affiliate from admin
+    readonly_fields = [
+        "total_deposited",
+        "total_commission",
+        "first_deposit_at",
+        "last_deposit_at",
+    ]
+    inlines = [ReferralDepositInline]
+    search_fields = ["referrer__username", "referred__username"]

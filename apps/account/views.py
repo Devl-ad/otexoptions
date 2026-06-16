@@ -9,9 +9,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.http import require_POST
+from django.db.models import Sum, Count, Q
 import logging
 from .forms import AccountDetailsForm, PersonalInfoForm, AddressForm
-from .models import Details
+from .models import Details, Referral, ReferralDeposit
 from .emails import send_activation_email, send_password_reset_email
 from .forms import (
     LoginForm,
@@ -22,6 +23,7 @@ from .forms import (
     TOTPVerifyForm,
 )
 from .tokens import account_activation_token, password_reset_token
+from .decorator import affiliate_required
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -128,6 +130,26 @@ def register(request):
                     # Create empty profile record
                     Details.objects.create(user=user)
 
+                    # handle referral
+                    ref_code = request.session.get("ref_code")
+                    if ref_code:
+                        try:
+                            referrer = User.objects.get(username=ref_code)
+                            if referrer != user:  # can't refer yourself
+                                user.referred_by = referrer
+                                user.save(update_fields=["referred_by"])
+
+                                # increment referrer's count
+                                referrer.total_referrals += 1
+                                referrer.save(update_fields=["total_referrals"])
+
+                                # clear from session
+                                del request.session["ref_code"]
+                                request.session.modified = True
+
+                        except User.DoesNotExist:
+                            pass  # invalid ref code — just ignore silently
+
                     # Send activation email
                     send_activation_email(request, user)
 
@@ -223,6 +245,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
+    messages.info(request, "You have been logged out.")
     return redirect("account:login")
 
 
@@ -348,3 +371,32 @@ def password_reset_confirm(request, uidb64, token):
         return redirect("account:login")
 
     return render(request, "account/password_reset_confirm.html", {"form": form})
+
+
+@login_required
+@affiliate_required
+def affiliate_dashboard(request):
+
+    referrals = (
+        Referral.objects.filter(referrer=request.user)
+        .select_related("referred")
+        .prefetch_related("deposits")
+        .order_by("-created_at")
+    )
+
+    stats = referrals.aggregate(
+        total_referred=Count("id"),
+        total_active=Count("id", filter=Q(status="ACTIVE")),
+        total_deposited=Sum("total_deposited"),
+        total_commission=Sum("total_commission"),
+    )
+
+    return render(
+        request,
+        "affiliate/dashboard.html",
+        {
+            "referrals": referrals,
+            "stats": stats,
+            "referral_link": f"https://otexoption.com/?ref={request.user.username}",
+        },
+    )

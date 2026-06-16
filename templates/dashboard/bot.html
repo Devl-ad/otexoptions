@@ -651,6 +651,11 @@
       '<i class="ti ti-player-play"></i> Start Bot';
     setStatus("idle");
 
+    document.getElementById("sbarBalance").textContent = `${data.balance}`;
+    document
+      .querySelectorAll(".bal-val")
+      .forEach((el) => (el.textContent = `${data.balance}`));
+
     fetch(`/dashboard/bot/summary/${sessionId}/`)
       .then((r) => r.json())
       .then((summary) => showModal(summary));

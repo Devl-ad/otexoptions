@@ -336,6 +336,50 @@ def trade_logs(request):
     for trade in trades_list:
         trade["opened_at"] = trade["opened_at"].strftime("%d %b %Y, %I:%M %p")
 
+    # ── Combined Statistics
+
+    # Manual trades
+    manual_total = qs.count()
+    manual_won = qs.filter(status="WON").count()
+
+    manual_profit = sum(t.profit for t in qs if t.status in ["WON", "LOST"])
+
+    manual_stakes = [float(t.stake) for t in qs]
+
+    manual_best = max(
+        [float(t.profit) for t in qs if t.status == "WON"],
+        default=0,
+    )
+
+    # Bot trades
+    bot_total = bot_trades.count()
+    bot_won = bot_trades.filter(result="WON").count()
+
+    bot_profit = sum(
+        float(bt.profit) for bt in bot_trades if bt.result in ["WON", "LOST"]
+    )
+
+    bot_stakes = [float(bt.stake) for bt in bot_trades]
+
+    bot_best = max(
+        [float(bt.profit) for bt in bot_trades if bt.result == "WON"],
+        default=0,
+    )
+
+    # Combined values
+    total_trades = manual_total + bot_total
+    won_count = manual_won + bot_won
+
+    win_rate = round((won_count / total_trades) * 100, 1) if total_trades else 0
+
+    total_pnl = round(manual_profit + bot_profit, 2)
+
+    all_stakes = manual_stakes + bot_stakes
+
+    avg_stake = round(sum(all_stakes) / len(all_stakes), 2) if all_stakes else 0
+
+    best_trade = round(max(manual_best, bot_best), 2)
+
     context = {
         "trades_json": json.dumps(trades_list),
         "total_trades": total_trades,

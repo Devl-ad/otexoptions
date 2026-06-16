@@ -285,6 +285,9 @@ def execute_bot_trade(session_id, trade_number):
     entry_price = latest_tick.price if latest_tick else Decimal("50.00")
 
     direction = get_trade_direction(template.bot_type)
+    wallet = Wallet.objects.get(user=session.user)
+    mode = "demo" if session.is_demo else "live"
+    wallet.debit(float(stake), mode=mode)
 
     # notify: trade OPENING (shows as "Running..." in feed)
     async_to_sync(channel_layer.group_send)(
@@ -374,7 +377,8 @@ def resolve_bot_trade(
     if result == "WON":
         wallet.credit(float(stake + trade_profit), mode=mode)
     else:
-        wallet.debit(float(stake), mode=mode)
+        # wallet.debit(float(stake), mode=mode) already debited at trade open, so no action needed here
+        pass
 
     # update session running totals
     from django.db.models import Sum, Count
@@ -402,7 +406,7 @@ def resolve_bot_trade(
             "stake": str(stake),
             "profit": str(trade_profit),
             "current_pnl": str(new_pnl),
-            "balance": str(wallet.current_balance),
+            "balance": str(wallet.get_balance(mode=mode)),
             "pair": session.pair.symbol,
         },
     )
@@ -479,7 +483,9 @@ def finalize_bot_session(session_id):
             "net_pnl": str(net_pnl),
             "total_staked": str(total_staked),
             "win_rate": str(round(((agg["won"] or 0) / (agg["total"] or 1)) * 100, 1)),
-            "balance": str(wallet.current_balance),
+            "balance": str(
+                wallet.get_balance(mode="demo" if session.is_demo else "live")
+            ),
         },
     )
 

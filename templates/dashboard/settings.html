@@ -525,7 +525,7 @@
 <style>
   @media (max-width: 767px) {
     .main.account .topbar-right {
-      display: none;
+      display: none !important;
     }
   }
 </style>
@@ -840,6 +840,23 @@
           </div>
 
           <!-- Login activity -->
+          <div class="security-row">
+            <div class="security-left">
+              <div
+                class="security-icon"
+                style="background: #eff6ff; color: #2563eb"
+              >
+                <i class="ti ti-cloud-down"></i>
+              </div>
+              <div>
+                <div class="security-label">Logout</div>
+                <div class="security-sub">-----</div>
+              </div>
+            </div>
+            <a href="/auth/logout/" class="security-link">
+              <i class="ti ti-pencil"></i> Logout
+            </a>
+          </div>
         </div>
 
         <!-- Account Activity -->
