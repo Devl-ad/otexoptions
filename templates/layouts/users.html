@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
     <title>{% block title %} {% endblock %} - OTEX</title>
     <link rel="stylesheet" href="{% static '/css/user.css' %}" />
     <link
@@ -67,7 +71,7 @@
           >Transactions</a
         >
         <a class="nav-item" href="/dashboard/agents/"
-          ><i class="ti ti-user" aria-hidden="true"></i>Agents</a
+          ><i class="ti ti-user" aria-hidden="true"></i>Finance</a
         >
 
         <a class="nav-item" href="/dashboard/profile/"
@@ -139,25 +143,26 @@
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/'"
         >
-          <i class="ti ti-server" aria-hidden="true"></i>Portfolio
+          <i class="fa-solid fa-chart-pie"></i>
+          Portfolio
         </div>
         <div
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/trade/'"
         >
-          <i class="ti ti-world" aria-hidden="true"></i>Trade
+          <i class="fa-solid fa-chart-line"></i>Markets
         </div>
         <div
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/agents/'"
         >
-          <i class="ti ti-wallet" aria-hidden="true"></i>Agents
+          <i class="fa-solid fa-money-bill-transfer"></i>Finance
         </div>
         <div
           class="mob-nav-item"
           onclick="window.location.href = '/dashboard/trade-history/'"
         >
-          <i class="ti ti-folder" aria-hidden="true"></i>History
+          <i class="fa-solid fa-clock-rotate-left"></i>Trade History
         </div>
       </div>
     </nav>
