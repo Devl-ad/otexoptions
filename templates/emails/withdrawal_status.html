@@ -1,0 +1,218 @@
+`<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Transaction Update</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 30px 0">
+      <tr>
+        <td align="center">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #ffffff; border-radius: 12px; overflow: hidden"
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                align="center"
+                style="background: #ff6b00; padding: 35px 20px"
+              >
+                <div
+                  style="
+                    width: 70px;
+                    height: 70px;
+                    line-height: 70px;
+                    background: #ffffff;
+                    color: #ff6b00;
+                    border-radius: 12px;
+                    font-size: 28px;
+                    font-weight: bold;
+                  "
+                >
+                  OO
+                </div>
+
+                <h1 style="color: #ffffff; margin-top: 20px">Otex Options</h1>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px">
+                {% if status == 'approved' %}
+                <div style="text-align: center">
+                  <div style="font-size: 60px">✅</div>
+                  <h2 style="color: #28a745">Transaction Approved</h2>
+                </div>
+
+                {% elif status == 'pending' %}
+                <div style="text-align: center">
+                  <div style="font-size: 60px">⏳</div>
+                  <h2 style="color: #ff9800">Transaction Pending</h2>
+                </div>
+
+                {% elif status == 'rejected' %}
+                <div style="text-align: center">
+                  <div style="font-size: 60px">❌</div>
+                  <h2 style="color: #dc3545">Transaction Rejected</h2>
+                </div>
+                {% endif %}
+
+                <p style="text-align: center; color: #555; font-size: 16px">
+                  Hello {{ user.first_name }}, here is an update regarding your
+                  transaction.
+                </p>
+
+                <!-- Transaction Card -->
+                <table
+                  width="100%"
+                  style="
+                    margin-top: 25px;
+                    border: 1px solid #eee;
+                    border-radius: 10px;
+                    background: #fafafa;
+                    padding: 20px;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 10px 0; color: #777">
+                      Transaction Type
+                    </td>
+                    <td align="right">
+                      <strong style="text-transform: capitalize">
+                        {{ transaction_type }}
+                      </strong>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 10px 0; color: #777">Amount</td>
+                    <td align="right">
+                      <strong> {{ amount }} </strong>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 10px 0; color: #777">Transaction ID</td>
+                    <td align="right">
+                      <strong> {{ transaction_id }} </strong>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 10px 0; color: #777">Date</td>
+                    <td align="right">
+                      <strong> {{ transaction_date }} </strong>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 10px 0; color: #777">Status</td>
+                    <td align="right">
+                      {% if status == 'approved' %}
+                      <span style="color: #28a745; font-weight: bold">
+                        APPROVED
+                      </span>
+
+                      {% elif status == 'pending' %}
+                      <span style="color: #ff9800; font-weight: bold">
+                        PENDING
+                      </span>
+
+                      {% elif status == 'rejected' %}
+                      <span style="color: #dc3545; font-weight: bold">
+                        REJECTED
+                      </span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Dynamic Message -->
+
+                {% if transaction_type == 'deposit' and status == 'approved' %}
+
+                <p style="margin-top: 25px; color: #555; line-height: 1.7">
+                  Your deposit has been successfully credited to your trading
+                  account. You may now begin trading immediately.
+                </p>
+
+                {% elif transaction_type == 'withdrawal' and status ==
+                'approved' %}
+
+                <p style="margin-top: 25px; color: #555; line-height: 1.7">
+                  Your withdrawal request has been approved and is being
+                  processed. Funds should arrive according to your selected
+                  payment method's processing time.
+                </p>
+
+                {% elif status == 'pending' %}
+
+                <p style="margin-top: 25px; color: #555; line-height: 1.7">
+                  Your transaction is currently under review. We will notify you
+                  once processing has been completed.
+                </p>
+
+                {% elif status == 'rejected' %}
+
+                <p style="margin-top: 25px; color: #555; line-height: 1.7">
+                  Unfortunately, this transaction could not be completed. Please
+                  contact support if you believe this was an error.
+                </p>
+
+                {% endif %}
+
+                <!-- Button -->
+
+                <div style="text-align: center; margin-top: 35px">
+                  <a
+                    href="{{ dashboard_url }}"
+                    style="
+                      display: inline-block;
+                      background: #ff6b00;
+                      color: #ffffff;
+                      text-decoration: none;
+                      padding: 15px 35px;
+                      border-radius: 40px;
+                      font-weight: bold;
+                    "
+                  >
+                    VIEW DASHBOARD
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                align="center"
+                style="padding: 30px; border-top: 1px solid #eee"
+              >
+                <p style="font-size: 14px; color: #777">
+                  Need help? Contact Otex Options Support.
+                </p>
+
+                <p style="font-size: 13px; color: #999">
+                  © {% now "Y" %} Otex Options. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

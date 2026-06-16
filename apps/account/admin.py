@@ -9,8 +9,18 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from .models import User, Details, KYCSubmission, Referral, ReferralDeposit
 from django.utils.safestring import mark_safe
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 # ── Actions ───────────────────────────────────────────────────────────────────
+
+
+def _send(subject, to_email, text_template, html_template, context):
+    text_body = render_to_string(text_template, context)
+    html_body = render_to_string(html_template, context)
+    email = EmailMultiAlternatives(subject=subject, body=text_body, to=[to_email])
+    email.attach_alternative(html_body, "text/html")
+    email.send()
 
 
 @admin.register(User)
@@ -106,13 +116,18 @@ def approve_kyc(modeladmin, request, queryset):
         user.save(update_fields=["is_verified"])
 
         try:
-            send_mail(
-                subject="Your OTEX account has been verified ✅",
-                message=f"Hi {user.get_full_name() or user.username}, your KYC has been approved.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=_approval_email(user),
+            _send(
+                subject="Your OTEX account has been verified ",
+                to_email=user.email,
+                text_template="emails/kyc_status.txt",
+                html_template="emails/kyc_status.html",
+                context={
+                    "user": user,
+                    "kyc_status": "approved",
+                    "rejection_reason": submission.admin_note,
+                },
             )
+
         except Exception as e:
             modeladmin.message_user(
                 request,

@@ -1,0 +1,246 @@
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KYC Verification Status - OTEX</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .wrapper {
+        width: 100%;
+        background-color: #f3f4f6;
+        padding: 40px 16px;
+      }
+
+      .container {
+        max-width: 520px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+      }
+
+      .header {
+        background: #0f1117;
+        padding: 28px 40px;
+      }
+
+      .logo-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 0.08em;
+      }
+
+      .body {
+        padding: 40px;
+      }
+
+      .title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 16px;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+
+      .approved {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .rejected {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .text {
+        font-size: 15px;
+        color: #4b5563;
+        line-height: 1.7;
+        margin: 0 0 16px;
+      }
+
+      .btn-wrap {
+        text-align: center;
+        margin: 32px 0;
+      }
+
+      .btn {
+        display: inline-block;
+        background: #e85d35;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 14px 36px;
+        border-radius: 8px;
+      }
+
+      .info-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 18px;
+        margin-top: 24px;
+      }
+
+      .info-row {
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .label {
+        color: #6b7280;
+      }
+
+      .value {
+        color: #111827;
+        font-weight: 600;
+      }
+
+      .footer {
+        background: #f9fafb;
+        border-top: 1px solid #f3f4f6;
+        padding: 24px 40px;
+        text-align: center;
+      }
+
+      .footer p {
+        font-size: 12px;
+        color: #9ca3af;
+        margin: 0 0 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <span class="logo-name">OTEX</span>
+        </div>
+
+        <!-- Body -->
+        <div class="body">
+          {% if kyc_status == "approved" %}
+
+          <span class="status-badge approved"> ✓ VERIFIED </span>
+
+          <h2 class="title">KYC Verification Approved</h2>
+
+          <p class="text">Hi {{ user.first_name }},</p>
+
+          <p class="text">
+            Great news. Your identity verification has been successfully
+            approved. Your account is now fully verified and you can access all
+            OTEX features, including deposits, withdrawals, and trading.
+          </p>
+
+          <div class="btn-wrap">
+            <a href="https://otexoption.com/dashboard/" class="btn">
+              Go to Dashboard
+            </a>
+          </div>
+
+          {% elif kyc_status == "pending" %}
+
+          <span class="status-badge pending"> ⏳ UNDER REVIEW </span>
+
+          <h2 class="title">KYC Verification Pending</h2>
+
+          <p class="text">Hi {{ user.first_name }},</p>
+
+          <p class="text">
+            We've received your verification documents and our compliance team
+            is currently reviewing them.
+          </p>
+
+          <p class="text">
+            Most reviews are completed within 24–48 hours. You'll receive
+            another email once a decision has been made.
+          </p>
+
+          {% elif kyc_status == "rejected" %}
+
+          <span class="status-badge rejected"> ✕ ACTION REQUIRED </span>
+
+          <h2 class="title">KYC Verification Rejected</h2>
+
+          <p class="text">Hi {{ user.first_name }},</p>
+
+          <p class="text">
+            Unfortunately, we were unable to verify your submitted documents.
+          </p>
+
+          <p class="text">
+            Please review the reason below and submit updated documentation.
+          </p>
+
+          <div class="info-box">
+            <div class="info-row">
+              <span class="label">Reason:</span>
+              <span class="value"> {{ rejection_reason }} </span>
+            </div>
+          </div>
+
+          <div class="btn-wrap">
+            <a href="https://otexoption.com/dashboard/" class="btn">
+              Resubmit Documents
+            </a>
+          </div>
+
+          {% endif %}
+
+          <div class="info-box">
+            <div class="info-row">
+              <span class="label">Reference ID:</span>
+              <span class="value">{{ verification_id }}</span>
+            </div>
+
+            <div class="info-row">
+              <span class="label">Submitted:</span>
+              <span class="value">{{ submitted_at }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>© 2026 OTEX. All rights reserved.</p>
+          <p>
+            This is an automated notification regarding your account
+            verification.
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+```
