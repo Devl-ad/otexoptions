@@ -386,8 +386,8 @@ class Transaction(models.Model):
     admin_note = models.TextField(blank=True, default="")
     confirmed_at = models.DateTimeField(null=True, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=True)
+    updated_at = models.DateTimeField(default=timezone.now, editable=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -408,6 +408,7 @@ class Transaction(models.Model):
             self.reference = self._generate_reference()
         # Auto-calculate net amount
         self.net_amount = self.amount - self.fee
+        self.updated_at = timezone.now()
         super().save(*args, **kwargs)
 
     @staticmethod

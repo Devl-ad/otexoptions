@@ -256,8 +256,6 @@ class TransactionAdmin(admin.ModelAdmin):
     readonly_fields = (
         "reference",
         "net_amount",
-        "created_at",
-        "updated_at",
         "proof_preview",
         "whatsapp_link",
     )
@@ -317,7 +315,7 @@ class TransactionAdmin(admin.ModelAdmin):
     def user_link(self, obj):
         from django.urls import reverse
 
-        url = reverse("admin:auth_user_change", args=[obj.user.pk])
+        url = reverse("admin:account_user_change", args=[obj.user.pk])
         return format_html('<a href="{}">{}</a>', url, obj.user.username)
 
     @admin.display(description="Method")
