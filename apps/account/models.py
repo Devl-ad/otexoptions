@@ -58,6 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
 
     is_affiliate = models.BooleanField(default=False)
+
     referred_by = models.ForeignKey(
         "self",
         null=True,

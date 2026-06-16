@@ -6,12 +6,13 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction
 from datetime import timedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
 from apps.account.models import KYCSubmission
 from apps.account.forms import KYCForm
+from apps.account.referrals import record_referral_deposit
 
 from .tasks import run_bot_session
 from apps.dashboard.utils import get_account_mode
@@ -28,7 +29,7 @@ from .models import (
     BotKey,
 )
 from decimal import Decimal
-
+from apps.account.models import User
 
 from django.db.models import Count, Sum, Avg, F, ExpressionWrapper, DecimalField, Q
 
@@ -731,3 +732,176 @@ def session_summary(request, session_id):
         )
     except BotSession.DoesNotExist:
         return JsonResponse({"error": "Session not found."}, status=404)
+
+
+@login_required
+def agent_dashboard(request):
+    """
+    Only accessible by users who are linked to an Agent record.
+    Shows balance, stats, and recent activity.
+    """
+    agent = get_object_or_404(Agent, user=request.user, is_active=True)
+
+    # Stats
+    today = timezone.now().date()
+
+    credits_today = Transaction.objects.filter(
+        agent=agent,
+        transaction_type=Transaction.TransactionType.DEPOSIT,
+        status=Transaction.Status.COMPLETED,
+        created_at__date=today,
+    )
+    credits_today_count = credits_today.count()
+    credits_today_amount = credits_today.aggregate(t=Sum("amount"))["t"] or Decimal("0")
+
+    all_time_amount = Transaction.objects.filter(
+        agent=agent,
+        transaction_type=Transaction.TransactionType.DEPOSIT,
+        status=Transaction.Status.COMPLETED,
+    ).aggregate(t=Sum("amount"))["t"] or Decimal("0")
+
+    recent_transactions = (
+        Transaction.objects.filter(
+            agent=agent,
+        )
+        .select_related("user")
+        .order_by("-created_at")[:10]
+    )
+
+    context = {
+        "agent": agent,
+        "credits_today_count": credits_today_count,
+        "credits_today_amount": credits_today_amount,
+        "all_time_amount": all_time_amount,
+        "recent_transactions": recent_transactions,
+    }
+    return render(request, "dashboard/agent.html", context)
+
+
+# ─────────────────────────────────────────────
+# Username lookup (AJAX)
+# ─────────────────────────────────────────────
+
+
+@login_required
+def lookup_user(request):
+    """
+    GET /agent/lookup-user/?username=kwame23
+    Returns whether the user exists and their display name.
+    Called live from the credit modal as the agent types.
+    """
+    username = request.GET.get("username", "").strip()
+
+    if not username:
+        return JsonResponse({"found": False, "error": "No username provided."})
+
+    try:
+        user = User.objects.get(username__iexact=username)
+        return JsonResponse(
+            {
+                "found": True,
+                "username": user.username,
+                "full_name": user.get_full_name(),
+            }
+        )
+    except User.DoesNotExist:
+        return JsonResponse({"found": False})
+
+
+# ─────────────────────────────────────────────
+# Credit user (AJAX POST)
+# ─────────────────────────────────────────────
+
+
+@login_required
+@require_POST
+def credit_user(request):
+    """
+    POST /agent/credit-user/
+    Body: username=kwame23&amount=300.00
+
+    Deducts from agent balance (if you track it on the Agent model),
+    creates a completed Transaction, and credits the user's live wallet.
+    """
+    agent = get_object_or_404(Agent, user=request.user, is_active=True)
+
+    username = request.POST.get("username", "").strip()
+    raw_amount = request.POST.get("amount", "").strip()
+
+    # ── Validate ──────────────────────────────────────
+    if not username:
+        return JsonResponse(
+            {"success": False, "error": "Username is required."}, status=400
+        )
+
+    try:
+        target_user = User.objects.get(username__iexact=username)
+    except User.DoesNotExist:
+        return JsonResponse({"success": False, "error": "User not found."}, status=404)
+
+    try:
+        amount = Decimal(raw_amount)
+        if amount < Decimal("1.00"):
+            raise ValueError
+    except (ValueError, Exception):
+        return JsonResponse({"success": False, "error": "Invalid amount."}, status=400)
+
+    if amount < agent.min_deposit:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": f"Minimum credit amount is ${agent.min_deposit}.",
+            },
+            status=400,
+        )
+
+    if amount > agent.max_deposit:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": f"Maximum credit amount is ${agent.max_deposit}.",
+            },
+            status=400,
+        )
+
+    # ── Calculate fee ──────────────────────────────────
+    fee = (amount * agent.fee_percent / 100).quantize(Decimal("0.01"))
+    net_amount = amount - fee
+
+    # ── Create transaction ─────────────────────────────
+    transaction = Transaction.objects.create(
+        user=target_user,
+        agent=agent,
+        transaction_type=Transaction.TransactionType.DEPOSIT,
+        method=Transaction.Method.AGENT,
+        amount=amount,
+        fee=fee,
+        status=Transaction.Status.COMPLETED,
+        confirmed_at=timezone.now(),
+    )
+
+    # ── Credit the user's live wallet ─────────────────
+    # Adjust this to match your actual wallet / balance model.
+    # Example using a Profile with a live_balance field:
+    target_user_wallet = Wallet.objects.get(user=target_user)
+    target_user_wallet.credit(float(net_amount), mode="live")
+    target_user_wallet.save(update_fields=["balance"])
+
+    record_referral_deposit(target_user, amount=net_amount)
+
+    # ── Update agent trade count ───────────────────────
+    agent.balance -= amount
+    agent.total_trades += 1
+    agent.save(update_fields=["balance", "total_trades"])
+
+    return JsonResponse(
+        {
+            "success": True,
+            "reference": transaction.reference,
+            "username": target_user.username,
+            "amount": str(amount),
+            "net": str(net_amount),
+            "fee": str(fee),
+            "new_balance": str(agent.balance),
+        }
+    )

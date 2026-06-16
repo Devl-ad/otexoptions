@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    />
+    <title>Referrals - OTEX</title>
+    <link rel="stylesheet" href="/assets/css/user.css" />
+    <style>
+      .main.referral {
+        margin-left: 220px;
+        flex: 1;
+        min-height: 100vh;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .ref-inner {
+        padding: 0 28px 40px;
+      }
+
+      /* ── Hero banner ── */
+      .ref-hero {
+        background: #0f1117;
+        border-radius: 16px;
+        padding: 28px 28px 24px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .ref-hero-left {
+      }
+      .ref-hero-tag {
+        font-size: 10px;
+        font-weight: 700;
+        color: #e85d35;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(232, 93, 53, 0.15);
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 12px;
+      }
+      .ref-hero-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        margin-bottom: 8px;
+      }
+      .ref-hero-sub {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.4);
+        line-height: 1.6;
+        max-width: 380px;
+      }
+      .ref-hero-watermark {
+        position: absolute;
+        right: -10px;
+        bottom: -20px;
+        font-size: 100px;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.025);
+        line-height: 1;
+        user-select: none;
+        pointer-events: none;
+        letter-spacing: -3px;
+      }
+
+      /* ── Ref link box ── */
+      .ref-link-box {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 18px;
+      }
+      .ref-link-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.35);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+      }
+      .ref-link-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ref-link-val {
+        flex: 1;
+        font-family: monospace;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e85d35;
+        word-break: break-all;
+        line-height: 1.4;
+      }
+      .ref-copy-btn {
+        flex-shrink: 0;
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 17px;
+        transition: all 0.15s;
+      }
+      .ref-copy-btn:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+        background: rgba(232, 93, 53, 0.1);
+      }
+
+      /* Share buttons */
+      .ref-share-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+      .share-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.55);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+      }
+      .share-btn:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .share-btn i {
+        font-size: 15px;
+      }
+      .share-btn.wa {
+        color: #25d366;
+        border-color: rgba(37, 211, 102, 0.25);
+      }
+      .share-btn.wa:hover {
+        background: rgba(37, 211, 102, 0.1);
+      }
+
+      /* ── Stat cards ── */
+      .ref-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .ref-stat-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #f3f4f6;
+        padding: 18px 20px;
+      }
+      .ref-stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        margin-bottom: 10px;
+      }
+      .ref-stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+      }
+      .ref-stat-val {
+        font-size: 22px;
+        font-weight: 800;
+        color: #111;
+        line-height: 1;
+      }
+      .ref-stat-sub {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 4px;
+      }
+      .ref-stat-sub.green {
+        color: #00a878;
+        font-weight: 600;
+      }
+
+      /* ── How it works ── */
+      .how-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .how-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #f3f4f6;
+        padding: 20px;
+        text-align: center;
+      }
+      .how-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #fef0ec;
+        color: #e85d35;
+        font-size: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+      }
+      .how-icon {
+        font-size: 26px;
+        color: #e85d35;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .how-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 5px;
+      }
+      .how-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        line-height: 1.6;
+      }
+
+      /* ── Referral table ── */
+      .ref-table-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #f3f4f6;
+        overflow: hidden;
+      }
+      .ref-table-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px;
+        border-bottom: 1px solid #f3f4f6;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .ref-table-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ref-table-title i {
+        font-size: 18px;
+        color: #e85d35;
+      }
+      .ref-table-count {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+
+      /* Filter chips */
+      .ref-filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .ref-chip {
+        padding: 5px 14px;
+        border-radius: 20px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .ref-chip:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+      }
+      .ref-chip.active {
+        background: #e85d35;
+        border-color: #e85d35;
+        color: #fff;
+      }
+
+      /* Table */
+      .ref-table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .ref-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 620px;
+      }
+      .ref-table thead th {
+        padding: 10px 18px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: #fafafa;
+        border-bottom: 1px solid #f3f4f6;
+        white-space: nowrap;
+      }
+      .ref-table thead th.right {
+        text-align: right;
+      }
+      .ref-table tbody tr {
+        border-bottom: 1px solid #f9fafb;
+        transition: background 0.1s;
+      }
+      .ref-table tbody tr:last-child {
+        border-bottom: none;
+      }
+      .ref-table tbody tr:hover {
+        background: #fafafa;
+      }
+      .ref-table tbody td {
+        padding: 13px 18px;
+        font-size: 13px;
+        color: #374151;
+        white-space: nowrap;
+      }
+      .ref-table tbody td.right {
+        text-align: right;
+      }
+
+      /* User cell */
+      .ref-user-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ref-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: #fef0ec;
+        color: #e85d35;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .ref-user-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+      }
+      .ref-user-sub {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 1px;
+      }
+
+      /* Status badges */
+      .ref-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .ref-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .ref-status.deposited {
+        background: #e6f8f2;
+        color: #00a878;
+      }
+      .ref-status.deposited::before {
+        background: #00a878;
+      }
+      .ref-status.registered {
+        background: #fffbeb;
+        color: #d97706;
+      }
+      .ref-status.registered::before {
+        background: #d97706;
+      }
+      .ref-status.inactive {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .ref-status.inactive::before {
+        background: #9ca3af;
+      }
+
+      .dep-amount {
+        font-weight: 700;
+        color: #00a878;
+      }
+      .dep-amount.zero {
+        color: #9ca3af;
+        font-weight: 500;
+      }
+
+      .bonus-pill {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .bonus-pill.earned {
+        background: #e6f8f2;
+        color: #00a878;
+      }
+      .bonus-pill.pending {
+        background: #fffbeb;
+        color: #d97706;
+      }
+      .bonus-pill.none {
+        background: #f3f4f6;
+        color: #9ca3af;
+      }
+
+      /* Empty state */
+      .ref-empty {
+        padding: 56px 20px;
+        text-align: center;
+      }
+      .ref-empty i {
+        font-size: 48px;
+        color: #e5e7eb;
+        display: block;
+        margin-bottom: 14px;
+      }
+      .ref-empty h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+      }
+      .ref-empty p {
+        font-size: 13px;
+        color: #9ca3af;
+        line-height: 1.6;
+      }
+
+      /* Pagination */
+      .ref-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-top: 1px solid #f3f4f6;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .page-info {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      .page-btns {
+        display: flex;
+        gap: 5px;
+      }
+      .page-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .page-btn:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+      }
+      .page-btn.active {
+        background: #e85d35;
+        border-color: #e85d35;
+        color: #fff;
+      }
+      .page-btn.disabled {
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .page-btn i {
+        font-size: 14px;
+      }
+
+      /* Toast */
+      .copy-toast {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 22px;
+        border-radius: 10px;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      }
+      .copy-toast.show {
+        opacity: 1;
+      }
+      .copy-toast i {
+        font-size: 16px;
+        color: #00a878;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 960px) {
+        .main.referral {
+          margin-left: 0 !important;
+          padding-bottom: 90px;
+        }
+        .ref-inner {
+          padding: 0 14px 24px;
+        }
+        .ref-stats {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .how-grid {
+          grid-template-columns: 1fr;
+        }
+        .ref-hero {
+          flex-direction: column;
+        }
+      }
+      @media (max-width: 480px) {
+        .ref-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .ref-stat-val {
+          font-size: 18px;
+        }
+        .ref-hero-title {
+          font-size: 18px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+          <rect
+            x="11"
+            y="10"
+            width="6"
+            height="20"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.75"
+          />
+          <rect
+            x="20"
+            y="4"
+            width="6"
+            height="26"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.45"
+          />
+        </svg>
+        <span class="logo-name">OTEX</span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><i class="ti ti-home"></i>Dashboard</a>
+        <a class="nav-item"><i class="ti ti-chart-candlestick"></i>Trade</a>
+        <a class="nav-item"><i class="ti ti-briefcase"></i>Portfolio</a>
+        <a class="nav-item"
+          ><i class="ti ti-arrow-left-right"></i>Transactions</a
+        >
+        <a class="nav-item"><i class="ti ti-wallet"></i>Wallet</a>
+        <a class="nav-item"><i class="ti ti-bell"></i>Alerts</a>
+        <a class="nav-item active"><i class="ti ti-settings"></i>Settings</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-row">
+          <div class="avatar">{{user.get_initials}}</div>
+          <div>
+            <p class="user-name">{{user.get_full_name}}</p>
+            <p class="user-role">Affiliate</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="mobile-topbar">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+          <rect
+            x="11"
+            y="10"
+            width="6"
+            height="20"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.75"
+          />
+          <rect
+            x="20"
+            y="4"
+            width="6"
+            height="26"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.45"
+          />
+        </svg>
+        <span
+          style="
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            letter-spacing: 0.06em;
+          "
+          >OTEX</span
+        >
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div class="avatar">{{user.get_initials}}</div>
+      </div>
+    </div>
+
+    <main class="main referral">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1 style="font-size: 22px; font-weight: 700; color: #111">
+            Referrals
+          </h1>
+          <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+            Invite friends and earn when they deposit
+          </p>
+        </div>
+      </div>
+
+      <div class="ref-inner">
+        <!-- ── Hero ── -->
+        <div class="ref-hero">
+          <div class="ref-hero-left" style="flex: 1">
+            <div class="ref-hero-tag">Refer & Earn</div>
+            <div class="ref-hero-title">
+              Earn % of every<br />deposit your referrals make
+            </div>
+            <div class="ref-hero-sub">
+              Share your unique link. When someone signs up and deposits, you
+              earn a % bonus credited directly to your account.
+            </div>
+
+            <div class="ref-link-box">
+              <div class="ref-link-label">Your Referral Link</div>
+              <div class="ref-link-row">
+                <div class="ref-link-val" id="refLink">
+                  https://otexoption.com?ref={{user.username}}
+                </div>
+                <button
+                  class="ref-copy-btn"
+                  onclick="copyRefLink()"
+                  id="refCopyBtn"
+                  title="Copy link"
+                >
+                  <i class="ti ti-copy" id="refCopyIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="ref-share-row">
+              <a
+                class="share-btn wa"
+                href="https://wa.me/?text=Join%20me%20on%20OTEX%20options%20trading!%20Use%20my%20referral%20link%3A%20https%3A//otexoption.com/ref/JOHNDOE42"
+                target="_blank"
+                rel="noopener"
+              >
+                <i class="ti ti-brand-whatsapp"></i> WhatsApp
+              </a>
+              <button class="share-btn" onclick="copyRefLink()">
+                <i class="ti ti-copy"></i> Copy Link
+              </button>
+              <button class="share-btn" onclick="nativeShare()">
+                <i class="ti ti-share"></i> Share
+              </button>
+            </div>
+          </div>
+          <div class="ref-hero-watermark">REF</div>
+        </div>
+
+        <!-- ── Stat cards ── -->
+        <div class="ref-stats">
+          <div class="ref-stat-card">
+            <div
+              class="ref-stat-icon"
+              style="background: #fef0ec; color: #e85d35"
+            >
+              <i class="ti ti-users"></i>
+            </div>
+            <div class="ref-stat-label">Total Referrals</div>
+            <div class="ref-stat-val">
+              {{ stats.total_referred|default:"0" }}
+            </div>
+            <div class="ref-stat-sub">People signed up</div>
+          </div>
+          <div class="ref-stat-card">
+            <div
+              class="ref-stat-icon"
+              style="background: #e6f8f2; color: #00a878"
+            >
+              <i class="ti ti-user-check"></i>
+            </div>
+            <div class="ref-stat-label">Deposited</div>
+            <div class="ref-stat-val">{{ stats.total_active|default:"0" }}</div>
+            <div class="ref-stat-sub green">Active traders</div>
+          </div>
+          <div class="ref-stat-card">
+            <div
+              class="ref-stat-icon"
+              style="background: #e6f8f2; color: #00a878"
+            >
+              <i class="ti ti-currency-dollar"></i>
+            </div>
+            <div class="ref-stat-label">Total Deposited</div>
+            <div class="ref-stat-val">
+              ${{ stats.total_deposited|default:"0"|floatformat:2 }}
+            </div>
+            <div class="ref-stat-sub green">By your referrals</div>
+          </div>
+          <div class="ref-stat-card">
+            <div
+              class="ref-stat-icon"
+              style="background: #eff6ff; color: #2563eb"
+            >
+              <i class="ti ti-gift"></i>
+            </div>
+            <div class="ref-stat-label">Bonus Earned</div>
+            <div class="ref-stat-val" style="color: #00a878">
+              ${{ stats.total_commission|default:"0"|floatformat:2 }}
+            </div>
+            <div class="ref-stat-sub">{{ commission_rate }}% commission</div>
+          </div>
+        </div>
+
+        <!-- ── How it works ── -->
+        <div class="how-grid">
+          <div class="how-card">
+            <i class="ti ti-link how-icon"></i>
+            <div class="how-num">1</div>
+            <div class="how-title">Share your link</div>
+            <div class="how-sub">
+              Send your unique referral link to friends via WhatsApp, social
+              media, or anywhere.
+            </div>
+          </div>
+          <div class="how-card">
+            <i class="ti ti-user-plus how-icon"></i>
+            <div class="how-num">#</div>
+            <div class="how-title">They sign up</div>
+            <div class="how-sub">
+              Your friend creates an account using your referral link and
+              verifies their identity.
+            </div>
+          </div>
+          <div class="how-card">
+            <i class="ti ti-coin how-icon"></i>
+            <div class="how-num">#</div>
+            <div class="how-title">You earn %</div>
+            <div class="how-sub">
+              Every time they make a deposit, you automatically earn % as a
+              bonus to your account.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Referrals table ── -->
+        <div class="ref-table-card">
+          <div class="ref-table-head">
+            <div>
+              <div class="ref-table-title">
+                <i class="ti ti-users"></i> Your Referrals
+              </div>
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+              "
+            >
+              <div class="ref-filters">
+                <span class="ref-chip active" onclick="filterRef('all', this)"
+                  >All</span
+                >
+                <span class="ref-chip" onclick="filterRef('deposited', this)"
+                  >Deposited</span
+                >
+                <span class="ref-chip" onclick="filterRef('registered', this)"
+                  >Not deposited</span
+                >
+              </div>
+              <span class="ref-table-count" id="refCount">12 referrals</span>
+            </div>
+          </div>
+
+          <div class="ref-table-scroll">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Joined</th>
+                  <th>Status</th>
+                  <th class="right">Total Deposited</th>
+                  <th class="right">Your Bonus</th>
+                  <th>Last Deposit</th>
+                </tr>
+              </thead>
+              <tbody id="refBody"></tbody>
+            </table>
+            <div class="ref-empty" id="refEmpty" style="display: none">
+              <i class="ti ti-users"></i>
+              <h3>No referrals yet</h3>
+              <p>
+                Share your referral link to start earning.<br />Every deposit
+                they make earns you 5%.
+              </p>
+            </div>
+          </div>
+
+          <div class="ref-pagination">
+            <span class="page-info" id="pageInfo"></span>
+            <div class="page-btns" id="pageBtns"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- toast -->
+    <div class="copy-toast" id="copyToast">
+      <i class="ti ti-circle-check"></i> Referral link copied!
+    </div>
+
+    <script>
+      /* ═══════════════════════════════════════
+         Sample data — replace with:
+
+      ═══════════════════════════════════════ */
+       const REFERRALS = {{ referrals_json|safe }};
+
+      const PER_PAGE = 8;
+      let activeFilter = "all";
+      let page = 1;
+
+      const statusLabels = {
+        deposited: "Deposited",
+        registered: "Registered",
+        inactive: "Inactive",
+      };
+
+      function filtered() {
+        if (activeFilter === "all") return REFERRALS;
+        if (activeFilter === "deposited")
+          return REFERRALS.filter((r) => r.status === "deposited");
+        if (activeFilter === "registered")
+          return REFERRALS.filter(
+            (r) => r.status === "registered" || r.status === "inactive",
+          );
+        return REFERRALS;
+      }
+
+      function filterRef(f, el) {
+        activeFilter = f;
+        page = 1;
+        document
+          .querySelectorAll(".ref-chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        render();
+      }
+
+      function render() {
+        const data = filtered();
+        const total = data.length;
+        const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+        page = Math.min(page, pages);
+        const slice = data.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+        document.getElementById("refCount").textContent =
+          total + " referral" + (total !== 1 ? "s" : "");
+        document.getElementById("refEmpty").style.display = slice.length
+          ? "none"
+          : "block";
+
+        document.getElementById("refBody").innerHTML = slice
+          .map((r) => {
+            const statusClass = r.status;
+            const depHtml =
+              r.total_deposited > 0
+                ? `<span class="dep-amount">$${r.total_deposited.toLocaleString()}</span>`
+                : `<span class="dep-amount zero">$0.00</span>`;
+            const bonusHtml =
+              r.bonus > 0
+                ? `<span class="bonus-pill earned">+$${r.bonus.toFixed(2)}</span>`
+                : r.status === "registered"
+                  ? `<span class="bonus-pill pending">Pending</span>`
+                  : `<span class="bonus-pill none">—</span>`;
+
+            /* colour cycling for avatars */
+            const colors = [
+              ["#fef0ec", "#e85d35"],
+              ["#e6f8f2", "#00a878"],
+              ["#eff6ff", "#2563eb"],
+              ["#f5f3ff", "#7c3aed"],
+              ["#fffbeb", "#d97706"],
+              ["#fce7f3", "#db2777"],
+            ];
+            const [bg, fg] = colors[r.id % colors.length];
+
+            return `<tr>
+            <td>
+              <div class="ref-user-cell">
+                <div class="ref-avatar" style="background:${bg};color:${fg}">${r.initials}</div>
+                <div>
+                  <div class="ref-user-name">${r.name}</div>
+                  <div class="ref-user-sub">@${r.username}</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:#9ca3af;font-size:12px">${r.joined}</td>
+            <td><span class="ref-status ${statusClass}">${statusLabels[r.status]}</span></td>
+            <td class="right">${depHtml}</td>
+            <td class="right">${bonusHtml}</td>
+            <td style="color:#9ca3af;font-size:12px">${r.last_deposit}</td>
+          </tr>`;
+          })
+          .join("");
+
+        /* Pagination */
+        document.getElementById("pageInfo").textContent = total
+          ? `Page ${page} of ${pages}`
+          : "";
+        let btns = `<button class="page-btn ${page === 1 ? "disabled" : ""}" onclick="goPage(${page - 1})"><i class="ti ti-chevron-left"></i></button>`;
+        const range = new Set(
+          [1, pages, page - 1, page, page + 1].filter(
+            (n) => n >= 1 && n <= pages,
+          ),
+        );
+        const sorted = [...range].sort((a, b) => a - b);
+        let prev = 0;
+        sorted.forEach((n) => {
+          if (prev && n - prev > 1)
+            btns += `<button class="page-btn" disabled>…</button>`;
+          btns += `<button class="page-btn ${n === page ? "active" : ""}" onclick="goPage(${n})">${n}</button>`;
+          prev = n;
+        });
+        btns += `<button class="page-btn ${page === pages ? "disabled" : ""}" onclick="goPage(${page + 1})"><i class="ti ti-chevron-right"></i></button>`;
+        document.getElementById("pageBtns").innerHTML = btns;
+      }
+
+      function goPage(n) {
+        page = n;
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* ── Copy ref link ── */
+      function copyRefLink() {
+        const link = document.getElementById("refLink").textContent.trim();
+        navigator.clipboard.writeText(link).then(() => {
+          const icon = document.getElementById("refCopyIcon");
+          icon.className = "ti ti-check";
+          document.getElementById("refCopyBtn").style.borderColor = "#00a878";
+          document.getElementById("refCopyBtn").style.color = "#00a878";
+
+          const toast = document.getElementById("copyToast");
+          toast.classList.add("show");
+          setTimeout(() => {
+            toast.classList.remove("show");
+            icon.className = "ti ti-copy";
+            document.getElementById("refCopyBtn").style.borderColor = "";
+            document.getElementById("refCopyBtn").style.color = "";
+          }, 2200);
+        });
+      }
+
+      /* ── Native share (mobile) ── */
+      function nativeShare() {
+        const link = document.getElementById("refLink").textContent.trim();
+        if (navigator.share) {
+          navigator.share({
+            title: "Join me on OTEX Options Trading",
+            text: "Sign up using my referral link and start trading!",
+            url: link,
+          });
+        } else {
+          copyRefLink();
+        }
+      }
+
+      render();
+    </script>
+  </body>
+</html>

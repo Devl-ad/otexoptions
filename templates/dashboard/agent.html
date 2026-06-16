@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    />
+    <title>Agent Dashboard - OTEX</title>
+    <style>
+      /* ── Reset ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #f4f5f7;
+        color: #111;
+        min-height: 100vh;
+      }
+
+      /* ── Page wrapper (centers on desktop, full on mobile) ── */
+      .page {
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: #f4f5f7;
+        position: relative;
+        padding-bottom: 40px;
+      }
+
+      /* ══════════════════════
+         TOPBAR
+      ══════════════════════ */
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px 14px;
+        background: #f4f5f7;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #111;
+        letter-spacing: 0.03em;
+      }
+      .agent-pill {
+        font-size: 10px;
+        font-weight: 700;
+        background: #fef0ec;
+        color: #e85d35;
+        padding: 3px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-left: 2px;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .notif-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #6b7280;
+        cursor: pointer;
+        position: relative;
+        transition: border-color 0.15s;
+      }
+      .notif-btn:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+      }
+      .notif-dot {
+        position: absolute;
+        top: 6px;
+        right: 7px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #e85d35;
+        border: 1.5px solid #f4f5f7;
+      }
+      .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #e85d35, #f59e0b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      /* ══════════════════════
+         HERO BALANCE CARD
+      ══════════════════════ */
+      .hero {
+        margin: 0 16px 16px;
+        background: #0f1117;
+        border-radius: 18px;
+        padding: 26px 24px 22px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .hero-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.35);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 8px;
+      }
+      .hero-amount {
+        font-size: 36px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.5px;
+        line-height: 1;
+      }
+      .hero-sub {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.3);
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .hero-sub i {
+        font-size: 13px;
+      }
+      .hero-badge {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 20px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .hero-watermark {
+        position: absolute;
+        right: -12px;
+        bottom: -20px;
+        font-size: 90px;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.025);
+        line-height: 1;
+        user-select: none;
+        letter-spacing: -3px;
+        pointer-events: none;
+      }
+
+      /* ══════════════════════
+         CREDIT BUTTON
+      ══════════════════════ */
+      .credit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        width: calc(100% - 32px);
+        margin: 0 16px 18px;
+        height: 52px;
+        background: #e85d35;
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+      }
+      .credit-btn:hover {
+        opacity: 0.9;
+      }
+      .credit-btn:active {
+        transform: scale(0.98);
+      }
+      .credit-btn i {
+        font-size: 20px;
+      }
+
+      /* ══════════════════════
+         STAT CARDS
+      ══════════════════════ */
+      .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 0 16px 22px;
+      }
+      .stat-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #f3f4f6;
+        padding: 16px 18px;
+      }
+      .stat-icon-wrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+      .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+      }
+      .stat-val {
+        font-size: 22px;
+        font-weight: 800;
+        color: #111;
+        line-height: 1;
+      }
+      .stat-sub {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 4px;
+      }
+      .stat-sub.green {
+        color: #00a878;
+        font-weight: 600;
+      }
+
+      /* ══════════════════════
+         RECENT ACTIVITY
+      ══════════════════════ */
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111;
+      }
+      .section-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: #e85d35;
+        text-decoration: none;
+      }
+
+      .tx-list {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #f3f4f6;
+        margin: 0 16px;
+        overflow: hidden;
+      }
+      .tx-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #f9fafb;
+        transition: background 0.1s;
+      }
+      .tx-item:last-child {
+        border-bottom: none;
+      }
+      .tx-item:hover {
+        background: #fafafa;
+      }
+      .tx-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+      }
+      .tx-icon.credit {
+        background: #e6f8f2;
+        color: #00a878;
+      }
+      .tx-icon.topup {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+      .tx-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 2px;
+      }
+      .tx-sub {
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      .tx-right {
+        margin-left: auto;
+        text-align: right;
+      }
+      .tx-amount {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .tx-amount.pos {
+        color: #00a878;
+      }
+      .tx-amount.neg {
+        color: #e85d35;
+      }
+      .tx-time {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 2px;
+      }
+
+      /* ══════════════════════
+         MODAL OVERLAY
+      ══════════════════════ */
+      .modal-bg {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 200;
+        align-items: flex-end;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+      }
+      .modal-bg.open {
+        display: flex;
+      }
+
+      .modal {
+        background: #fff;
+        border-radius: 22px 22px 0 0;
+        padding: 10px 0 0;
+        width: 100%;
+        max-width: 480px;
+        animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-handle {
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: #e5e7eb;
+        margin: 0 auto 20px;
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #111;
+        padding: 0 22px;
+        margin-bottom: 6px;
+      }
+      .modal-sub {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+        padding: 0 22px;
+        margin-bottom: 22px;
+      }
+      .modal-body {
+        padding: 0 22px;
+      }
+
+      /* ── Form fields ── */
+      .field {
+        margin-bottom: 18px;
+      }
+      .flabel {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 7px;
+      }
+      .finput {
+        width: 100%;
+        height: 48px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f9fafb;
+        padding: 0 14px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: #111;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .finput:focus {
+        border-color: #e85d35;
+        background: #fff;
+      }
+      .finput.error {
+        border-color: #e85d35;
+        background: #fef9f7;
+      }
+
+      .amount-wrap {
+        position: relative;
+      }
+      .amount-prefix {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 15px;
+        font-weight: 700;
+        color: #9ca3af;
+        pointer-events: none;
+      }
+      .amount-wrap .finput {
+        padding-left: 28px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .err-msg {
+        font-size: 12px;
+        color: #e85d35;
+        margin-top: 5px;
+        display: none;
+        align-items: center;
+        gap: 4px;
+        font-weight: 500;
+      }
+      .err-msg.show {
+        display: flex;
+      }
+      .err-msg i {
+        font-size: 13px;
+      }
+
+      /* ── User lookup indicator ── */
+      .lookup-status {
+        font-size: 12px;
+        margin-top: 6px;
+        font-weight: 600;
+        display: none;
+        align-items: center;
+        gap: 5px;
+      }
+      .lookup-status.found {
+        color: #00a878;
+        display: flex;
+      }
+      .lookup-status.notfound {
+        color: #e85d35;
+        display: flex;
+      }
+      .lookup-status i {
+        font-size: 14px;
+      }
+
+      /* ── Summary box ── */
+      .summary-box {
+        background: #f9fafb;
+        border-radius: 10px;
+        border: 1px solid #f3f4f6;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        padding: 7px 0;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+      .summary-key {
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      .summary-val {
+        font-weight: 700;
+        color: #111;
+      }
+      .summary-val.green {
+        color: #00a878;
+      }
+
+      /* ── Modal actions ── */
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        padding: 16px 22px 36px;
+      }
+      .btn-cancel {
+        flex: 1;
+        height: 50px;
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      .btn-cancel:hover {
+        border-color: #d1d5db;
+      }
+      .btn-submit {
+        flex: 2;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        background: #e85d35;
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: opacity 0.15s;
+      }
+      .btn-submit:hover {
+        opacity: 0.88;
+      }
+      .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn-submit i {
+        font-size: 17px;
+      }
+
+      /* ── Success state ── */
+      .success-box {
+        display: none;
+        padding: 10px 22px 0;
+        text-align: center;
+      }
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #e6f8f2;
+        color: #00a878;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto 16px;
+      }
+      .success-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 6px;
+      }
+      .success-sub {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.7;
+      }
+      .success-detail {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111;
+        margin: 4px 0 14px;
+      }
+      .success-ref {
+        font-family: monospace;
+        font-size: 13px;
+        font-weight: 700;
+        color: #e85d35;
+        background: #fef0ec;
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: inline-block;
+        margin-bottom: 6px;
+        letter-spacing: 0.05em;
+      }
+      .success-note {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 6px;
+        line-height: 1.6;
+      }
+
+      /* ── Loading spinner ── */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2.5px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: none;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .online-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #00a878;
+        display: inline-block;
+        animation: pulse 1.5s infinite;
+        margin-right: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <!-- ── Topbar ── -->
+      <div class="topbar">
+        <div class="logo">
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+            <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+            <rect
+              x="11"
+              y="10"
+              width="6"
+              height="20"
+              rx="2"
+              fill="#E85D35"
+              opacity="0.75"
+            />
+            <rect
+              x="20"
+              y="4"
+              width="6"
+              height="26"
+              rx="2"
+              fill="#E85D35"
+              opacity="0.45"
+            />
+          </svg>
+          OTEX
+          <span class="agent-pill">Agent</span>
+        </div>
+        <div class="topbar-right">
+          <div class="notif-btn">
+            <i class="ti ti-bell" aria-hidden="true"></i>
+            <span class="notif-dot"></span>
+          </div>
+          <div class="avatar">AK</div>
+        </div>
+      </div>
+
+      <!-- ── Hero balance card ── -->
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">Agent Balance</div>
+            <div class="hero-amount" id="agentBalance">
+              ${{ agent.balance|floatformat:2 }}
+            </div>
+            <div class="hero-sub">
+              <span class="online-dot"></span>
+              Active · Updated just now
+            </div>
+          </div>
+          <div class="hero-badge">AGENT</div>
+        </div>
+        <div class="hero-watermark">AGENT</div>
+      </div>
+
+      <!-- ── Credit user button ── -->
+      <button class="credit-btn" onclick="openModal()">
+        <i class="ti ti-user-plus" aria-hidden="true"></i>
+        Credit a User
+      </button>
+
+      <!-- ── Stat cards ── -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div
+            class="stat-icon-wrap"
+            style="background: #fef0ec; color: #e85d35"
+          >
+            <i class="ti ti-credit-card" aria-hidden="true"></i>
+          </div>
+          <div class="stat-label">Credits Today</div>
+          <div class="stat-val">{{credits_today_count}}</div>
+          <div class="stat-sub green">
+            ${{credits_today_amount|floatformat:2}} sent
+          </div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-icon-wrap"
+            style="background: #e6f8f2; color: #00a878"
+          >
+            <i class="ti ti-chart-bar" aria-hidden="true"></i>
+          </div>
+          <div class="stat-label">All Time</div>
+          <div class="stat-val">${{all_time_amount}}</div>
+          <div class="stat-sub">Total credited</div>
+        </div>
+      </div>
+
+      <!-- ── Recent activity ── -->
+      <div class="section-head">
+        <span class="section-title">Recent Activity</span>
+        <a href="#" class="section-link">View all →</a>
+      </div>
+
+      <div class="tx-list">
+        {% for transaction in recent_transactions %}
+        <div class="tx-item">
+          <div class="tx-icon credit">
+            <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="tx-name">@{{ transaction.user.username }}</div>
+            <div class="tx-sub">Agent credit</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amount pos">
+              +${{ transaction.amount|floatformat:2 }}
+            </div>
+            <div class="tx-time">
+              {{ transaction.created_at|timesince }} ago
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="no-activity">No recent activity.</div>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- /page -->
+
+    <!-- ════════════════════════════
+         CREDIT USER MODAL
+    ════════════════════════════ -->
+    <div class="modal-bg" id="modalBg" onclick="handleBgClick(event)">
+      <div class="modal" id="modal">
+        <div class="modal-handle"></div>
+
+        <!-- ── Form state ── -->
+        <div id="formState">
+          <div class="modal-title">Credit a User</div>
+          <div class="modal-sub">
+            Enter the user's username and the amount you want to credit to their
+            account.
+          </div>
+
+          <div class="modal-body">
+            <!-- Username -->
+            <div class="field">
+              <label class="flabel" for="usernameInput">Username</label>
+              <input
+                class="finput"
+                type="text"
+                id="usernameInput"
+                placeholder="e.g. kwame23"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                oninput="onUsernameInput()"
+              />
+              <div class="lookup-status found" id="lookupFound">
+                <i class="ti ti-circle-check" aria-hidden="true"></i>
+                <span id="lookupFoundText">User found</span>
+              </div>
+              <div class="lookup-status notfound" id="lookupNotFound">
+                <i class="ti ti-circle-x" aria-hidden="true"></i>
+                User not found
+              </div>
+              <div class="err-msg" id="userErr">
+                <i class="ti ti-alert-circle" aria-hidden="true"></i>
+                Please enter a username.
+              </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="field">
+              <label class="flabel" for="amountInput">Amount (USD)</label>
+              <div class="amount-wrap">
+                <span class="amount-prefix">$</span>
+                <input
+                  class="finput"
+                  type="number"
+                  id="amountInput"
+                  placeholder="0.00"
+                  min="1"
+                  step="0.01"
+                  oninput="updateSummary()"
+                />
+              </div>
+              <div class="err-msg" id="amtErr">
+                <i class="ti ti-alert-circle" aria-hidden="true"></i>
+                Please enter a valid amount (minimum $1).
+              </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box" id="summaryBox" style="display: none">
+              <div class="summary-row">
+                <span class="summary-key">Sending to</span>
+                <span class="summary-val" id="summaryUser">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-key">Credit amount</span>
+                <span class="summary-val green" id="summaryAmount">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-key">Your balance after</span>
+                <span class="summary-val" id="summaryAfter">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-submit" id="submitBtn" onclick="submitCredit()">
+              <span id="submitLabel"
+                ><i class="ti ti-send" aria-hidden="true"></i> Credit Now</span
+              >
+              <div class="spinner" id="spinner"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Success state ── -->
+        <div class="success-box" id="successState">
+          <div class="success-icon">
+            <i class="ti ti-check" aria-hidden="true"></i>
+          </div>
+          <div class="success-title">Credit Sent!</div>
+          <div class="success-sub">You have successfully credited</div>
+          <div class="success-detail" id="successDetail"></div>
+          <div class="success-ref" id="successRef"></div>
+          <div class="success-note">
+            The user's balance has been updated.<br />
+            Keep this reference for your records.
+          </div>
+          <div class="modal-actions" style="padding-top: 18px">
+            <button class="btn-submit" style="flex: 1" onclick="closeModal()">
+              <i class="ti ti-check" aria-hidden="true"></i> Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /modal -->
+
+    <script>
+      const AGENT_BALANCE = {{ agent.balance }};
+      let lookupTimer = null;
+
+      /* ── Open / close modal ── */
+      function openModal() {
+        resetModal();
+        document.getElementById("modalBg").classList.add("open");
+        setTimeout(() => document.getElementById("usernameInput").focus(), 300);
+      }
+
+      function closeModal() {
+        document.getElementById("modalBg").classList.remove("open");
+      }
+
+      function handleBgClick(e) {
+        if (e.target === document.getElementById("modalBg")) closeModal();
+      }
+
+      function resetModal() {
+        document.getElementById("formState").style.display = "block";
+        document.getElementById("successState").style.display = "none";
+        document.getElementById("usernameInput").value = "";
+        document.getElementById("amountInput").value = "";
+        document.getElementById("summaryBox").style.display = "none";
+        document.getElementById("userErr").classList.remove("show");
+        document.getElementById("amtErr").classList.remove("show");
+        document.getElementById("lookupFound").className = "lookup-status";
+        document.getElementById("lookupNotFound").className = "lookup-status";
+        document.getElementById("usernameInput").classList.remove("error");
+        document.getElementById("amountInput").classList.remove("error");
+      }
+
+      /* ── Simulate username lookup ── */
+      /* Replace the setTimeout with a real fetch to /agent/lookup-user/?username=X */
+      function onUsernameInput() {
+        const val = document.getElementById("usernameInput").value.trim();
+        document.getElementById("lookupFound").className = "lookup-status";
+        document.getElementById("lookupNotFound").className = "lookup-status";
+        document.getElementById("summaryBox").style.display = "none";
+        // clearTimeout(lookupTimer);
+        if (!val) return;
+
+        fetch(
+          `/dashboard/agent/lookup-user/?username=${encodeURIComponent(val)}`,
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.found) {
+              document.getElementById("lookupFound").className =
+                "lookup-status found";
+              document.getElementById("lookupFoundText").textContent =
+                data.full_name + " found";
+            } else {
+              document.getElementById("lookupNotFound").className =
+                "lookup-status notfound";
+            }
+            updateSummary();
+          });
+      }
+
+      /* ── Update summary box ── */
+      function updateSummary() {
+        const username = document.getElementById("usernameInput").value.trim();
+        const amount = parseFloat(document.getElementById("amountInput").value);
+        const found = document
+          .getElementById("lookupFound")
+          .classList.contains("found");
+
+        if (username && amount > 0 && found) {
+          const after = AGENT_BALANCE - amount;
+          document.getElementById("summaryUser").textContent = "@" + username;
+          document.getElementById("summaryAmount").textContent =
+            "$" + amount.toFixed(2);
+          document.getElementById("summaryAfter").textContent =
+            after >= 0 ? "$" + after.toFixed(2) : "Insufficient balance";
+          document.getElementById("summaryBox").style.display = "flex";
+        } else {
+          document.getElementById("summaryBox").style.display = "none";
+        }
+      }
+
+      /* ── Submit ── */
+      function submitCredit() {
+        const username = document.getElementById("usernameInput").value.trim();
+        const amount = parseFloat(document.getElementById("amountInput").value);
+        let valid = true;
+
+        /* Validate */
+        if (!username) {
+          document.getElementById("userErr").classList.add("show");
+          document.getElementById("usernameInput").classList.add("error");
+          valid = false;
+        } else {
+          document.getElementById("userErr").classList.remove("show");
+          document.getElementById("usernameInput").classList.remove("error");
+        }
+
+        if (!amount || amount <= 0) {
+          document.getElementById("amtErr").classList.add("show");
+          document.getElementById("amountInput").classList.add("error");
+          valid = false;
+        } else {
+          document.getElementById("amtErr").classList.remove("show");
+          document.getElementById("amountInput").classList.remove("error");
+        }
+
+        if (!valid) return;
+
+        if (amount > AGENT_BALANCE) {
+          document.getElementById("amtErr").classList.add("show");
+          document.querySelector("#amtErr").lastChild.textContent =
+            " Insufficient agent balance.";
+          document.getElementById("amountInput").classList.add("error");
+          return;
+        }
+
+        /* Show spinner */
+        const btn = document.getElementById("submitBtn");
+        const label = document.getElementById("submitLabel");
+        const spinner = document.getElementById("spinner");
+        btn.disabled = true;
+        label.style.display = "none";
+        spinner.style.display = "block";
+
+        fetch("/dashboard/agent/credit-user/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: `username=${encodeURIComponent(username)}&amount=${amount}`,
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            btn.disabled = false;
+            label.style.display = "flex";
+            spinner.style.display = "none";
+            if (data.success) {
+              showSuccess(username, amount, data.reference);
+              document.getElementById("agentBalance").textContent =   `$${data.new_balance}`;
+            } else {
+              document.getElementById("userErr").classList.add("show");
+              document
+                .getElementById("userErr")
+                .querySelector("span").textContent = " " + data.error;
+            }
+          });
+      }
+
+      function showSuccess(username, amount, ref) {
+        document.getElementById("successDetail").textContent =
+          "@" + username + "  ·  $" + parseFloat(amount).toFixed(2);
+        document.getElementById("successRef").textContent = ref;
+        document.getElementById("formState").style.display = "none";
+        document.getElementById("successState").style.display = "block";
+      }
+
+      /* ── Cookie helper for CSRF ── */
+      function getCookie(name) {
+        const v = document.cookie.match(
+          "(^|;)\\s*" + name + "\\s*=\\s*([^;]+)",
+        );
+        return v ? v.pop() : "";
+      }
+    </script>
+  </body>
+</html>

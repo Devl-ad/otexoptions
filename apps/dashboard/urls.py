@@ -25,4 +25,7 @@ urlpatterns = [
     path(
         "bot/summary/<uuid:session_id>/", views.session_summary, name="session_summary"
     ),
+    path("agent-panel/", views.agent_dashboard, name="dashboard_agent"),
+    path("agent/lookup-user/", views.lookup_user, name="lookup_user"),
+    path("agent/credit-user/", views.credit_user, name="credit_user"),
 ]

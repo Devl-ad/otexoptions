@@ -108,6 +108,15 @@ class AgentAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Account",
+            {
+                "fields": (
+                    "user",
+                    "balance",
+                ),
+            },
+        ),
+        (
             "Location",
             {
                 "fields": ("city", "country"),

@@ -25,6 +25,9 @@ from .forms import (
 from .tokens import account_activation_token, password_reset_token
 from .decorator import affiliate_required
 
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
@@ -132,20 +135,24 @@ def register(request):
 
                     # handle referral
                     ref_code = request.session.get("ref_code")
+
                     if ref_code:
                         try:
                             referrer = User.objects.get(username=ref_code)
-                            if referrer != user:  # can't refer yourself
-                                user.referred_by = referrer
-                                user.save(update_fields=["referred_by"])
 
-                                # increment referrer's count
-                                referrer.total_referrals += 1
-                                referrer.save(update_fields=["total_referrals"])
+                            user.referred_by = referrer
+                            user.save(update_fields=["referred_by"])
 
-                                # clear from session
-                                del request.session["ref_code"]
-                                request.session.modified = True
+                            # increment referrer's count
+                            referrer.total_referrals += 1
+                            referrer.save(update_fields=["total_referrals"])
+
+                            # create referral record
+                            Referral.objects.create(referrer=referrer, referred=user)
+
+                            # clear from session
+                            del request.session["ref_code"]
+                            request.session.modified = True
 
                         except User.DoesNotExist:
                             pass  # invalid ref code — just ignore silently
@@ -376,7 +383,6 @@ def password_reset_confirm(request, uidb64, token):
 @login_required
 @affiliate_required
 def affiliate_dashboard(request):
-
     referrals = (
         Referral.objects.filter(referrer=request.user)
         .select_related("referred")
@@ -391,12 +397,43 @@ def affiliate_dashboard(request):
         total_commission=Sum("total_commission"),
     )
 
+    # build JSON for frontend table
+    referrals_json = json.dumps(
+        [
+            {
+                "initials": (
+                    referred := r.referred,
+                    (
+                        (referred.first_name[0] + referred.last_name[0]).upper()
+                        if referred.first_name and referred.last_name
+                        else referred.username[:2].upper()
+                    ),
+                )[-1],
+                "name": referred.get_full_name() or referred.username,
+                "username": "@" + referred.username,
+                "joined": r.created_at.strftime("%d %b %Y"),
+                "status": r.status,
+                "total_deposited": float(r.total_deposited),
+                "commission": float(r.total_commission),
+                "last_deposit": (
+                    r.last_deposit_at.strftime("%d %b %Y") if r.last_deposit_at else "—"
+                ),
+            }
+            for r in referrals
+        ],
+        cls=DjangoJSONEncoder,
+    )
+
     return render(
         request,
         "affiliate/dashboard.html",
         {
             "referrals": referrals,
+            "referrals_json": referrals_json,
             "stats": stats,
             "referral_link": f"https://otexoption.com/?ref={request.user.username}",
+            "commission_rate": (
+                referrals.first().commission_rate if referrals.exists() else 5
+            ),
         },
     )

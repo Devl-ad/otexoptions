@@ -27,9 +27,18 @@ class UserAdmin(BaseUserAdmin):
             _("Status"),
             {"fields": ("is_active", "email_verified", "is_staff", "is_superuser")},
         ),
+        (
+            _("Afiliate"),
+            {"fields": ("is_affiliate",)},
+        ),
         (_("2FA"), {"fields": ("totp_enabled", "totp_secret")}),
-        (_("Permissions"), {"fields": ("groups", "user_permissions")}),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+        (
+            _("Referral"),
+            {
+                "fields": ("referred_by",),
+            },
+        ),
     )
     add_fieldsets = (
         (

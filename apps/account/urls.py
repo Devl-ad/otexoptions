@@ -23,4 +23,5 @@ urlpatterns = [
         views.password_reset_confirm,
         name="passwordconfirm",
     ),
+    path("affiliate/", views.affiliate_dashboard, name="affiliate_program"),
 ]
