@@ -8,6 +8,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 from .models import User, Details, KYCSubmission, Referral, ReferralDeposit
+from django.utils.safestring import mark_safe
 
 # ── Actions ───────────────────────────────────────────────────────────────────
 
@@ -442,6 +443,10 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
         if not obj.pk:
             return "—"
 
+        approve_url = reverse("admin:account_kycsubmission_change", args=[obj.pk])
+        reject_url = reverse("admin:account_kycsubmission_change", args=[obj.pk])
+
+        # ── Use the approve/reject custom URLs ──
         approve_url = reverse("admin:kyc_approve", args=[obj.pk])
         reject_url = reverse("admin:kyc_reject", args=[obj.pk])
 
@@ -465,13 +470,13 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
         )
 
         if obj.status == KYCSubmission.Status.APPROVED:
-            return format_html(approved_label + reject_btn)
+            return mark_safe(approved_label + reject_btn)
         elif obj.status == KYCSubmission.Status.REJECTED:
-            return format_html(rejected_label + approve_btn)
+            return mark_safe(rejected_label + approve_btn)
         elif obj.status == KYCSubmission.Status.PENDING:
-            return format_html(approve_btn + reject_btn)
+            return mark_safe(approve_btn + reject_btn)
         else:
-            return format_html(
+            return mark_safe(
                 '<span style="color:#aaa;font-size:13px">No submission yet.</span>'
             )
 
