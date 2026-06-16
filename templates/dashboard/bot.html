@@ -663,10 +663,10 @@
 
   function showModal(s) {
     const pnl = parseFloat(s.net_pnl);
-    const icons = { PROFIT: "🏆", LOSS: "😔", BREAKEVEN: "➖" };
+    const icons = { PROFIT: "🏆", LOSS: "", BREAKEVEN: "➖" };
     const titles = {
       PROFIT: "Profitable Run!",
-      LOSS: "Better luck next time",
+      LOSS: "",
       BREAKEVEN: "Breakeven",
     };
     const colors = { PROFIT: "#22c55e", LOSS: "#ef4444", BREAKEVEN: "#f59e0b" };
