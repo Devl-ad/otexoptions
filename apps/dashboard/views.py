@@ -828,10 +828,11 @@ def credit_user(request):
     username = request.POST.get("username", "").strip()
     raw_amount = request.POST.get("amount", "").strip()
 
-    logger.info(f"Attempting to credit user '{username}' with amount '{raw_amount}'.")
-
     # ── Validate ──────────────────────────────────────
     if not username:
+        logger.info(
+            f"Attempting to credit user '{username}' with amount '{raw_amount}'."
+        )
         return JsonResponse(
             {"success": False, "error": "Username is required."}, status=400
         )
