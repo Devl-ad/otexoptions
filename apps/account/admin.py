@@ -103,7 +103,7 @@ class ReferralAdmin(admin.ModelAdmin):
 # ── Actions (bulk — list page dropdown) ───────────────────────────────────────
 
 
-@admin.action(description="✅ Approve selected submissions")
+@admin.action(description="Approve selected submissions")
 def approve_kyc(modeladmin, request, queryset):
     for submission in queryset.select_related("user"):
         submission.status = KYCSubmission.Status.APPROVED
@@ -401,7 +401,7 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
 
         try:
             send_mail(
-                subject="Your OTEX account has been verified ✅",
+                subject="Your OTEX account has been verified ",
                 message=f"Hi {user.get_full_name() or user.username}, your KYC has been approved.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
