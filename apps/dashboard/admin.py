@@ -427,8 +427,10 @@ class TransactionAdmin(admin.ModelAdmin):
         try:
             from apps.dashboard.models import Wallet
 
-            wallet = Wallet.objects.get(user=transaction.user)
-            wallet.credit(float(transaction.net_amount), mode="live")
+            if transaction.transaction_type == Transaction.TransactionType.DEPOSIT:
+
+                wallet = Wallet.objects.get(user=transaction.user)
+                wallet.credit(float(transaction.net_amount), mode="live")
         except Exception as e:
             self.message_user(request, f"Wallet credit failed: {e}", level="error")
 
