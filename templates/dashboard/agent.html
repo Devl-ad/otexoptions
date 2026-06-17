@@ -1070,7 +1070,15 @@
             if (data.success) {
               showSuccess(username, amount, data.reference);
               document.getElementById("agentBalance").textContent =   `$${data.new_balance}`;
-            } else {
+            } else if(data.is_min_deposit_error){
+
+              document.getElementById("userErr").classList.add("show");
+              document
+                .getElementById("userErr")
+                .querySelector("span").textContent = " " + data.error;
+            }
+
+             else {
               document.getElementById("userErr").classList.add("show");
               document
                 .getElementById("userErr")

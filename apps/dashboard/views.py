@@ -835,15 +835,11 @@ def credit_user(request):
             {"success": False, "error": "Username is required."}, status=400
         )
 
-    logger.warning(
-        f"Validation one failed — username was Full. Raw POST data: {request.POST}"
-    )
-
     try:
         target_user = User.objects.get(username__iexact=username)
-        logger.info(f"{target_user}")
+
     except User.DoesNotExist as e:
-        logger.warning(f"User naot found {e}")
+
         return JsonResponse({"success": False, "error": "User not found."}, status=404)
 
     try:
@@ -857,6 +853,7 @@ def credit_user(request):
         return JsonResponse(
             {
                 "success": False,
+                "is_min_deposit_error": True,
                 "error": f"Minimum credit amount is ${agent.min_deposit}.",
             },
             status=400,
