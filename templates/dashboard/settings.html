@@ -577,6 +577,22 @@
         </p>
       </div>
     </div>
+    {% elif kyc.status == 'rejected' %}
+    <div class="kyc-nudge">
+      <div class="kyc-nudge-icon">
+        <i class="ti ti-shield-exclamation"></i>
+      </div>
+      <div class="kyc-nudge-text">
+        <strong>Kyc Rejected</strong>
+        <p>
+          Your KYC verification has been rejected. Please update your
+          information and resubmit.
+        </p>
+      </div>
+      <a href="/dashboard/kyc/" class="kyc-nudge-btn">
+        <i class="ti ti-shield-check"></i> Resubmit Now
+      </a>
+    </div>
     {% endif %}
     <!-- ── Profile hero ── -->
     <div class="acc-hero">
