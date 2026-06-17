@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.db.models import Sum, Count
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 
 from .models import (
@@ -529,7 +530,7 @@ class TransactionAdmin(admin.ModelAdmin):
                 "— Already declined</span>"
             )
 
-        return format_html(approve_btn + "&nbsp;" + decline_btn + status_note)
+        return mark_safe(approve_btn + "&nbsp;" + decline_btn + status_note)
 
     # ── Custom columns ────────────────────────────────────────────────────────
 
