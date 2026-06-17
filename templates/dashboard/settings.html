@@ -548,7 +548,7 @@
   </div>
 
   <div class="acc-inner">
-    {% if not kyc or kyc.status != 'approved' %}
+    {% if not kyc %}
     <div class="kyc-nudge">
       <div class="kyc-nudge-icon">
         <i class="ti ti-shield-exclamation"></i>
@@ -563,6 +563,19 @@
       <a href="/dashboard/kyc/" class="kyc-nudge-btn">
         <i class="ti ti-shield-check"></i> Verify Now
       </a>
+    </div>
+    {% elif kyc.status == 'pending' %}
+    <div class="kyc-nudge">
+      <div class="kyc-nudge-icon">
+        <i class="ti ti-shield-exclamation"></i>
+      </div>
+      <div class="kyc-nudge-text">
+        <strong>Kyc Pending</strong>
+        <p>
+          Your KYC verification is currently under review. Please allow some
+          time for the verification process to be completed.
+        </p>
+      </div>
     </div>
     {% endif %}
     <!-- ── Profile hero ── -->
@@ -581,7 +594,7 @@
           <!-- KYC pill — swap class/text based on kyc.status -->
           <span class="acc-pill kyc-no"
             ><i class="ti ti-shield-x"></i>
-            {% if user.is_verified %} Unverified {% else %} Verified {% endif %}
+            {% if user.is_verified %} Verified {% else %} Unverified {% endif %}
           </span>
         </div>
       </div>
@@ -634,18 +647,20 @@
             <div class="acc-card-title">
               <i class="ti ti-shield-check"></i> KYC Status
             </div>
+            {% if not user.is_verified %}
             <a href="/dashboard/kyc/" class="acc-card-action">
               <i class="ti ti-arrow-right"></i> Verify
             </a>
+            {% endif %}
           </div>
           <div class="info-rows">
             <div class="info-row">
               <span class="info-key">Status</span>
               <!-- swap colour class based on kyc.status -->
               <span class="info-val amber">
-                {% if user.is_verified %} Unverified {% else %}
+                {% if user.is_verified %} Verified {% else %}
                 <!--  -->
-                Verified {% endif %}
+                Unverified {% endif %}
               </span>
             </div>
             {% if user.is_verified %}
