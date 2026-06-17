@@ -60,6 +60,7 @@
 
       <!-- Status banner -->
       {% if status == "completed" %}
+
       <div
         style="
           background: #f0fdf4;
@@ -72,10 +73,13 @@
         <h2
           style="color: #166534; font-size: 20px; font-weight: 800; margin: 0"
         >
-          Deposit Confirmed!
+          {% if tx.transaction_type == 'deposit' %} Deposit Confirmed! {% else
+          %} Withdrawal Confirmed! {% endif %}
         </h2>
         <p style="color: #166534; font-size: 13px; margin: 6px 0 0">
-          Your funds are now available in your wallet.
+          {% if tx.transaction_type == 'deposit' %} Your funds are now available
+          in your wallet. {% else %} Your withdrawal has been successfully
+          processed. {% endif %}
         </p>
       </div>
       {% else %}
@@ -109,13 +113,16 @@
 
         {% if status == "completed" %}
         <p style="font-size: 14px; color: #444; line-height: 1.7">
-          Your deposit has been reviewed and confirmed. The amount has been
-          credited to your live wallet and is ready to trade.
+          {% if tx.transaction_type == 'deposit' %} Your deposit has been
+          reviewed and confirmed. The amount has been credited to your live
+          wallet and is ready to trade. {% else %} Your withdrawal has been
+          reviewed and confirmed. The amount has been successfully sent to you.
+          {% endif %}
         </p>
         {% else %}
         <p style="font-size: 14px; color: #444; line-height: 1.7">
           Unfortunately your transaction could not be processed. This may be due
-          to an issue with the payment details or proof of payment provided.
+          to an issue with the payment details.
         </p>
         {% if transaction.admin_note %}
         <div
@@ -278,7 +285,7 @@
         {% else %}
         <div style="text-align: center; margin: 24px 0 8px">
           <a
-            href="https://otexoption.com/deposit"
+            href="https://otexoption.com/dashboard"
             style="
               display: inline-block;
               background: #e85d35;
@@ -303,8 +310,8 @@
             margin-top: 20px;
           "
         >
-          If you have any questions, contact our support team via WhatsApp or
-          email.
+          If you have any questions, contact our support team via our live chat
+          or email.
         </p>
       </div>
 
