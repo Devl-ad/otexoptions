@@ -394,12 +394,12 @@ class TransactionAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path(
-                "<pk>/complete/",
+                "<int:pk>/complete/",
                 self.admin_site.admin_view(self.complete_view),
                 name="transaction_complete",
             ),
             path(
-                "<pk>/fail/",
+                "<int:pk>/fail/",
                 self.admin_site.admin_view(self.fail_view),
                 name="transaction_fail",
             ),
@@ -407,21 +407,22 @@ class TransactionAdmin(admin.ModelAdmin):
         return custom + urls
 
     def complete_view(self, request, pk):
+        from django.urls import reverse
+
         transaction = Transaction.objects.select_related("user").get(pk=pk)
 
         if transaction.status != Transaction.Status.PENDING:
             self.message_user(
                 request,
-                f"Transaction {transaction.reference} is not pending — cannot approve.",
+                f"Transaction {transaction.reference} is not pending.",
                 level="warning",
             )
-            return redirect(f"../{pk}/change/")
+            return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
 
         transaction.status = Transaction.Status.COMPLETED
         transaction.confirmed_at = timezone.now()
         transaction.save()
 
-        # credit user wallet
         try:
             from apps.dashboard.models import Wallet
 
@@ -430,18 +431,14 @@ class TransactionAdmin(admin.ModelAdmin):
         except Exception as e:
             self.message_user(request, f"Wallet credit failed: {e}", level="error")
 
-        # send email
         err = _send_transaction_email(
             transaction.user, transaction, Transaction.Status.COMPLETED
         )
         if err:
             self.message_user(
-                request,
-                f"Transaction approved but email failed: {err}",
-                level="warning",
+                request, f"Approved but email failed: {err}", level="warning"
             )
 
-        # track referral commission if user was referred
         try:
             from apps.accounts.referrals import record_referral_deposit
 
@@ -450,21 +447,22 @@ class TransactionAdmin(admin.ModelAdmin):
             pass
 
         self.message_user(
-            request,
-            f"✅ Transaction {transaction.reference} approved and wallet credited.",
+            request, f"✅ {transaction.reference} approved and wallet credited."
         )
-        return redirect(f"../{pk}/change/")
+        return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
 
     def fail_view(self, request, pk):
+        from django.urls import reverse
+
         transaction = Transaction.objects.select_related("user").get(pk=pk)
 
         if transaction.status != Transaction.Status.PENDING:
             self.message_user(
                 request,
-                f"Transaction {transaction.reference} is not pending — cannot decline.",
+                f"Transaction {transaction.reference} is not pending.",
                 level="warning",
             )
-            return redirect(f"../{pk}/change/")
+            return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
 
         transaction.status = Transaction.Status.FAILED
         transaction.save()
@@ -474,16 +472,11 @@ class TransactionAdmin(admin.ModelAdmin):
         )
         if err:
             self.message_user(
-                request,
-                f"Transaction declined but email failed: {err}",
-                level="warning",
+                request, f"Declined but email failed: {err}", level="warning"
             )
 
-        self.message_user(
-            request,
-            f"❌ Transaction {transaction.reference} marked as failed.",
-        )
-        return redirect(f"../{pk}/change/")
+        self.message_user(request, f"❌ {transaction.reference} marked as failed.")
+        return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
 
     # ── Action buttons field ──────────────────────────────────────────────────
 
@@ -491,6 +484,11 @@ class TransactionAdmin(admin.ModelAdmin):
     def action_buttons(self, obj):
         if not obj.pk:
             return "—"
+
+        from django.urls import reverse
+
+        complete_url = reverse("admin:transaction_complete", args=[obj.pk])
+        fail_url = reverse("admin:transaction_fail", args=[obj.pk])
 
         is_pending = obj.status == Transaction.Status.PENDING
 
@@ -507,12 +505,14 @@ class TransactionAdmin(admin.ModelAdmin):
         disabled_style = (
             "display:inline-block;background:#d1d5db;color:#9ca3af;"
             "padding:9px 22px;border-radius:8px;font-size:13px;"
-            "font-weight:700;text-decoration:none;cursor:not-allowed"
+            "font-weight:700;text-decoration:none;cursor:not-allowed;pointer-events:none"
         )
 
         if is_pending:
-            approve_btn = f'<a href="complete/" style="{approve_style}">✅ Approve</a>'
-            decline_btn = f'<a href="fail/" style="{decline_style}">❌ Decline</a>'
+            approve_btn = (
+                f'<a href="{complete_url}" style="{approve_style}">✅ Approve</a>'
+            )
+            decline_btn = f'<a href="{fail_url}" style="{decline_style}">❌ Decline</a>'
         else:
             approve_btn = f'<span style="{disabled_style}">✅ Approve</span>'
             decline_btn = f'<span style="{disabled_style}">❌ Decline</span>'
