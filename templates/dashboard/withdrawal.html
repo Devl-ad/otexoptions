@@ -899,10 +899,16 @@
               confirming.
             </div>
           </div>
+          {% if user.is_verified %}
+          <button class="wd-submit-btn loading-submit-btn" disabled>
+            <i class="ti ti-alert-circle"></i> Verify your kyc to withdraw funds
+          </button>
+          {% else %}
 
           <button class="wd-submit-btn loading-submit-btn" type="submit">
             <i class="ti ti-send"></i> Submit Withdrawal Request
           </button>
+          {% endif %}
 
           <p
             style="
@@ -913,9 +919,10 @@
               line-height: 1.6;
             "
           >
-            Crypto withdrawals are processed within
-            <strong style="color: #111">1–24 hours</strong>
-            after admin approval.
+            {% if user.is_verified %} Crypto withdrawals are processed within
+            <strong style="color: #111">1–24 hours</strong>. {% else %} Please
+            verify your KYC to withdraw funds.
+            <a href="/dashboard/kyc/">Verify KYC</a>. {% endif %}
           </p>
         </form>
 

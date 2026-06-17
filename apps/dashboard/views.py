@@ -73,17 +73,17 @@ def switch_account_mode(request):
         return JsonResponse({"error": "Invalid mode."}, status=400)
 
     # check if user is verified before allowing live
-    if mode == "live":
-        wallet = request.user.wallet
-        # if not request.user.is_verified:  # add this field to your user model
-        #     return JsonResponse({
-        #         'error': 'Complete KYC verification to access live trading.'
-        #     }, status=403)
+    # if mode == "live":
+    #     wallet = request.user.wallet
+    #     # if not request.user.is_verified:  # add this field to your user model
+    #     #     return JsonResponse({
+    #     #         'error': 'Complete KYC verification to access live trading.'
+    #     #     }, status=403)
 
-        if float(wallet.balance) <= 0:
-            return JsonResponse(
-                {"error": "Please deposit funds to trade live."}, status=403
-            )
+    #     if float(wallet.balance) <= 0:
+    #         return JsonResponse(
+    #             {"error": "Please deposit funds to trade live."}, status=403
+    #         )
 
     request.session["account_mode"] = mode
     request.session.modified = True
@@ -450,9 +450,9 @@ def deposit_withcrypto_page(request):
 def withdrawal(request):
 
     wallet = request.user.wallet
-    if request.user.is_verified == False:
-        messages.info(request, "Verify your account!")
-        return redirect("kyc_verify")
+    # if request.user.is_verified == False:
+    #     messages.info(request, "Verify your account!")
+    #     return redirect("kyc_verify")
     if request.method == "POST":
         coin = request.POST.get("coin")
         amount = request.POST.get("amount")
