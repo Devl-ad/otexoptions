@@ -417,7 +417,7 @@ class TransactionAdmin(admin.ModelAdmin):
                 f"Transaction {transaction.reference} is not pending.",
                 level="warning",
             )
-            return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
+            return redirect(f"/admin/dashboard/transaction/{pk}/change/")
 
         transaction.status = Transaction.Status.COMPLETED
         transaction.confirmed_at = timezone.now()
@@ -440,7 +440,7 @@ class TransactionAdmin(admin.ModelAdmin):
             )
 
         try:
-            from apps.accounts.referrals import record_referral_deposit
+            from apps.account.referrals import record_referral_deposit
 
             record_referral_deposit(transaction.user, transaction.net_amount)
         except Exception:
@@ -449,7 +449,7 @@ class TransactionAdmin(admin.ModelAdmin):
         self.message_user(
             request, f"✅ {transaction.reference} approved and wallet credited."
         )
-        return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
+        return redirect(f"/admin/dashboard/transaction/{pk}/change/")
 
     def fail_view(self, request, pk):
         from django.urls import reverse
@@ -462,7 +462,7 @@ class TransactionAdmin(admin.ModelAdmin):
                 f"Transaction {transaction.reference} is not pending.",
                 level="warning",
             )
-            return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
+            return redirect(f"/admin/dashboard/transaction/{pk}/change/")
 
         transaction.status = Transaction.Status.FAILED
         transaction.save()
@@ -476,7 +476,7 @@ class TransactionAdmin(admin.ModelAdmin):
             )
 
         self.message_user(request, f"❌ {transaction.reference} marked as failed.")
-        return redirect(reverse("admin:dashboard_transaction_change", args=[pk]))
+        return redirect(f"/admin/dashboard/transaction/{pk}/change/")
 
     # ── Action buttons field ──────────────────────────────────────────────────
 
