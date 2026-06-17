@@ -900,13 +900,14 @@
             </div>
           </div>
           {% if user.is_verified %}
-          <button class="wd-submit-btn loading-submit-btn" disabled>
-            <i class="ti ti-alert-circle"></i> Verify your kyc to withdraw funds
-          </button>
-          {% else %}
 
           <button class="wd-submit-btn loading-submit-btn" type="submit">
             <i class="ti ti-send"></i> Submit Withdrawal Request
+          </button>
+          {% else %}
+
+          <button class="wd-submit-btn loading-submit-btn" disabled>
+            <i class="ti ti-alert-circle"></i> Verify your kyc to withdraw funds
           </button>
           {% endif %}
 
