@@ -905,3 +905,7 @@ def credit_user(request):
             "new_balance": str(agent.balance),
         }
     )
+
+
+def faq(request):
+    return render(request, "dashboard/faq.html")
