@@ -913,3 +913,8 @@ def credit_user(request):
 
 def faq(request):
     return render(request, "dashboard/faq.html")
+
+
+@login_required
+def bank_deposit(request):
+    return render(request, "dashboard/bank_deposit.html")

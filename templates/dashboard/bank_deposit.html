@@ -1,15 +1,17 @@
 {% extends "layouts/users.html" %} {% load humanize %}
 <!--  -->
-{% block title %} Agents {% endblock title %}
+{% block title %} Deposit with bank {% endblock title %}
 <!--  -->
 {% block content %}
 <!-- ════════════════════════════════════════ -->
 <main class="main deposit">
   <div class="topbar">
     <div class="topbar-left">
-      <h1 style="font-size: 22px; font-weight: 700; color: #111">Agents</h1>
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">
+        Deposit Funds
+      </h1>
       <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
-        <a href="/dashboard/transaction-logs/"> View Transactions </a>
+        Choose a method to add funds to your account
       </p>
     </div>
   </div>
@@ -18,7 +20,7 @@
     <!-- Method tabs -->
     <div class="dep-method-tabs" role="tablist" aria-label="Deposit method">
       <button
-        class="dep-method-tab active"
+        class="dep-method-tab"
         role="tab"
         aria-selected="true"
         data-panel="agents"
@@ -36,95 +38,26 @@
         <i class="ti ti-currency-bitcoin" aria-hidden="true"></i> Cryptocurrency
       </button>
       <button
-        class="dep-method-tab"
+        class="dep-method-tab active"
         role="tab"
-        onclick="window.location.href = '/dashboard/bank-deposit'"
+        aria-disabled="true"
         tabindex="-1"
       >
         <i class="ti ti-building-bank" aria-hidden="true"></i> Bank Transfer
       </button>
-      <!-- <button
-        class="dep-method-tab"
-        onclick="window.location.href = '/dashboard/faq'"
-        role="tab"
-        tabindex="-1"
-      >
-        <i class="ti ti-question-mark" aria-hidden="true"></i> Faqs
-      </button> -->
     </div>
-
-    <!-- ── AGENTS PANEL ── -->
-    <div id="panel-agents" class="dep-panel active" role="tabpanel">
-      <div class="dep-info" style="margin-bottom: 20px">
-        <i class="ti ti-info-circle" aria-hidden="true"></i>
-        <span
-          >Choose an available agent below. Click
-          <strong>Contact on WhatsApp</strong> to send them a message and
-          arrange your deposit. Funds are credited once confirmed by the
-          agent.</span
-        >
-      </div>
-
-      <div class="agent-grid">
-        <!-- Agent 1 -->
-        {% for ag in agents %}
-        <div class="agent-card">
-          <div class="agent-top">
-            <div class="agent-avatar">{{ag.initials}}</div>
-            <div>
-              <div class="agent-name">{{ag.name}}</div>
-              <div class="agent-location">
-                <i class="ti ti-map-pin" aria-hidden="true"></i>{{ag.city}},
-                {{ag.country}}
-              </div>
-            </div>
-            <div class="agent-online">
-              <span class="agent-dot"></span> {{ag.status}}
-            </div>
-          </div>
-          <div class="agent-meta">
-            <div class="agent-meta-item">
-              <div class="agent-meta-label">Trades</div>
-              <div class="agent-meta-val">{{ag.total_trades}}</div>
-            </div>
-            <div class="agent-meta-item">
-              <div class="agent-meta-label">Rating</div>
-              <div class="agent-meta-val" style="color: #f59e0b">
-                ★ {{ag.rating}}
-              </div>
-            </div>
-            <div class="agent-meta-item">
-              <div class="agent-meta-label">Speed</div>
-              <div class="agent-meta-val" style="color: #00a878">
-                ~{{ag.avg_speed_minutes}} M
-              </div>
-            </div>
-          </div>
-          <div class="agent-limits">
-            <span>Min: <strong>${{ag.min_deposit}}</strong></span>
-            <span>Max: <strong>${{ag.max_deposit}}</strong></span>
-            <span>Fee: <strong>1.5%</strong></span>
-          </div>
-          <a
-            href="{{ag.whatsapp_url}}"
-            class="agent-contact-btn"
-            target="_blank"
-            rel="noopener"
-          >
-            <i class="ti ti-brand-whatsapp" aria-hidden="true"></i> Contact on
-            WhatsApp
-          </a>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    <!-- /agents panel -->
 
     <!-- ── CRYPTO PANEL ── -->
-    <div id="panel-crypto" class="dep-panel" role="tabpanel">
+    <div id="panel-crypto" class="dep-panel active" role="tabpanel">
       <div class="crypto-wrap">
         <!-- Left: form -->
-        <div class="crypto-form-card">
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          class="crypto-form-card"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="coin" id="selectedCoin" value="btc" />
           <div>
             <div class="flabel" style="margin-bottom: 10px">Select Coin</div>
             <div class="coin-selector" id="coinSelector">
@@ -156,7 +89,7 @@
             <div class="flabel">Deposit Address</div>
             <div style="margin-top: 8px" class="address-box">
               <span class="address-text" id="cryptoAddress"
-                >bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span
+                >bc1qc6eamxfuk860hg8nzyrk9t4m2xjnldxuusjvmd</span
               >
               <button
                 class="copy-btn"
@@ -176,13 +109,15 @@
               class="finput"
               id="depAmount"
               placeholder="Enter amount e.g. 100"
-              min="10"
+              min="20"
               style="margin-top: 6px"
+              name="amount"
+              required
             />
             <div class="preset-row">
-              <span class="preset" onclick="setAmount(50)">$50</span>
-              <span class="preset" onclick="setAmount(100)">$100</span>
-              <span class="preset" onclick="setAmount(250)">$250</span>
+              <span class="preset" onclick="setAmount(20)">$20</span>
+              <span class="preset" onclick="setAmount(50)">$500</span>
+              <span class="preset" onclick="setAmount(150)">$150</span>
               <span class="preset" onclick="setAmount(500)">$500</span>
               <span class="preset" onclick="setAmount(1000)">$1,000</span>
             </div>
@@ -194,12 +129,14 @@
               type="text"
               class="finput"
               id="txHash"
+              name="tx_hash"
+              required
               placeholder="Paste your transaction hash / TxID"
               style="margin-top: 6px; font-family: monospace; font-size: 12px"
             />
           </div>
 
-          <div>
+          <!-- <div>
             <div class="flabel" style="margin-bottom: 8px">
               Upload Screenshot (optional)
             </div>
@@ -214,9 +151,10 @@
                 id="proofUpload"
                 accept="image/*"
                 style="display: none"
+                name="proof"
               />
             </label>
-          </div>
+          </div> -->
 
           <div class="dep-warning">
             <i class="ti ti-alert-triangle" aria-hidden="true"></i>
@@ -228,10 +166,10 @@
             </div>
           </div>
 
-          <button class="dep-submit-btn" onclick="submitCryptoDeposit()">
+          <button type="submit" class="dep-submit-btn">
             <i class="ti ti-send" aria-hidden="true"></i> Submit Deposit Request
           </button>
-        </div>
+        </form>
 
         <!-- Right: info -->
         <div class="crypto-info-card">
@@ -328,7 +266,7 @@
               "
             >
               <span style="color: #6b7280">Bitcoin (BTC)</span
-              ><strong>$20</strong>
+              ><strong>$30</strong>
             </div>
             <div
               style="
@@ -337,7 +275,7 @@
                 font-size: 13px;
               "
             >
-              <span style="color: #6b7280">USDT TRC20</span><strong>$10</strong>
+              <span style="color: #6b7280">USDT TRC20</span><strong>$20</strong>
             </div>
             <div
               style="
@@ -347,7 +285,7 @@
               "
             >
               <span style="color: #6b7280">Ethereum (ETH)</span
-              ><strong>$30</strong>
+              ><strong>$20</strong>
             </div>
           </div>
         </div>
@@ -360,3 +298,4 @@
 
 {% endblock content %}
 <!--  -->
+{% block script %} {% endblock script %}

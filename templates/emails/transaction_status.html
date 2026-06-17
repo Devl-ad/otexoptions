@@ -97,13 +97,15 @@
         <h2
           style="color: #166534; font-size: 20px; font-weight: 800; margin: 0"
         >
-          {% if tx.transaction_type == 'deposit' %} Deposit Confirmed! {% else
-          %} Withdrawal Confirmed! {% endif %}
+          {% if transaction.transaction_type == 'deposit' %} Deposit Confirmed!
+          <!--  -->
+          {% else %} Withdrawal Confirmed! {% endif %}
         </h2>
         <p style="color: #166534; font-size: 13px; margin: 6px 0 0">
-          {% if tx.transaction_type == 'deposit' %} Your funds are now available
-          in your wallet. {% else %} Your withdrawal has been successfully
-          processed. {% endif %}
+          {% if transaction.transaction_type == 'deposit' %} Your funds are now
+          available in your wallet. {% else %}
+          <!--  -->
+          Your withdrawal has been successfully processed. {% endif %}
         </p>
       </div>
       {% else %}
