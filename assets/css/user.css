@@ -2943,7 +2943,7 @@ select.finput {
   color: #9ca3af;
 }
 
-/* ── Responsive ── */
+/* ── Responsive faq ── */
 @media (max-width: 960px) {
   .main.faq {
     margin-left: 0 !important;
