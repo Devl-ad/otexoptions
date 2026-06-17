@@ -1,6 +1,17 @@
 # dashboard/admin.py
 from django.db import models
 from django.contrib import admin
+
+
+from django.utils import timezone
+
+from django.core.mail import send_mail
+from django.shortcuts import redirect
+from django.conf import settings
+from django.db.models import Sum, Count
+from django.template.loader import render_to_string
+
+
 from .models import (
     Trade,
     Wallet,
@@ -17,7 +28,6 @@ from .models import (
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from django.db.models import Sum, Count
 
 admin.site.register(PriceTick)
 admin.site.register(BotKey)
@@ -215,19 +225,79 @@ class AgentAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────────
 
 
+# ── Email helper ──────────────────────────────────────────────────────────────
+
+
+def _send_transaction_email(user, transaction, status):
+    """Render transaction_status.html and send it."""
+    try:
+        html_message = render_to_string(
+            "emails/transaction_status.html",
+            {
+                "user": user,
+                "transaction": transaction,
+                "status": status,
+                "status_label": transaction.get_status_display(),
+            },
+        )
+        subjects = {
+            Transaction.Status.COMPLETED: f"✅ Your deposit of ${transaction.amount} has been confirmed — OTEX",
+            Transaction.Status.FAILED: f"❌ Your transaction #{transaction.reference} could not be processed — OTEX",
+        }
+        send_mail(
+            subject=subjects.get(status, f"Transaction Update — OTEX"),
+            message=f"Transaction {transaction.reference} is now {transaction.get_status_display()}.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+        )
+    except Exception as e:
+        return str(e)
+    return None
+
+
+# ── Bulk actions ──────────────────────────────────────────────────────────────
+
+
 @admin.action(description="✅ Mark selected as Completed")
 def mark_completed(modeladmin, request, queryset):
-    queryset.update(status=Transaction.Status.COMPLETED, confirmed_at=timezone.now())
+    for transaction in queryset.select_related("user"):
+        transaction.status = Transaction.Status.COMPLETED
+        transaction.confirmed_at = timezone.now()
+        transaction.save()
+        err = _send_transaction_email(
+            transaction.user, transaction, Transaction.Status.COMPLETED
+        )
+        if err:
+            modeladmin.message_user(
+                request,
+                f"Email failed for {transaction.reference}: {err}",
+                level="warning",
+            )
 
 
 @admin.action(description="❌ Mark selected as Failed")
 def mark_failed(modeladmin, request, queryset):
-    queryset.update(status=Transaction.Status.FAILED)
+    for transaction in queryset.select_related("user"):
+        transaction.status = Transaction.Status.FAILED
+        transaction.save()
+        err = _send_transaction_email(
+            transaction.user, transaction, Transaction.Status.FAILED
+        )
+        if err:
+            modeladmin.message_user(
+                request,
+                f"Email failed for {transaction.reference}: {err}",
+                level="warning",
+            )
 
 
 @admin.action(description="🔄 Mark selected as Pending")
 def mark_pending(modeladmin, request, queryset):
     queryset.update(status=Transaction.Status.PENDING)
+
+
+# ── Admin ─────────────────────────────────────────────────────────────────────
 
 
 @admin.register(Transaction)
@@ -258,6 +328,7 @@ class TransactionAdmin(admin.ModelAdmin):
         "net_amount",
         "proof_preview",
         "whatsapp_link",
+        "action_buttons",
     )
     actions = [mark_completed, mark_failed, mark_pending]
     date_hierarchy = "created_at"
@@ -268,6 +339,12 @@ class TransactionAdmin(admin.ModelAdmin):
             "Reference",
             {
                 "fields": ("reference", "transaction_type"),
+            },
+        ),
+        (
+            "Quick Actions",
+            {
+                "fields": ("action_buttons",),
             },
         ),
         (
@@ -309,7 +386,152 @@ class TransactionAdmin(admin.ModelAdmin):
         ),
     )
 
-    # ── Custom display columns ──────────────────
+    # ── Custom URLs for approve / decline buttons ─────────────────────────────
+
+    def get_urls(self):
+        from django.urls import path
+
+        urls = super().get_urls()
+        custom = [
+            path(
+                "<pk>/complete/",
+                self.admin_site.admin_view(self.complete_view),
+                name="transaction_complete",
+            ),
+            path(
+                "<pk>/fail/",
+                self.admin_site.admin_view(self.fail_view),
+                name="transaction_fail",
+            ),
+        ]
+        return custom + urls
+
+    def complete_view(self, request, pk):
+        transaction = Transaction.objects.select_related("user").get(pk=pk)
+
+        if transaction.status != Transaction.Status.PENDING:
+            self.message_user(
+                request,
+                f"Transaction {transaction.reference} is not pending — cannot approve.",
+                level="warning",
+            )
+            return redirect(f"../{pk}/change/")
+
+        transaction.status = Transaction.Status.COMPLETED
+        transaction.confirmed_at = timezone.now()
+        transaction.save()
+
+        # credit user wallet
+        try:
+            from apps.dashboard.models import Wallet
+
+            wallet = Wallet.objects.get(user=transaction.user)
+            wallet.credit(float(transaction.net_amount), mode="live")
+        except Exception as e:
+            self.message_user(request, f"Wallet credit failed: {e}", level="error")
+
+        # send email
+        err = _send_transaction_email(
+            transaction.user, transaction, Transaction.Status.COMPLETED
+        )
+        if err:
+            self.message_user(
+                request,
+                f"Transaction approved but email failed: {err}",
+                level="warning",
+            )
+
+        # track referral commission if user was referred
+        try:
+            from apps.accounts.referrals import record_referral_deposit
+
+            record_referral_deposit(transaction.user, transaction.net_amount)
+        except Exception:
+            pass
+
+        self.message_user(
+            request,
+            f"✅ Transaction {transaction.reference} approved and wallet credited.",
+        )
+        return redirect(f"../{pk}/change/")
+
+    def fail_view(self, request, pk):
+        transaction = Transaction.objects.select_related("user").get(pk=pk)
+
+        if transaction.status != Transaction.Status.PENDING:
+            self.message_user(
+                request,
+                f"Transaction {transaction.reference} is not pending — cannot decline.",
+                level="warning",
+            )
+            return redirect(f"../{pk}/change/")
+
+        transaction.status = Transaction.Status.FAILED
+        transaction.save()
+
+        err = _send_transaction_email(
+            transaction.user, transaction, Transaction.Status.FAILED
+        )
+        if err:
+            self.message_user(
+                request,
+                f"Transaction declined but email failed: {err}",
+                level="warning",
+            )
+
+        self.message_user(
+            request,
+            f"❌ Transaction {transaction.reference} marked as failed.",
+        )
+        return redirect(f"../{pk}/change/")
+
+    # ── Action buttons field ──────────────────────────────────────────────────
+
+    @admin.display(description="Actions")
+    def action_buttons(self, obj):
+        if not obj.pk:
+            return "—"
+
+        is_pending = obj.status == Transaction.Status.PENDING
+
+        approve_style = (
+            "display:inline-block;background:#166534;color:#fff;"
+            "padding:9px 22px;border-radius:8px;font-size:13px;"
+            "font-weight:700;text-decoration:none;margin-right:8px"
+        )
+        decline_style = (
+            "display:inline-block;background:#991b1b;color:#fff;"
+            "padding:9px 22px;border-radius:8px;font-size:13px;"
+            "font-weight:700;text-decoration:none"
+        )
+        disabled_style = (
+            "display:inline-block;background:#d1d5db;color:#9ca3af;"
+            "padding:9px 22px;border-radius:8px;font-size:13px;"
+            "font-weight:700;text-decoration:none;cursor:not-allowed"
+        )
+
+        if is_pending:
+            approve_btn = f'<a href="complete/" style="{approve_style}">✅ Approve</a>'
+            decline_btn = f'<a href="fail/" style="{decline_style}">❌ Decline</a>'
+        else:
+            approve_btn = f'<span style="{disabled_style}">✅ Approve</span>'
+            decline_btn = f'<span style="{disabled_style}">❌ Decline</span>'
+
+        status_note = ""
+        if obj.status == Transaction.Status.COMPLETED:
+            status_note = (
+                '&nbsp;<span style="color:#166534;font-size:12px;font-weight:600">'
+                "— Already completed</span>"
+            )
+        elif obj.status == Transaction.Status.FAILED:
+            status_note = (
+                '&nbsp;<span style="color:#991b1b;font-size:12px;font-weight:600">'
+                "— Already declined</span>"
+            )
+
+        return format_html(approve_btn + "&nbsp;" + decline_btn + status_note)
+
+    # ── Custom columns ────────────────────────────────────────────────────────
 
     @admin.display(description="User")
     def user_link(self, obj):
@@ -343,15 +565,24 @@ class TransactionAdmin(admin.ModelAdmin):
     @admin.display(description="Net")
     def net_display(self, obj):
         return format_html(
-            '<span style="color:#00a878;font-weight:700;">${}</span>', obj.net_amount
+            '<span style="color:#00a878;font-weight:700;">${}</span>',
+            obj.net_amount,
         )
 
     @admin.display(description="Status")
     def status_badge(self, obj):
+        colors = {
+            Transaction.Status.PENDING: "#f59e0b",
+            Transaction.Status.CONFIRMED: "#3b82f6",
+            Transaction.Status.COMPLETED: "#22c55e",
+            Transaction.Status.FAILED: "#ef4444",
+            Transaction.Status.CANCELLED: "#6b7280",
+        }
+        color = colors.get(obj.status, "#6b7280")
         return format_html(
             '<span style="background:{};color:#fff;padding:3px 10px;'
             'border-radius:12px;font-size:11px;font-weight:700;">{}</span>',
-            obj.status_color,
+            color,
             obj.get_status_display(),
         )
 
@@ -385,7 +616,7 @@ class TransactionAdmin(admin.ModelAdmin):
             )
         return "—"
 
-    # ── Changelist summary ──────────────────────
+    # ── Changelist summary ────────────────────────────────────────────────────
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -402,6 +633,3 @@ class TransactionAdmin(admin.ModelAdmin):
         )
         extra_context["summary"] = totals
         return super().changelist_view(request, extra_context=extra_context)
-
-
-# BOT TRADING
