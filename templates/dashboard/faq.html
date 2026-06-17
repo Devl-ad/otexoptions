@@ -1,0 +1,1549 @@
+{% extends "layouts/users.html" %} {% load humanize %}
+<!--  -->
+{% block title %} Frequently Asked Questions {% endblock title %}
+<!--  -->
+{% block content %}
+<main class="main faq">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 style="font-size: 22px; font-weight: 700; color: #111">Help & FAQ</h1>
+      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+        Everything you need to know about OTEX
+      </p>
+    </div>
+  </div>
+
+  <div class="faq-inner">
+    <!-- ── Hero ── -->
+    <div class="faq-hero">
+      <div class="faq-hero-tag">Help Centre</div>
+      <div class="faq-hero-title">How can we help you?</div>
+      <div class="faq-hero-sub">
+        Search our help centre or browse categories below to find answers to
+        your questions about OTEX options trading.
+      </div>
+      <div class="faq-search-wrap">
+        <i class="ti ti-search faq-search-icon"></i>
+        <input
+          class="faq-search"
+          type="text"
+          id="faqSearch"
+          placeholder="Search questions… e.g. how to deposit"
+          oninput="searchFaq()"
+        />
+      </div>
+      <div class="faq-hero-wm">FAQ</div>
+    </div>
+
+    <!-- ── Category tabs ── -->
+    <div class="faq-tabs">
+      <button
+        class="faq-tab active"
+        data-cat="all"
+        onclick="filterCat('all', this)"
+      >
+        <i class="ti ti-layout-grid"></i> All
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="getting-started"
+        onclick="filterCat('getting-started', this)"
+      >
+        <i class="ti ti-rocket"></i> Getting Started
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="trading"
+        onclick="filterCat('trading', this)"
+      >
+        <i class="ti ti-chart-candlestick"></i> Trading
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="deposits"
+        onclick="filterCat('deposits', this)"
+      >
+        <i class="ti ti-wallet"></i> Deposits
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="withdrawals"
+        onclick="filterCat('withdrawals', this)"
+      >
+        <i class="ti ti-cash"></i> Withdrawals
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="account"
+        onclick="filterCat('account', this)"
+      >
+        <i class="ti ti-user-circle"></i> Account & KYC
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="security"
+        onclick="filterCat('security', this)"
+      >
+        <i class="ti ti-shield-check"></i> Security
+      </button>
+      <button
+        class="faq-tab"
+        data-cat="referral"
+        onclick="filterCat('referral', this)"
+      >
+        <i class="ti ti-users"></i> Referrals
+      </button>
+    </div>
+
+    <!-- ── Main layout ── -->
+    <div class="faq-layout">
+      <div id="faqMain">
+        <!-- NO RESULTS -->
+        <div class="faq-no-results" id="noResults">
+          <i class="ti ti-search"></i>
+          <h3>No results found</h3>
+          <p>Try different keywords or browse the categories above.</p>
+        </div>
+
+        <!-- ══ GETTING STARTED ══ -->
+        <div
+          class="faq-section"
+          data-cat="getting-started"
+          id="sec-getting-started"
+        >
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #fef0ec; color: #e85d35"
+            >
+              <i class="ti ti-rocket"></i>
+            </div>
+            <div class="faq-section-title">Getting Started</div>
+            <span class="faq-section-count">6 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is OTEX and what does the platform offer?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX is a binary options trading platform that allows you to
+                  speculate on the short-term price movement of OTC
+                  (Over-The-Counter) volatility indices. You predict whether the
+                  price of an asset will <strong>Rise</strong> or
+                  <strong>Fall</strong>, or whether it will end
+                  <strong>Over</strong> or <strong>Under</strong> a barrier,
+                  within a set duration.
+                </p>
+                <p>
+                  The platform offers both a
+                  <strong>Demo account</strong> (with virtual funds for
+                  practice) and a <strong>Live account</strong> (real money
+                  trading). You can also manage deposits, withdrawals, view
+                  trade history, and refer friends to earn bonuses.
+                </p>
+                <div class="tip">
+                  <i class="ti ti-info-circle"></i>We recommend starting with
+                  the Demo account to get familiar with the platform before
+                  trading with real money.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">How do I create an account?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Creating an account on OTEX is free and takes less than 2
+                  minutes. Visit <strong>otexoption.com</strong>, click
+                  <strong>Sign Up</strong>, and fill in your name, email
+                  address, and a secure password. You will receive a
+                  verification email — click the link inside to activate your
+                  account.
+                </p>
+                <p>
+                  Once verified, you can immediately access the Demo account. To
+                  access Live trading, you must complete KYC identity
+                  verification.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is a Demo account and how does it work?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  A <strong>Demo account</strong> is a practice environment that
+                  comes pre-loaded with
+                  <strong>$10,000 in virtual funds</strong>. It works exactly
+                  like the real platform — you can place trades on all available
+                  assets, see real-time price movements, and view your trade
+                  history — but no real money is involved.
+                </p>
+                <p>
+                  If your demo balance runs low, you can reset it at any time
+                  from the Dashboard by clicking the
+                  <strong>Reset</strong> button on the Demo Balance card.
+                </p>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>Profits made on the Demo
+                  account cannot be withdrawn. They are for practice purposes
+                  only.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">What countries are supported?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX is primarily available to traders across
+                  <strong>Africa</strong>, including Ghana, Nigeria, Kenya,
+                  South Africa, Uganda, Tanzania, and many other countries. We
+                  accept deposits and withdrawals in USD via cryptocurrency and
+                  agent (P2P) methods that work across Africa.
+                </p>
+                <p>
+                  Bank transfer support for local currencies is coming soon. If
+                  you are unsure whether your country is supported, contact our
+                  support team before depositing.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is the minimum age to trade on OTEX?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  You must be at least <strong>18 years old</strong> to create
+                  an account and trade on OTEX. This is verified during the KYC
+                  identity verification process. Any account found to belong to
+                  a minor will be suspended and funds returned.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="getting-started">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Is OTEX available as a mobile app?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX is currently a
+                  <strong>web-based platform</strong> optimised for both desktop
+                  and mobile browsers. You can access the full platform from any
+                  smartphone browser — Chrome or Safari recommended. Simply
+                  visit <strong>otexoption.com</strong> and log in.
+                </p>
+                <p>
+                  A dedicated mobile app is in development. Follow our
+                  announcements for the release date.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TRADING ══ -->
+        <div class="faq-section" data-cat="trading" id="sec-trading">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #eff6ff; color: #2563eb"
+            >
+              <i class="ti ti-chart-candlestick"></i>
+            </div>
+            <div class="faq-section-title">Trading</div>
+            <span class="faq-section-count">8 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What types of trades can I place on OTEX?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>OTEX currently offers two main trade types:</p>
+                <ul>
+                  <li>
+                    <strong>Rise / Fall</strong> — Predict whether the asset
+                    price will be higher (Rise) or lower (Fall) than its entry
+                    price at the end of the contract duration.
+                  </li>
+                  <li>
+                    <strong>Over / Under</strong> — Predict whether the asset
+                    price will be above (Over) or below (Under) a specific
+                    barrier price at contract expiry.
+                  </li>
+                </ul>
+                <p>
+                  Accumulator contracts are also available on select assets and
+                  allow your stake to compound tick by tick as long as the price
+                  does not breach a knockout barrier.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">What assets can I trade?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX offers a range of
+                  <strong>OTC Volatility Indices</strong> — synthetic assets
+                  that simulate real market volatility. Available assets
+                  include:
+                </p>
+                <ul>
+                  <li>
+                    <strong>OTV19</strong> — Volatility 19 Index (low
+                    volatility, slower movement)
+                  </li>
+                  <li><strong>OTV22</strong> — Volatility 22 Index</li>
+                  <li>
+                    <strong>OTV59</strong> — Volatility 59 Index (medium
+                    volatility)
+                  </li>
+                  <li>
+                    <strong>OTV90</strong> — Volatility 90 Index (high
+                    volatility)
+                  </li>
+                  <li>
+                    <strong>OTV115</strong> — Volatility 115 Index (very high
+                    volatility, fast movement)
+                  </li>
+                </ul>
+                <p>
+                  These indices run 24/7, meaning you can trade at any time —
+                  weekdays, weekends, and public holidays.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What durations are available for trades?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>Available durations depend on the trade type selected:</p>
+                <ul>
+                  <li>
+                    <strong>1 tick</strong> — The trade resolves after one price
+                    tick
+                  </li>
+                  <li>
+                    <strong>5 ticks</strong> — Resolves after 5 price ticks
+                  </li>
+                  <li>
+                    <strong>10 ticks</strong> — Resolves after 10 price ticks
+                  </li>
+                  <li><strong>1 minute</strong> — 60 seconds</li>
+                  <li><strong>5 minutes</strong> — 300 seconds</li>
+                  <li><strong>15 minutes</strong> — 900 seconds</li>
+                </ul>
+                <p>
+                  Tick-based durations are extremely short (usually under 10
+                  seconds each) and are ideal for fast-paced trading strategies.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is the minimum and maximum stake per trade?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  The <strong>minimum stake</strong> per trade is
+                  <strong>$1.00</strong>. The maximum stake depends on your
+                  account tier and the asset selected, but typically ranges up
+                  to <strong>$1,000 per trade</strong> for standard accounts.
+                </p>
+                <p>
+                  Verified (KYC-approved) accounts may have higher staking
+                  limits unlocked. Contact support if you need a higher limit
+                  for a specific trade.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">What is the payout percentage?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  The standard payout on OTEX is <strong>85–95%</strong> of your
+                  stake on winning trades. For example, if you stake
+                  <strong>$100</strong> and win with an 85% payout, you receive
+                  <strong>$185</strong> total ($100 stake + $85 profit).
+                </p>
+                <p>
+                  The exact payout percentage varies by asset, trade type, and
+                  duration. It is always displayed clearly before you confirm a
+                  trade.
+                </p>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>If you lose a trade, your
+                  entire stake is forfeited. There is no partial refund except
+                  in the case of a tie (entry price equals exit price), which
+                  results in a full refund of your stake.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What happens if my trade ends in a tie?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  If the exit price is exactly equal to the entry price on a
+                  Rise/Fall trade, the result is a <strong>tie</strong>. In this
+                  case, your full stake is <strong>refunded</strong> to your
+                  account and the trade is marked as "Refunded". No profit is
+                  made and no loss is incurred.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Can I cancel a trade after placing it?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  <strong>No</strong> — once a trade is confirmed and placed, it
+                  cannot be cancelled or modified. All trades are binding from
+                  the moment they are submitted. This is standard for binary
+                  options trading.
+                </p>
+                <p>
+                  Always double-check your direction, stake, and duration before
+                  confirming a trade.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="trading">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Are the OTC indices real market prices?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTC (Over-The-Counter) volatility indices are
+                  <strong>synthetic instruments</strong> — they simulate price
+                  movements algorithmically rather than tracking real-world
+                  financial markets like stocks or forex. They operate 24/7,
+                  including weekends and holidays, and are not affected by
+                  real-world news events.
+                </p>
+                <p>
+                  The price feeds are generated by a certified random number
+                  generator, ensuring fairness and unpredictability in all tick
+                  movements.
+                </p>
+                <div class="tip">
+                  <i class="ti ti-info-circle"></i>Because these are synthetic
+                  indices, no fundamental analysis (news, earnings reports,
+                  etc.) applies. Trading is purely based on price action and
+                  probability.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ DEPOSITS ══ -->
+        <div class="faq-section" data-cat="deposits" id="sec-deposits">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #e6f8f2; color: #00a878"
+            >
+              <i class="ti ti-wallet"></i>
+            </div>
+            <div class="faq-section-title">Deposits</div>
+            <span class="faq-section-count">7 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How do I deposit funds into my OTEX account?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>OTEX currently supports two deposit methods:</p>
+                <ul>
+                  <li>
+                    <strong>Agent (P2P)</strong> — Choose a verified OTEX agent,
+                    contact them via WhatsApp, and arrange a transfer. The agent
+                    manually credits your account once payment is received.
+                  </li>
+                  <li>
+                    <strong>Cryptocurrency</strong> — Send Bitcoin (BTC), USDT
+                    TRC20, or Ethereum (ETH) to the provided wallet address,
+                    then submit your transaction hash for verification.
+                  </li>
+                </ul>
+                <p>
+                  Bank transfer support is coming soon. Go to
+                  <strong>Wallet → Deposit</strong> to get started.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How long does a crypto deposit take to reflect?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Crypto deposits typically take
+                  <strong>2–4 hours</strong> to be confirmed and credited after
+                  the transaction receives sufficient blockchain confirmations.
+                  During peak periods or network congestion, this may take up to
+                  12 hours.
+                </p>
+                <p>
+                  To speed up the process, always submit your
+                  <strong>transaction hash (TxID)</strong> after sending. This
+                  allows our team to verify your deposit without waiting for
+                  automatic confirmation.
+                </p>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>Always double-check the
+                  wallet address before sending. Funds sent to the wrong address
+                  or on the wrong network cannot be recovered.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is the minimum deposit amount?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>Minimum deposit amounts vary by method:</p>
+                <ul>
+                  <li><strong>USDT TRC20</strong> — $10 minimum</li>
+                  <li><strong>Bitcoin (BTC)</strong> — $20 minimum</li>
+                  <li><strong>Ethereum (ETH)</strong> — $30 minimum</li>
+                  <li>
+                    <strong>Agent (P2P)</strong> — depends on the agent, usually
+                    $10–$50
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">How do agent deposits work?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Agent deposits are a peer-to-peer (P2P) method ideal for users
+                  in Africa who prefer cash or mobile money. Here's how it
+                  works:
+                </p>
+                <ul>
+                  <li>Go to <strong>Wallet → Deposit → Agents</strong></li>
+                  <li>Choose an available agent from the list</li>
+                  <li>
+                    Click <strong>Contact on WhatsApp</strong> to message them
+                    directly
+                  </li>
+                  <li>
+                    Tell the agent your
+                    <strong>username or CR code</strong> and how much you want
+                    to deposit
+                  </li>
+                  <li>Send payment to the agent via mobile money or cash</li>
+                  <li>
+                    The agent credits your OTEX account once payment is
+                    confirmed
+                  </li>
+                </ul>
+                <div class="tip">
+                  <i class="ti ti-info-circle"></i>Always include your CR code
+                  when messaging an agent — it's the fastest way for them to
+                  find your account.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Which cryptocurrencies are accepted?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX currently accepts three cryptocurrencies for deposits:
+                </p>
+                <ul>
+                  <li>
+                    <strong>Bitcoin (BTC)</strong> — on the Bitcoin network
+                  </li>
+                  <li>
+                    <strong>USDT TRC20</strong> — Tether on the TRON network
+                    only. Do not send ERC20 USDT.
+                  </li>
+                  <li>
+                    <strong>Ethereum (ETH)</strong> — on the Ethereum mainnet
+                  </li>
+                </ul>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>Sending USDT on the wrong
+                  network (e.g. ERC20 instead of TRC20) will result in permanent
+                  loss of funds. Always verify the network before sending.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >My deposit hasn't been credited. What should I do?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  If your deposit hasn't appeared after 4 hours, follow these
+                  steps:
+                </p>
+                <ul>
+                  <li>
+                    For crypto deposits — check your transaction on a blockchain
+                    explorer (e.g. blockchain.com for BTC) to confirm it has at
+                    least 3 confirmations
+                  </li>
+                  <li>
+                    Make sure you submitted your transaction hash in the deposit
+                    form
+                  </li>
+                  <li>
+                    Contact support via WhatsApp or email with your transaction
+                    hash, the amount sent, and a screenshot of the transaction
+                  </li>
+                </ul>
+                <p>
+                  For agent deposits — contact the agent directly on WhatsApp
+                  first. If unresolved, escalate to OTEX support with proof of
+                  payment.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="deposits">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">Is there a deposit fee?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX does not charge a platform fee for deposits. However:
+                </p>
+                <ul>
+                  <li>
+                    <strong>Crypto deposits</strong> — network/gas fees apply
+                    depending on the blockchain. These are charged by the
+                    network, not OTEX.
+                  </li>
+                  <li>
+                    <strong>Agent deposits</strong> — agents charge a small fee
+                    (typically 1.0%–1.5%) for their service. The fee is
+                    displayed on the agent's card before you contact them.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ WITHDRAWALS ══ -->
+        <div class="faq-section" data-cat="withdrawals" id="sec-withdrawals">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #f5f3ff; color: #7c3aed"
+            >
+              <i class="ti ti-cash"></i>
+            </div>
+            <div class="faq-section-title">Withdrawals</div>
+            <span class="faq-section-count">6 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">How do I withdraw my funds?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Go to <strong>Wallet → Withdraw</strong>. Choose your
+                  preferred withdrawal method (Cryptocurrency or Agent), enter
+                  the required details, and submit your request. Our team
+                  reviews and processes withdrawals within 1–24 hours after
+                  approval.
+                </p>
+                <p>
+                  You must be <strong>KYC verified</strong> before making any
+                  withdrawal. Unverified accounts cannot access the withdrawal
+                  feature.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is the minimum withdrawal amount?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <ul>
+                  <li><strong>USDT TRC20</strong> — $10 minimum</li>
+                  <li><strong>Bitcoin (BTC)</strong> — $20 minimum</li>
+                  <li><strong>Ethereum (ETH)</strong> — $30 minimum</li>
+                  <li>
+                    <strong>Agent (P2P)</strong> — depends on the agent selected
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">How long does a withdrawal take?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Withdrawal requests are reviewed by our team and typically
+                  processed within <strong>1–24 hours</strong> after submission.
+                  Once approved:
+                </p>
+                <ul>
+                  <li>
+                    <strong>Crypto withdrawals</strong> — arrive in your wallet
+                    within 1–3 hours depending on network congestion
+                  </li>
+                  <li>
+                    <strong>Agent withdrawals</strong> — the agent contacts you
+                    via WhatsApp and arranges payment (usually same-day)
+                  </li>
+                </ul>
+                <p>
+                  Withdrawals submitted over weekends or public holidays may
+                  take slightly longer.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">Is there a withdrawal fee?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  A <strong>1.5% network fee</strong> is deducted from crypto
+                  withdrawals to cover blockchain transaction costs. Agent
+                  withdrawals are subject to the agent's fee (1.0%–1.5%)
+                  displayed before submission.
+                </p>
+                <p>
+                  The exact amount you will receive after fees is always shown
+                  in the fee breakdown before you confirm.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is the daily withdrawal limit?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>Daily withdrawal limits depend on your KYC tier:</p>
+                <ul>
+                  <li>
+                    <strong>Tier 1 (Unverified)</strong> — Withdrawals not
+                    available
+                  </li>
+                  <li>
+                    <strong>Tier 2 (Basic KYC)</strong> — Up to $2,000 per day
+                  </li>
+                  <li>
+                    <strong>Tier 3 (Advanced KYC)</strong> — Up to $50,000 per
+                    day
+                  </li>
+                </ul>
+                <p>
+                  To increase your withdrawal limit, complete or upgrade your
+                  KYC verification under
+                  <strong>Settings → KYC</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="withdrawals">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Can I withdraw to a different wallet than I deposited
+                  from?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Yes — you can withdraw to any valid cryptocurrency wallet
+                  address you own. There is no requirement to use the same
+                  wallet you deposited from. Simply paste your withdrawal
+                  address carefully in the withdrawal form.
+                </p>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>Always verify the wallet
+                  address before confirming. Withdrawals to incorrect addresses
+                  are irreversible and OTEX cannot be held responsible.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ACCOUNT & KYC ══ -->
+        <div class="faq-section" data-cat="account" id="sec-account">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #fffbeb; color: #d97706"
+            >
+              <i class="ti ti-user-circle"></i>
+            </div>
+            <div class="faq-section-title">Account & KYC</div>
+            <span class="faq-section-count">7 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is KYC and why do I need to complete it?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  <strong>KYC (Know Your Customer)</strong> is an identity
+                  verification process that confirms you are who you say you
+                  are. It is required by financial regulations and is used to
+                  prevent fraud, money laundering, and underage trading.
+                </p>
+                <p>
+                  Without KYC verification, you can only use the Demo account.
+                  Completing KYC unlocks:
+                </p>
+                <ul>
+                  <li>Live account trading with real money</li>
+                  <li>Deposits up to $5,000/day</li>
+                  <li>Withdrawals up to $2,000/day</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What documents do I need for KYC?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>You will need:</p>
+                <ul>
+                  <li>
+                    A valid, government-issued photo ID — Passport, National ID
+                    card, or Driver's License
+                  </li>
+                  <li>
+                    A clear photo of the <strong>front</strong> (and back for ID
+                    card/license)
+                  </li>
+                  <li>
+                    A <strong>selfie</strong> holding your ID next to your face
+                  </li>
+                </ul>
+                <p>
+                  Documents must not be expired. All four corners must be
+                  visible in the photos. Scanned copies or screenshots are not
+                  accepted.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How long does KYC verification take?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  KYC submissions are typically reviewed within
+                  <strong>1–3 business days</strong>. You will receive an email
+                  notification once your application has been reviewed —
+                  approved or rejected.
+                </p>
+                <p>
+                  During peak periods, review may take up to 5 business days.
+                  You can check your current status anytime under
+                  <strong>Settings → KYC</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >My KYC was rejected. What do I do?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  If your KYC was rejected, you will receive an email explaining
+                  the reason. Common reasons include:
+                </p>
+                <ul>
+                  <li>Blurry or unclear document photos</li>
+                  <li>Expired identity document</li>
+                  <li>Name or date of birth mismatch</li>
+                  <li>All four corners of the document not visible</li>
+                  <li>Selfie face not clearly visible</li>
+                </ul>
+                <p>
+                  Correct the identified issue and resubmit through
+                  <strong>Settings → KYC</strong>. Your previous information
+                  will be pre-filled so you only need to re-upload the corrected
+                  documents.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is my CR code and what is it used for?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Your <strong>CR code (Client Reference)</strong> is a unique
+                  identifier for your OTEX account. It is displayed on your
+                  Account page and looks like: <strong>OTEX-JD-00042</strong>.
+                </p>
+                <p>
+                  You should share your CR code with an agent whenever you make
+                  a deposit or withdrawal request via P2P. It allows the agent
+                  to instantly find and credit your correct account without
+                  needing your email or username.
+                </p>
+                <div class="tip">
+                  <i class="ti ti-info-circle"></i>Never share your account
+                  password — only your CR code. Copy it from Settings → Account
+                  with one click.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Can I change my email or username?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Username changes are not currently supported after account
+                  creation. If you need to change your email address, please
+                  contact our support team with proof of identity. Email changes
+                  are subject to a 48-hour review period for security.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text">How do I close my account?</span>
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Account closure is permanent and cannot be undone. Before
+                  closing, make sure to withdraw any remaining balance. You can
+                  request account closure from
+                  <strong>Settings → Account → Danger Zone</strong>.
+                </p>
+                <p>
+                  Upon closure, all personal data, trade history, and account
+                  information will be permanently deleted in accordance with our
+                  Privacy Policy.
+                </p>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>Accounts with a pending
+                  withdrawal or open trade cannot be closed until those are
+                  resolved.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SECURITY ══ -->
+        <div class="faq-section" data-cat="security" id="sec-security">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #fce7f3; color: #db2777"
+            >
+              <i class="ti ti-shield-check"></i>
+            </div>
+            <div class="faq-section-title">Security</div>
+            <span class="faq-section-count">5 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="security">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How does OTEX keep my account secure?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  OTEX uses multiple layers of security to protect your account:
+                </p>
+                <ul>
+                  <li>
+                    <strong>SSL/TLS encryption</strong> on all data in transit
+                  </li>
+                  <li>
+                    <strong>Encrypted password storage</strong> — your password
+                    is never stored in plain text
+                  </li>
+                  <li>
+                    <strong>Two-Factor Authentication (2FA)</strong> — adds a
+                    second layer when logging in
+                  </li>
+                  <li>
+                    <strong>KYC verification</strong> — prevents unauthorised
+                    account access
+                  </li>
+                  <li>
+                    <strong>Session management</strong> — view and revoke active
+                    login sessions
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="security">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >What is Two-Factor Authentication (2FA) and how do I enable
+                  it?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  <strong>Two-Factor Authentication (2FA)</strong> adds an extra
+                  security step when logging in. After entering your password,
+                  you'll be asked for a time-sensitive code from an
+                  authenticator app (such as Google Authenticator or Authy).
+                </p>
+                <p>
+                  To enable 2FA: go to
+                  <strong
+                    >Settings → Security → Two-Factor Authentication</strong
+                  >
+                  and click <strong>Enable</strong>. Scan the QR code with your
+                  authenticator app and enter the 6-digit code to confirm.
+                </p>
+                <div class="tip">
+                  <i class="ti ti-info-circle"></i>We strongly recommend
+                  enabling 2FA. It significantly reduces the risk of
+                  unauthorised access even if your password is compromised.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="security">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >I think my account has been compromised. What should I
+                  do?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  If you suspect unauthorised access to your account, act
+                  immediately:
+                </p>
+                <ul>
+                  <li>
+                    Change your password immediately via
+                    <strong>Settings → Security → Password</strong>
+                  </li>
+                  <li>Enable 2FA if not already active</li>
+                  <li>
+                    Review active sessions under
+                    <strong>Settings → Security → Active Sessions</strong>
+                    and revoke any unfamiliar devices
+                  </li>
+                  <li>
+                    Contact OTEX support immediately with details of the
+                    suspicious activity
+                  </li>
+                </ul>
+                <div class="note">
+                  <i class="ti ti-alert-triangle"></i>OTEX staff will never ask
+                  for your password. If anyone contacts you claiming to be from
+                  OTEX and asks for your password, it is a scam.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="security">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Is my personal data safe with OTEX?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Yes. OTEX takes data privacy seriously. Your personal
+                  information and KYC documents are:
+                </p>
+                <ul>
+                  <li>Encrypted at rest and in transit</li>
+                  <li>Never sold to third parties</li>
+                  <li>
+                    Only shared with regulatory authorities if legally required
+                  </li>
+                  <li>Stored on secure, access-controlled servers</li>
+                </ul>
+                <p>
+                  You can request deletion of your data at any time by closing
+                  your account or contacting our Data Protection team.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="security">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How do I recognise a phishing or scam attempt?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Scammers may try to impersonate OTEX. Be on the lookout for:
+                </p>
+                <ul>
+                  <li>
+                    Emails from addresses other than
+                    <strong>@otexoption.com</strong>
+                  </li>
+                  <li>Anyone asking for your password or 2FA code</li>
+                  <li>
+                    Promises of guaranteed profits or "special investment
+                    opportunities"
+                  </li>
+                  <li>
+                    Requests to deposit to an address not shown in your OTEX
+                    dashboard
+                  </li>
+                  <li>Fake WhatsApp accounts claiming to be OTEX support</li>
+                </ul>
+                <p>
+                  When in doubt, contact us directly through the official
+                  website or our verified WhatsApp support number.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ REFERRALS ══ -->
+        <div class="faq-section" data-cat="referral" id="sec-referral">
+          <div class="faq-section-head">
+            <div
+              class="faq-section-icon"
+              style="background: #e6f8f2; color: #00a878"
+            >
+              <i class="ti ti-users"></i>
+            </div>
+            <div class="faq-section-title">Referrals</div>
+            <span class="faq-section-count">4 questions</span>
+          </div>
+          <div class="faq-list">
+            <div class="faq-item" data-cat="referral">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >How does the OTEX referral programme work?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  When you share your unique referral link and someone signs up
+                  through it, they become your referral. Every time that person
+                  makes a deposit, you automatically earn a
+                  <strong>5% commission</strong> on the deposited amount,
+                  credited directly to your account.
+                </p>
+                <p>
+                  There is no limit on how many people you can refer or how much
+                  you can earn. The more active traders you refer, the more you
+                  earn passively.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="referral">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Where do I find my referral link?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Your referral link is available on the
+                  <strong>Referrals</strong> page. Navigate to
+                  <strong>Settings → Referrals</strong> and copy your unique
+                  link. You can also share it directly via WhatsApp using the
+                  built-in share button.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="referral">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >When is my referral bonus credited?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Your 5% referral bonus is credited to your account
+                  <strong>automatically</strong> as soon as your referral's
+                  deposit is confirmed. You can see a full breakdown of each
+                  referral's deposits and your earned bonuses on the Referrals
+                  page.
+                </p>
+              </div>
+            </div>
+
+            <div class="faq-item" data-cat="referral">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span class="faq-q-text"
+                  >Can I withdraw my referral bonus?</span
+                >
+                <span class="faq-q-icon"><i class="ti ti-plus"></i></span>
+              </div>
+              <div class="faq-a">
+                <p>
+                  Yes — referral bonuses are credited to your live account
+                  balance and can be withdrawn or used for trading just like any
+                  other funds. Standard withdrawal conditions and minimum
+                  amounts apply.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /faq-main -->
+
+      <!-- ── Sidebar ── -->
+      <div class="faq-sidebar">
+        <div class="faq-sidebar-card">
+          <div class="faq-sidebar-title">
+            <i class="ti ti-compass"></i> Quick Navigation
+          </div>
+          <button class="quick-link" onclick="scrollTo('sec-getting-started')">
+            <i class="ti ti-rocket"></i> Getting Started
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-trading')">
+            <i class="ti ti-chart-candlestick"></i> Trading
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-deposits')">
+            <i class="ti ti-wallet"></i> Deposits
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-withdrawals')">
+            <i class="ti ti-cash"></i> Withdrawals
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-account')">
+            <i class="ti ti-user-circle"></i> Account & KYC
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-security')">
+            <i class="ti ti-shield-check"></i> Security
+          </button>
+          <button class="quick-link" onclick="scrollTo('sec-referral')">
+            <i class="ti ti-users"></i> Referrals
+          </button>
+        </div>
+
+        <div class="faq-sidebar-card">
+          <div class="faq-sidebar-title">
+            <i class="ti ti-headset"></i> Still need help?
+          </div>
+          <div class="contact-option">
+            <div
+              class="contact-icon"
+              style="background: #e6f8f2; color: #25d366"
+            >
+              <i class="ti ti-brand-whatsapp"></i>
+            </div>
+            <div>
+              <div class="contact-label">WhatsApp Support</div>
+              <div class="contact-sub">Typically replies in minutes</div>
+            </div>
+            <a
+              href="https://wa.me/233200000000"
+              class="contact-link"
+              target="_blank"
+              rel="noopener"
+            >
+              <i class="ti ti-arrow-right"></i> Chat
+            </a>
+          </div>
+          <div class="contact-option">
+            <div
+              class="contact-icon"
+              style="background: #eff6ff; color: #2563eb"
+            >
+              <i class="ti ti-mail"></i>
+            </div>
+            <div>
+              <div class="contact-label">Email Support</div>
+              <div class="contact-sub">support@otexoption.com</div>
+            </div>
+            <a href="mailto:support@otexoption.com" class="contact-link">
+              <i class="ti ti-arrow-right"></i> Email
+            </a>
+          </div>
+        </div>
+
+        <div class="faq-sidebar-card">
+          <div class="faq-sidebar-title">
+            <i class="ti ti-clock"></i> Support Hours
+          </div>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              font-size: 13px;
+            "
+          >
+            <div style="display: flex; justify-content: space-between">
+              <span style="color: #6b7280">Mon – Fri</span>
+              <span style="font-weight: 600; color: #111"
+                >8:00 AM – 10:00 PM</span
+              >
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <span style="color: #6b7280">Saturday</span>
+              <span style="font-weight: 600; color: #111"
+                >9:00 AM – 6:00 PM</span
+              >
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <span style="color: #6b7280">Sunday</span>
+              <span style="font-weight: 600; color: #111"
+                >10:00 AM – 4:00 PM</span
+              >
+            </div>
+            <div
+              style="
+                margin-top: 4px;
+                padding: 8px 10px;
+                background: #e6f8f2;
+                border-radius: 8px;
+                font-size: 12px;
+                color: #065f46;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  width: 7px;
+                  height: 7px;
+                  border-radius: 50%;
+                  background: #00a878;
+                  display: inline-block;
+                "
+              ></span>
+              Support is online now
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock content %} {% block script %}
+<script>
+  /* ── Toggle individual FAQ item ── */
+  function toggleFaq(btn) {
+    const item = btn.closest(".faq-item");
+    const answer = item.querySelector(".faq-a");
+    const isOpen = item.classList.contains("open");
+
+    // Close all in the same list
+    const list = item.closest(".faq-list");
+    list.querySelectorAll(".faq-item.open").forEach((el) => {
+      el.classList.remove("open");
+      el.querySelector(".faq-a").classList.remove("open");
+    });
+
+    if (!isOpen) {
+      item.classList.add("open");
+      answer.classList.add("open");
+    }
+  }
+
+  /* ── Category filter ── */
+  function filterCat(cat, el) {
+    document
+      .querySelectorAll(".faq-tab")
+      .forEach((t) => t.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("faqSearch").value = "";
+
+    document.querySelectorAll(".faq-section").forEach((sec) => {
+      sec.style.display =
+        cat === "all" || sec.dataset.cat === cat ? "block" : "none";
+    });
+    document.getElementById("noResults").style.display = "none";
+  }
+
+  /* ── Search ── */
+  function searchFaq() {
+    const q = document.getElementById("faqSearch").value.trim().toLowerCase();
+
+    // Reset category tabs to "All"
+    document
+      .querySelectorAll(".faq-tab")
+      .forEach((t) => t.classList.remove("active"));
+    document.querySelector('[data-cat="all"]').classList.add("active");
+
+    let anyVisible = false;
+
+    document.querySelectorAll(".faq-section").forEach((sec) => {
+      sec.style.display = "block";
+      let secHasMatch = false;
+
+      sec.querySelectorAll(".faq-item").forEach((item) => {
+        const qText = item
+          .querySelector(".faq-q-text")
+          .textContent.toLowerCase();
+        const aText = item.querySelector(".faq-a").textContent.toLowerCase();
+        const match = !q || qText.includes(q) || aText.includes(q);
+        item.classList.toggle("hidden", !match);
+        if (match) {
+          secHasMatch = true;
+          anyVisible = true;
+        }
+      });
+
+      // Hide the section if it has no matching items
+      if (!secHasMatch && q) sec.style.display = "none";
+    });
+
+    document.getElementById("noResults").style.display =
+      !anyVisible && q ? "block" : "none";
+  }
+
+  /* ── Smooth scroll to section ── */
+  function scrollTo(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+</script>
+
+{% endblock script %}

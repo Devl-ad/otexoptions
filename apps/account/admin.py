@@ -400,12 +400,18 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
         user.save(update_fields=["is_verified"])
 
         try:
-            send_mail(
-                subject="Your OTEX account has been verified ",
-                message=f"Hi {user.get_full_name() or user.username}, your KYC has been approved.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=_approval_email(user),
+            _send(
+                subject="Your OTEX account has been verified",
+                to_email=user.email,
+                text_template="emails/kyc_status.txt",
+                html_template="emails/kyc_status.html",
+                context={
+                    "user": user,
+                    "kyc_status": "approved",
+                    "approved_date": submission.reviewed_at,
+                    "submitted_at": submission.submitted_at,
+                    "rejection_reason": submission.admin_note,
+                },
             )
         except Exception as e:
             self.message_user(
@@ -435,12 +441,18 @@ class KYCSubmissionAdmin(admin.ModelAdmin):
         user.save(update_fields=["is_verified"])
 
         try:
-            send_mail(
+            _send(
                 subject="OTEX KYC Verification Update",
-                message=f"Hi {user.get_full_name() or user.username}, your KYC was not approved.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=_rejection_email(user, submission.admin_note),
+                to_email=user.email,
+                text_template="emails/kyc_status.txt",
+                html_template="emails/kyc_status.html",
+                context={
+                    "user": user,
+                    "kyc_status": "rejected",
+                    "approved_date": submission.reviewed_at,
+                    "submitted_at": submission.submitted_at,
+                    "rejection_reason": submission.admin_note,
+                },
             )
         except Exception as e:
             self.message_user(

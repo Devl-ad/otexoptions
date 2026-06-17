@@ -3,6 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      .success-icon {
+        width: 50px;
+        height: 50px;
+        fill: none;
+        stroke: #22c55e;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .error-icon {
+        width: 50px;
+        height: 50px;
+        fill: none;
+        stroke: #ef4444;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
   </head>
   <body
     style="
@@ -69,7 +89,11 @@
           border-bottom: 1px solid #dcfce7;
         "
       >
-        <div style="font-size: 44px; margin-bottom: 8px">✅</div>
+        <div style="font-size: 44px; margin-bottom: 8px">
+          <svg class="success-icon" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
         <h2
           style="color: #166534; font-size: 20px; font-weight: 800; margin: 0"
         >
@@ -85,19 +109,22 @@
       {% else %}
       <div
         style="
-          background: #fef2f2;
+          background: #241b1b;
           padding: 28px 32px;
           text-align: center;
           border-bottom: 1px solid #fecaca;
         "
       >
-        <div style="font-size: 44px; margin-bottom: 8px">❌</div>
-        <h2
-          style="color: #991b1b; font-size: 20px; font-weight: 800; margin: 0"
-        >
+        <div style="font-size: 44px; margin-bottom: 8px">
+          <svg class="error-icon" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
+        <h2 style="color: #fff; font-size: 20px; font-weight: 800; margin: 0">
           Transaction Failed
         </h2>
-        <p style="color: #991b1b; font-size: 13px; margin: 6px 0 0">
+        <p style="color: #fff; font-size: 13px; margin: 6px 0 0">
           We were unable to process your transaction.
         </p>
       </div>
@@ -258,7 +285,7 @@
                   text-align: right;
                 "
               >
-                {{ transaction.created_at|date:"d M Y, H:i" }}
+                {{ transaction.created_at }}
               </td>
             </tr>
           </table>
