@@ -747,7 +747,9 @@
         <div class="wd-bal-divider"></div>
 
         <div class="wd-kyc-pill">
-          <i class="ti ti-shield-check"></i> KYC Verified
+          {% if user.is_verified %}
+          <i class="ti ti-shield-check"></i> KYC Verified {% else %}
+          <i class="ti ti-shield-x"></i> KYC Not Verified {% endif %}
         </div>
       </div>
     </div>
