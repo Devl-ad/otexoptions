@@ -532,7 +532,7 @@
         </div>
       </div>
 
-      <form class="bd-inner">
+      <form class="bd-inner" onsubmit="Submit_form(event)">
         {% csrf_token %}
         <div class="bd-wrap">
           <!-- ── Amount + Conversion ── -->
@@ -562,15 +562,28 @@
                   oninput="convert()"
                   autocomplete="off"
                   name="amount"
+                  required
                 />
               </div>
               <div class="preset-row" id="presetRow">
-                <button class="preset" onclick="setAmount(10)">$10</button>
-                <button class="preset" onclick="setAmount(20)">$20</button>
-                <button class="preset" onclick="setAmount(50)">$50</button>
-                <button class="preset" onclick="setAmount(100)">$100</button>
-                <button class="preset" onclick="setAmount(250)">$250</button>
-                <button class="preset" onclick="setAmount(500)">$500</button>
+                <button type="button" class="preset" onclick="setAmount(10)">
+                  $10
+                </button>
+                <button type="button" class="preset" onclick="setAmount(20)">
+                  $20
+                </button>
+                <button type="button" class="preset" onclick="setAmount(50)">
+                  $50
+                </button>
+                <button type="button" class="preset" onclick="setAmount(100)">
+                  $100
+                </button>
+                <button type="button" class="preset" onclick="setAmount(250)">
+                  $250
+                </button>
+                <button type="button" class="preset" onclick="setAmount(500)">
+                  $500
+                </button>
               </div>
             </div>
 
@@ -588,21 +601,19 @@
                 <div class="conv-to" style="text-align: right">
                   <!-- currency_code and currency_name come from Django context -->
                   <span class="conv-label"></span>
-                  <span class="conv-val" id="convTo">&#8358; 0.00</span>
-                  <span class="conv-sub"
-                    >{{ currency_name|default:"Naira" }}</span
-                  >
+                  <span class="conv-val" id="convTo"> 0.00</span>
+                  <span class="conv-sub">{{ currency }}</span>
                 </div>
               </div>
               <div class="conv-rate-row">
                 <span class="conv-rate-label">Exchange rate</span>
                 <span class="conv-rate-val" id="rateDisplay">
-                  1 USD = {{ currency_symbol|default:"&#8358;" }}
+                  1 USD =
                   <!--  -->
-                  {{ exchange_rate }}
+                  {{ rate }}
                   <!--  -->
 
-                  {{ currency_code|default:"NGN" }}
+                  {{ currency }}
                 </span>
               </div>
             </div>
@@ -620,6 +631,7 @@
               type="submit"
               class="dep-submit-btn"
               style="margin-top: 7px"
+              id="dep-submit-btn"
             >
               <i class="ti ti-send" aria-hidden="true"></i> Pay
             </button>
@@ -662,11 +674,11 @@
     <div class="toast" id="toast">
       <i class="ti ti-circle-check"></i> <span id="toastMsg">Copied!</span>
     </div>
-
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script>
       /* ── Rate from Django context ── */
-      const RATE = parseFloat("{{ exchange_rate|default:'1400' }}");
-      const CURRENCY_SYM = "{{ currency_symbol|default:' ₦ ' }}";
+      const RATE = parseFloat("{{ rate|default:'1400' }}");
+      const CURRENCY_SYM = "{{ currency|default:' ₦ ' }}";
       const CURRENCY_CODE = "{{ currency_code|default:'NGN' }}";
 
       /* ── Convert ── */
@@ -677,12 +689,13 @@
 
         document.getElementById("convFrom").textContent = "$" + usd.toFixed(2);
         amount_in_local.value = local;
-        document.getElementById("convTo").textContent =
-          CURRENCY_SYM +
-          local.toLocaleString("en", {
+        document.getElementById("convTo").textContent = local.toLocaleString(
+          "en",
+          {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          });
+          },
+        );
         document.getElementById("bankAmount").textContent =
           CURRENCY_SYM +
           local.toLocaleString("en", {
@@ -755,9 +768,23 @@
         setTimeout(() => t.classList.remove("show"), 2000);
       }
 
-      function Submit_form() {
-        amount_in_local = document.getElementById("amount_in_local").value;
-        amount = document.getElementById("usdInput").value;
+      function Submit_form(event) {
+        event.preventDefault();
+        const btn = document.getElementById("dep-submit-btn");
+        const amount_in_local =
+          document.getElementById("amount_in_local").value;
+        const amount = document.getElementById("usdInput").value;
+
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Processing...
+                `;
+
+        if (!amount || !amount_in_local) {
+          alert("Input Amounts");
+        }
 
         fetch("/dashboard/bank-deposit/", {
           method: "POST",
@@ -769,27 +796,81 @@
         })
           .then((r) => r.json())
           .then((data) => {
-            btn.disabled = false;
-            label.style.display = "flex";
-            spinner.style.display = "none";
-            if (data.success) {
-              showSuccess(username, amount, data.reference);
-              document.getElementById("agentBalance").textContent =
-                `$${data.new_balance}`;
-            } else if (data.is_min_deposit_error) {
-              document.getElementById("userErr").classList.add("show");
-              document
-                .getElementById("userErr")
-                .querySelector("span").textContent = " " + data.error;
+            if (data.error) {
+              showNotif(data.msg, "error");
             } else {
-              document.getElementById("userErr").classList.add("show");
-              document
-                .getElementById("userErr")
-                .querySelector("span").textContent = " " + data.error;
+              payWithFlutterwave(
+                data.public_key,
+                data.amount_in_local,
+                data.currency,
+                data.email,
+                data.name,
+                data.ref,
+                data.redirect_url,
+                data.currency,
+              );
             }
           });
       }
+
+      function payWithFlutterwave(
+        pub_key,
+        amount,
+        currency,
+        email,
+        name,
+        ref,
+        redirect_url,
+        currency,
+      ) {
+        FlutterwaveCheckout({
+          public_key: pub_key,
+
+          tx_ref: ref,
+
+          amount: amount,
+
+          currency: currency,
+
+          redirect_url: redirect_url,
+
+          payment_options: "card,banktransfer,ussd,mobilemoneyghana",
+
+          customer: {
+            email: email,
+
+            name: name,
+          },
+
+          customizations: {
+            title: "OTEX",
+            description: `Deposit`,
+            logo: "/assets/images/logo_pt.png",
+          },
+        });
+      }
+
+      function getCookie(name) {
+        const val = `; ${document.cookie}`;
+        const parts = val.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+      }
+
+      function showNotif(msg, type) {
+        const el = document.createElement("div");
+        el.textContent = msg;
+        el.style.cssText = `
+        position:fixed; top:20px; right:20px; z-index:9999;
+        padding:12px 20px; border-radius:8px; font-size:13px; font-weight:600;
+        background:${type === "success" ? "#00A878" : "#E85D35"}; color:#fff;
+        box-shadow:0 4px 12px rgba(0,0,0,0.15); max-width:320px;
+        animation: slideIn 0.2s ease;
+    `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+      }
     </script>
+
     {% if messages %}
     <script>
       document.addEventListener("DOMContentLoaded", function () {

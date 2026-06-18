@@ -30,4 +30,10 @@ urlpatterns = [
     path("agent/credit-user/", views.credit_user, name="credit_user"),
     path("faq/", views.faq, name="faq"),
     path("bank-deposit/", views.bank_deposit, name="bank_depoosit"),
+    path(
+        "payment/flutterwave/callback/",
+        views.flutterwave_callback,
+        name="flutterwave_callback",
+    ),
+    path("payment/status/", views.payment_status, name="payment_status"),
 ]

@@ -251,56 +251,6 @@
 
 <main class="main payment-status">
   <div class="ps-wrap">
-    {% if status == "completed" %}
-    <!-- ══ SUCCESS ══ -->
-    <div class="ps-card">
-      <div class="ps-icon-wrap success">
-        <i class="ti ti-circle-check"></i>
-      </div>
-      <div class="ps-title">Payment Successful!</div>
-      <div class="ps-sub">
-        Your deposit has been confirmed and credited to your OTEX account. You
-        can start trading immediately.
-      </div>
-
-      {% if transaction %}
-      <div class="ps-details">
-        <div class="ps-row">
-          <span class="ps-key">Reference</span>
-          <span class="ps-val mono">{{ transaction.reference }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Amount Deposited</span>
-          <span class="ps-val green">${{ transaction.amount }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Method</span>
-          <span class="ps-val">{{ transaction.get_method_display }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Status</span>
-          <span class="ps-val"
-            ><span class="ps-badge completed">Completed</span></span
-          >
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Date</span>
-          <span class="ps-val"
-            >{{ transaction.created_at|date:"d M Y, h:i A" }}</span
-          >
-        </div>
-      </div>
-      {% endif %}
-
-      <a href="/dashboard/" class="ps-btn-primary">
-        <i class="ti ti-chart-candlestick"></i> Start Trading
-      </a>
-      <a href="/dashboard/transaction-logs/" class="ps-btn-secondary">
-        <i class="ti ti-history"></i> View Transaction History
-      </a>
-    </div>
-
-    {% elif status == "failed" %}
     <!-- ══ FAILED ══ -->
     <div class="ps-card">
       <div class="ps-icon-wrap failed">
@@ -308,106 +258,9 @@
       </div>
       <div class="ps-title">Payment Failed</div>
       <div class="ps-sub">
-        Your payment could not be completed. No money has been deducted from
-        your bank account. Please try again or use a different payment method.
+        This may happen due to a network issue or interrupted redirect.
       </div>
-
-      {% if transaction %}
-      <div class="ps-details">
-        <div class="ps-row">
-          <span class="ps-key">Reference</span>
-          <span class="ps-val mono">{{ transaction.reference }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Amount</span>
-          <span class="ps-val">${{ transaction.amount }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Status</span>
-          <span class="ps-val"
-            ><span class="ps-badge failed">Failed</span></span
-          >
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Date</span>
-          <span class="ps-val"
-            >{{ transaction.created_at|date:"d M Y, h:i A" }}</span
-          >
-        </div>
-      </div>
-      {% endif %}
-
-      <a href="/dashboard/agents/" class="ps-btn-primary">
-        <i class="ti ti-refresh"></i> Try Again
-      </a>
-      <a href="/dashboard/" class="ps-btn-secondary">
-        <i class="ti ti-home"></i> Back to Dashboard
-      </a>
     </div>
-
-    {% else %}
-    <!-- ══ PENDING / UNKNOWN ══ -->
-    <div class="ps-card">
-      <div class="ps-icon-wrap pending">
-        <i class="ti ti-clock"></i>
-      </div>
-      <div class="ps-title">Payment Pending</div>
-      <div class="ps-sub">
-        Your payment is being processed. This usually takes a few minutes. Your
-        balance will be updated automatically once confirmed.
-      </div>
-
-      {% if transaction %}
-      <div class="ps-details">
-        <div class="ps-row">
-          <span class="ps-key">Reference</span>
-          <span class="ps-val mono">{{ transaction.reference }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Amount</span>
-          <span class="ps-val">${{ transaction.amount }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Method</span>
-          <span class="ps-val">{{ transaction.get_method_display }}</span>
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Status</span>
-          <span class="ps-val"
-            ><span class="ps-badge pending">Pending</span></span
-          >
-        </div>
-        <div class="ps-row">
-          <span class="ps-key">Date</span>
-          <span class="ps-val"
-            >{{ transaction.created_at|date:"d M Y, h:i A" }}</span
-          >
-        </div>
-      </div>
-      {% endif %}
-
-      <div class="ps-info" style="margin-bottom: 20px">
-        <i class="ti ti-alert-triangle"></i>
-        <span
-          >Do not attempt another payment for this deposit. If your balance has
-          not updated within <strong>30 minutes</strong>, contact our support
-          team with your reference number.</span
-        >
-      </div>
-
-      <a href="/dashboard/" class="ps-btn-primary">
-        <i class="ti ti-home"></i> Back to Dashboard
-      </a>
-      <a
-        href="mailto:support@otexoption.com"
-        class="ps-btn-secondary"
-        target="_blank"
-        rel="noopener"
-      >
-        <i class="ti ti-brand-whatsapp"></i> Contact Support
-      </a>
-    </div>
-    {% endif %}
   </div>
 </main>
 

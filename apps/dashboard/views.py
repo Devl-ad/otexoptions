@@ -16,6 +16,7 @@ from apps.account.referrals import record_referral_deposit
 from django.conf import settings as django_setting
 import requests
 from django.views.decorators.csrf import csrf_exempt
+from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
 
 
 from .tasks import run_bot_session
@@ -922,6 +923,20 @@ def faq(request):
 
 @login_required
 def bank_deposit(request):
+    user_details = get_object_or_404(Details, user=request.user)
+
+    currency = user_details.local_currency
+
+    if currency not in SUPPORTED_BANK_DEPOSIT_CURRENCIES:
+        messages.info(request, f"{currency} is not supported for bank transfer.")
+        return redirect("deposit")
+
+    try:
+        today_rate = TodayRate.objects.get(currency=currency)
+    except TodayRate.DoesNotExist:
+        messages.info(request, "AN UNKNOW ERROR OCCURED")
+        return redirect("deposit")
+
     if request.method == "POST":
         amount = request.POST.get("amount")
         amount_in_local = request.POST.get("amount_in_local")
@@ -929,12 +944,12 @@ def bank_deposit(request):
         try:
             amount = Decimal(amount)
         except:
-            messages.error(request, "Invalid amount.")
-            return redirect("bank_depoosit")
+
+            return JsonResponse({"error": True, "msg": "Invalid amount."})
 
         if amount < Decimal("20"):
-            messages.error(request, "Minimum deposit is $20.")
-            return redirect("bank_depoosit")
+
+            return JsonResponse({"error": True, "msg": "Minimum deposit is $20."})
 
         transaction = Transaction.objects.create(
             user=request.user,
@@ -947,27 +962,41 @@ def bank_deposit(request):
         )
 
         payload = {
-            "tansaction": transaction,
-            "rate_today": TodayRate.objects.get(currency="NGN"),
+            "ref": transaction.reference,
+            "amount": amount,
+            "email": transaction.user.email,
+            "name": transaction.user.get_full_name(),
+            "amount_in_local": amount_in_local,
+            "public_key": django_setting.FLW_PUBLIC_KEY,
+            "currency": currency,
+            "rate_today": today_rate.rate,
             "redirect_url": request.build_absolute_uri(
-                "/payment/flutterwave/callback/"
+                "/dashboard/payment/flutterwave/callback/"
             ),
         }
 
         return JsonResponse(payload)
 
-    return render(request, "dashboard/bank_deposit.html")
+    return render(
+        request,
+        "dashboard/bank_deposit.html",
+        {"currency": currency, "rate": today_rate.rate},
+    )
 
 
-def payment_success(request):
-    return render(request, "dashboard/payment_success.html")
+def payment_status(request):
+    tx_ref = request.GET.get("tx_ref")
+    status = request.GET.get("status", "failed")
 
-
-def payment_failed(request, ref=None):
     transaction = None
-    if transaction:
-        transaction = get_object_or_404(Transaction, ref=ref)
-    return render(request, "dashboard/payment_failed.html", {"order": transaction})
+    if tx_ref:
+        transaction = Transaction.objects.filter(reference=tx_ref).first()
+
+    context = {
+        "transaction": transaction,
+        "status": transaction.status if transaction else "failed",
+    }
+    return render(request, "payments/status.html", context)
 
 
 def flutterwave_callback(request):
@@ -977,7 +1006,7 @@ def flutterwave_callback(request):
     if not tx_ref:
         return render(
             request,
-            "errors.html",
+            "payments/errors.html",
             {
                 "title": "Payment Error",
                 "message": "We couldn't verify your payment details.",
@@ -987,14 +1016,16 @@ def flutterwave_callback(request):
 
     transaction = get_object_or_404(Transaction, reference=tx_ref)
 
-    # Flutterwave may send completed/successful depending on flow
     if status not in ["successful", "completed"]:
         transaction.status = Transaction.Status.FAILED
         transaction.save(update_fields=["status"])
-        return redirect("payment_failed_with_order", order_id=transaction.reference)
+    else:
+        transaction.status = Transaction.Status.COMPLETED
+        transaction.save(update_fields=["status"])
+        wallet = Wallet.objects.get(user=transaction.user)
+        wallet.credit(transaction.amount, mode="live")
 
-    # Save transaction id
-    transaction.status = Transaction.Status.COMPLETED
-    transaction.save(update_fields=["status"])
-
-    return redirect("payment_success")
+    # Pass tx_ref as query param so payment_status can look it up
+    return redirect(
+        f"/dashboard/payment/status/?tx_ref={tx_ref}&status={transaction.status}"
+    )

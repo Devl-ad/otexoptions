@@ -60,3 +60,9 @@ TRADING_PAIRS = [
         "max_trade": 1000.00,
     },
 ]
+
+
+SUPPORTED_BANK_DEPOSIT_CURRENCIES = (
+    "GHS",
+    "NGN",
+)
