@@ -621,3 +621,11 @@ class BotTrade(models.Model):
         ordering = ["trade_number"]
         verbose_name = "Bot Trade"
         verbose_name_plural = "Bot Trades"
+
+
+class TodayRate(models.Model):
+    currency = models.CharField(max_length=10, unique=True)
+    rate = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.currency}"

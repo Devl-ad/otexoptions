@@ -1,301 +1,803 @@
-{% extends "layouts/users.html" %} {% load humanize %}
-<!--  -->
-{% block title %} Deposit with bank {% endblock title %}
-<!--  -->
-{% block content %}
-<!-- ════════════════════════════════════════ -->
-<main class="main deposit">
-  <div class="topbar">
-    <div class="topbar-left">
-      <h1 style="font-size: 22px; font-weight: 700; color: #111">
-        Deposit Funds
-      </h1>
-      <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
-        Choose a method to add funds to your account
-      </p>
-    </div>
-  </div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    />
+    <title>Bank Deposit - OTEX</title>
+    <link rel="stylesheet" href="/assets/css/user.css" />
+    <style>
+      .main.bank-dep {
+        margin-left: 220px;
+        flex: 1;
+        min-height: 100vh;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+      }
+      .bd-inner {
+        padding: 0 28px 60px;
+      }
 
-  <div class="dep-page-inner" style="padding: 0 28px 28px">
-    <!-- Method tabs -->
-    <div class="dep-method-tabs" role="tablist" aria-label="Deposit method">
-      <button
-        class="dep-method-tab"
-        role="tab"
-        aria-selected="true"
-        data-panel="agents"
-        onclick="window.location.href = '/dashboard/agents/'"
-      >
-        <i class="ti ti-users" aria-hidden="true"></i> Agents
-      </button>
-      <button
-        class="dep-method-tab"
-        role="tab"
-        aria-selected="false"
-        data-panel="crypto"
-        onclick="window.location.href = '/dashboard/deposit-funds/crypto/'"
-      >
-        <i class="ti ti-currency-bitcoin" aria-hidden="true"></i> Cryptocurrency
-      </button>
-      <button
-        class="dep-method-tab active"
-        role="tab"
-        aria-disabled="true"
-        tabindex="-1"
-      >
-        <i class="ti ti-building-bank" aria-hidden="true"></i> Bank Transfer
-      </button>
-    </div>
+      /* ── Centered narrow card layout ── */
+      .bd-wrap {
+        max-width: 560px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-    <!-- ── CRYPTO PANEL ── -->
-    <div id="panel-crypto" class="dep-panel active" role="tabpanel">
-      <div class="crypto-wrap">
-        <!-- Left: form -->
-        <form
-          method="post"
-          enctype="multipart/form-data"
-          class="crypto-form-card"
+      /* ── Cards ── */
+      .bd-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #f3f4f6;
+        padding: 24px;
+      }
+      .bd-card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .bd-card-title i {
+        font-size: 19px;
+        color: #e85d35;
+      }
+
+      /* ── Amount input ── */
+      .amount-block {
+        margin-bottom: 16px;
+      }
+      .flabel {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: block;
+        margin-bottom: 7px;
+      }
+      .amount-row {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f9fafb;
+        transition: border-color 0.15s;
+      }
+      .amount-row:focus-within {
+        border-color: #e85d35;
+        background: #fff;
+      }
+      .amount-currency-tag {
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #6b7280;
+        background: #f3f4f6;
+        border-right: 1.5px solid #e5e7eb;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .amount-input {
+        flex: 1;
+        height: 52px;
+        border: none;
+        background: transparent;
+        padding: 0 16px;
+        font-family: inherit;
+        font-size: 22px;
+        font-weight: 800;
+        color: #111;
+        outline: none;
+      }
+      .amount-input::placeholder {
+        color: #d1d5db;
+        font-weight: 600;
+        font-size: 18px;
+      }
+
+      /* Preset chips */
+      .preset-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .preset {
+        padding: 5px 14px;
+        border-radius: 8px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .preset:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+      }
+      .preset.active {
+        background: #e85d35;
+        border-color: #e85d35;
+        color: #fff;
+      }
+
+      /* ── Conversion display ── */
+      .conversion-box {
+        background: #0f1117;
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-top: 4px;
+      }
+      .conv-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .conv-from {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .conv-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .conv-val {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.1;
+      }
+      .conv-sub {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .conv-arrow {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(232, 93, 53, 0.15);
+        border: 1px solid rgba(232, 93, 53, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        color: #e85d35;
+        flex-shrink: 0;
+      }
+
+      .conv-to .conv-val {
+        color: #e85d35;
+      }
+
+      .conv-rate-row {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+      }
+      .conv-rate-label {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .conv-rate-val {
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 600;
+        font-family: monospace;
+      }
+
+      /* ── Bank details card ── */
+      .bank-detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f9fafb;
+        gap: 12px;
+      }
+      .bank-detail-row:last-child {
+        border-bottom: none;
+      }
+      .bd-key {
+        font-size: 12px;
+        font-weight: 600;
+        color: #9ca3af;
+        flex-shrink: 0;
+      }
+      .bd-val {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+        text-align: right;
+        word-break: break-word;
+      }
+      .bd-val.mono {
+        font-family: monospace;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+      }
+      .copy-inline {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #9ca3af;
+        font-size: 15px;
+        transition: all 0.15s;
+        margin-left: 8px;
+      }
+      .copy-inline:hover {
+        border-color: #e85d35;
+        color: #e85d35;
+      }
+
+      /* ── Info / warning boxes ── */
+      .bd-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 13px 16px;
+        display: flex;
+        gap: 10px;
+        font-size: 12px;
+        color: #1e40af;
+        line-height: 1.7;
+      }
+      .bd-info i {
+        font-size: 17px;
+        color: #3b82f6;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .bd-warn {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        border-radius: 10px;
+        padding: 13px 16px;
+        display: flex;
+        gap: 10px;
+        font-size: 12px;
+        color: #92400e;
+        line-height: 1.7;
+      }
+      .bd-warn i {
+        font-size: 17px;
+        color: #f59e0b;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      /* ── Submit button ── */
+      .bd-submit {
+        width: 100%;
+        height: 52px;
+        background: #e85d35;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: opacity 0.15s;
+      }
+      .bd-submit:hover {
+        opacity: 0.88;
+      }
+      .bd-submit:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .bd-submit i {
+        font-size: 18px;
+      }
+
+      /* ── Steps ── */
+      .step-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .step-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .step-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fef0ec;
+        color: #e85d35;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .step-text {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.6;
+      }
+      .step-text strong {
+        color: #111;
+        font-weight: 700;
+      }
+
+      /* ── Toast ── */
+      .toast {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 22px;
+        border-radius: 10px;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .toast i {
+        font-size: 16px;
+        color: #00a878;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 960px) {
+        .main.bank-dep {
+          margin-left: 0 !important;
+          padding-bottom: 90px;
+        }
+        .bd-inner {
+          padding: 0 14px 30px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    {% if messages %} {% for msg in messages %}
+    <div
+      style="display: none"
+      class="messages"
+      id="mssggi"
+      data-msg="{{ msg }}"
+    ></div>
+    {% endfor %} {% endif %}
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+          <rect
+            x="11"
+            y="10"
+            width="6"
+            height="20"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.75"
+          />
+          <rect
+            x="20"
+            y="4"
+            width="6"
+            height="26"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.45"
+          />
+        </svg>
+        <span class="logo-name">OTEX</span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/dashboard/"
+          ><i class="ti ti-home" aria-hidden="true"></i>dashboard</a
         >
-          {% csrf_token %}
-          <input type="hidden" name="coin" id="selectedCoin" value="btc" />
+        <a class="nav-item" href="/dashboard/trade/"
+          ><i class="ti ti-filter" aria-hidden="true"></i>Trade</a
+        >
+        <a class="nav-item" href="/dashboard/trade-history/"
+          ><i class="ti ti-files" aria-hidden="true"></i>Trade History</a
+        >
+        <a class="nav-item" href="/dashboard/transaction-logs/"
+          ><i class="ti ti-arrow-left-right" aria-hidden="true"></i
+          >Transactions</a
+        >
+        <a class="nav-item" href="/dashboard/agents/"
+          ><i class="ti ti-user" aria-hidden="true"></i>Finance</a
+        >
+
+        <a class="nav-item" href="/dashboard/profile/"
+          ><i class="ti ti-settings" aria-hidden="true"></i>Settings</a
+        >
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-row">
+          <div class="avatar">{{user.get_initials}}</div>
           <div>
-            <div class="flabel" style="margin-bottom: 10px">Select Coin</div>
-            <div class="coin-selector" id="coinSelector">
-              <div
-                class="coin-option active"
-                data-coin="btc"
-                onclick="selectCoin('btc', this)"
-              >
-                <span class="coin-icon btc">₿</span> Bitcoin (BTC)
-              </div>
-              <div
-                class="coin-option"
-                data-coin="usdt"
-                onclick="selectCoin('usdt', this)"
-              >
-                <span class="coin-icon usdt">₮</span> USDT TRC20
-              </div>
-              <div
-                class="coin-option"
-                data-coin="eth"
-                onclick="selectCoin('eth', this)"
-              >
-                <span class="coin-icon eth">Ξ</span> Ethereum (ETH)
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flabel">Deposit Address</div>
-            <div style="margin-top: 8px" class="address-box">
-              <span class="address-text" id="cryptoAddress"
-                >bc1qc6eamxfuk860hg8nzyrk9t4m2xjnldxuusjvmd</span
-              >
-              <button
-                class="copy-btn"
-                onclick="copyAddress()"
-                title="Copy address"
-                aria-label="Copy address"
-              >
-                <i class="ti ti-copy" aria-hidden="true"></i>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <div class="flabel">Amount (USD)</div>
-            <input
-              type="number"
-              class="finput"
-              id="depAmount"
-              placeholder="Enter amount e.g. 100"
-              min="20"
-              style="margin-top: 6px"
-              name="amount"
-              required
-            />
-            <div class="preset-row">
-              <span class="preset" onclick="setAmount(20)">$20</span>
-              <span class="preset" onclick="setAmount(50)">$500</span>
-              <span class="preset" onclick="setAmount(150)">$150</span>
-              <span class="preset" onclick="setAmount(500)">$500</span>
-              <span class="preset" onclick="setAmount(1000)">$1,000</span>
-            </div>
-          </div>
-
-          <div>
-            <div class="flabel">Transaction Hash</div>
-            <input
-              type="text"
-              class="finput"
-              id="txHash"
-              name="tx_hash"
-              required
-              placeholder="Paste your transaction hash / TxID"
-              style="margin-top: 6px; font-family: monospace; font-size: 12px"
-            />
-          </div>
-
-          <!-- <div>
-            <div class="flabel" style="margin-bottom: 8px">
-              Upload Screenshot (optional)
-            </div>
-            <label class="hash-upload" for="proofUpload">
-              <i class="ti ti-cloud-upload" aria-hidden="true"></i>
-              <p>
-                <strong>Click to upload</strong> or drag and drop<br />PNG, JPG
-                up to 5MB
-              </p>
-              <input
-                type="file"
-                id="proofUpload"
-                accept="image/*"
-                style="display: none"
-                name="proof"
-              />
-            </label>
-          </div> -->
-
-          <div class="dep-warning">
-            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-            <div>
-              <strong>Important:</strong> Crypto deposits usually take
-              <strong>2–4 hours</strong> to reflect in your account after
-              network confirmation. Always double-check the address before
-              sending — funds sent to the wrong address cannot be recovered.
-            </div>
-          </div>
-
-          <button type="submit" class="dep-submit-btn">
-            <i class="ti ti-send" aria-hidden="true"></i> Submit Deposit Request
-          </button>
-        </form>
-
-        <!-- Right: info -->
-        <div class="crypto-info-card">
-          <div class="qr-wrap">
-            <div class="qr-box">
-              <i class="ti ti-qrcode" aria-hidden="true"></i>
-            </div>
-            <div class="qr-label">Scan QR code to copy address</div>
-          </div>
-
-          <div>
-            <div
-              style="
-                font-size: 14px;
-                font-weight: 700;
-                color: #111;
-                margin-bottom: 12px;
-              "
-            >
-              How it works
-            </div>
-            <div class="step-list">
-              <div class="step-item">
-                <div class="step-num">1</div>
-                <div class="step-text">
-                  <strong>Choose your coin</strong> — BTC, USDT TRC20, or ETH.
-                  Make sure you send on the correct network.
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-num">2</div>
-                <div class="step-text">
-                  <strong>Copy the deposit address</strong> or scan the QR code.
-                  Send your desired amount from your wallet or exchange.
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-num">3</div>
-                <div class="step-text">
-                  <strong>Enter the transaction hash</strong> (TxID) from your
-                  wallet after sending. This helps us verify your deposit
-                  faster.
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-num">4</div>
-                <div class="step-text">
-                  <strong>Submit the form</strong> and wait 2–4 hours. Your
-                  balance will be updated automatically once confirmed.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="dep-warning">
-            <i class="ti ti-shield-exclamation" aria-hidden="true"></i>
-            <div>
-              Never send funds from a non-custodial wallet if you are unsure
-              about the network.
-              <strong
-                >Sending USDT on the wrong network will result in permanent
-                loss.</strong
-              >
-            </div>
-          </div>
-
-          <div
-            style="
-              background: #f9fafb;
-              border-radius: 10px;
-              padding: 14px 16px;
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-            "
-          >
-            <div
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #9ca3af;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-                margin-bottom: 2px;
-              "
-            >
-              Minimum Deposits
-            </div>
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                font-size: 13px;
-              "
-            >
-              <span style="color: #6b7280">Bitcoin (BTC)</span
-              ><strong>$30</strong>
-            </div>
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                font-size: 13px;
-              "
-            >
-              <span style="color: #6b7280">USDT TRC20</span><strong>$20</strong>
-            </div>
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                font-size: 13px;
-              "
-            >
-              <span style="color: #6b7280">Ethereum (ETH)</span
-              ><strong>$20</strong>
-            </div>
+            <p class="user-name">{{user.first_name}}</p>
+            <p class="user-role">Trader</p>
           </div>
         </div>
       </div>
-    </div>
-    <!-- /crypto panel -->
-  </div>
-</main>
-<!-- ════════════════════════════════════════ -->
+    </aside>
 
-{% endblock content %}
-<!--  -->
-{% block script %} {% endblock script %}
+    <div class="mobile-topbar">
+      <div
+        style="display: flex; align-items: center; gap: 8px"
+        onclick="window.location.href = '/dashboard/'"
+      >
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35" />
+          <rect
+            x="11"
+            y="10"
+            width="6"
+            height="20"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.75"
+          />
+          <rect
+            x="20"
+            y="4"
+            width="6"
+            height="26"
+            rx="2"
+            fill="#E85D35"
+            opacity="0.45"
+          />
+        </svg>
+        <span
+          style="
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            letter-spacing: 0.06em;
+          "
+          >OTEX</span
+        >
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div
+          class="avatar"
+          onclick="window.location.href = '/dashboard/profile/'"
+        >
+          {{user.get_initials}}
+        </div>
+      </div>
+    </div>
+
+    <main class="main bank-dep">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1 style="font-size: 22px; font-weight: 700; color: #111">
+            Bank Transfer Deposit
+          </h1>
+          <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
+            Transfer directly from your local bank account
+          </p>
+        </div>
+      </div>
+
+      <form class="bd-inner">
+        {% csrf_token %}
+        <div class="bd-wrap">
+          <!-- ── Amount + Conversion ── -->
+          <div class="bd-card">
+            <div class="bd-card-title">
+              <i class="ti ti-currency-dollar"></i> Enter Deposit Amount
+            </div>
+            <input type="hidden" name="amount_in_local" id="amount_in_local" />
+
+            <div class="amount-block">
+              <label class="flabel" for="usdInput">Amount in USD</label>
+              <div class="amount-row">
+                <span class="amount-currency-tag">
+                  <i
+                    class="ti ti-currency-dollar"
+                    style="font-size: 16px; margin-right: 4px"
+                  ></i>
+                  USD
+                </span>
+                <input
+                  class="amount-input"
+                  type="number"
+                  id="usdInput"
+                  placeholder="0"
+                  min="10"
+                  step="1"
+                  oninput="convert()"
+                  autocomplete="off"
+                  name="amount"
+                />
+              </div>
+              <div class="preset-row" id="presetRow">
+                <button class="preset" onclick="setAmount(10)">$10</button>
+                <button class="preset" onclick="setAmount(20)">$20</button>
+                <button class="preset" onclick="setAmount(50)">$50</button>
+                <button class="preset" onclick="setAmount(100)">$100</button>
+                <button class="preset" onclick="setAmount(250)">$250</button>
+                <button class="preset" onclick="setAmount(500)">$500</button>
+              </div>
+            </div>
+
+            <!-- Conversion display -->
+            <div class="conversion-box">
+              <div class="conv-row">
+                <div class="conv-from">
+                  <span class="conv-label">You Recieve (USD)</span>
+                  <span class="conv-val" id="convFrom">$0.00</span>
+                  <span class="conv-sub">US Dollar</span>
+                </div>
+                <div class="conv-arrow">
+                  <i class="ti ti-arrow-right"></i>
+                </div>
+                <div class="conv-to" style="text-align: right">
+                  <!-- currency_code and currency_name come from Django context -->
+                  <span class="conv-label"></span>
+                  <span class="conv-val" id="convTo">&#8358; 0.00</span>
+                  <span class="conv-sub"
+                    >{{ currency_name|default:"Naira" }}</span
+                  >
+                </div>
+              </div>
+              <div class="conv-rate-row">
+                <span class="conv-rate-label">Exchange rate</span>
+                <span class="conv-rate-val" id="rateDisplay">
+                  1 USD = {{ currency_symbol|default:"&#8358;" }}
+                  <!--  -->
+                  {{ exchange_rate }}
+                  <!--  -->
+
+                  {{ currency_code|default:"NGN" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="dep-warning" style="margin-top: 10px">
+              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+              <div>
+                <strong>Important:</strong> Secured checkout. Instant wallet
+                credit once received. If bank transfer does not reflect after 30
+                minutes, contact support.
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="dep-submit-btn"
+              style="margin-top: 7px"
+            >
+              <i class="ti ti-send" aria-hidden="true"></i> Pay
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <nav class="mobile-nav">
+      <div class="mob-nav-inner">
+        <div
+          class="mob-nav-item"
+          onclick="window.location.href = '/dashboard/'"
+        >
+          <i class="fa-solid fa-chart-pie"></i>
+          Portfolio
+        </div>
+        <div
+          class="mob-nav-item"
+          onclick="window.location.href = '/dashboard/trade/'"
+        >
+          <i class="fa-solid fa-chart-line"></i>Markets
+        </div>
+        <div
+          class="mob-nav-item"
+          onclick="window.location.href = '/dashboard/agents/'"
+        >
+          <i class="fa-solid fa-money-bill-transfer"></i>Finance
+        </div>
+        <div
+          class="mob-nav-item"
+          onclick="window.location.href = '/dashboard/trade-history/'"
+        >
+          <i class="fa-solid fa-clock-rotate-left"></i>Trade History
+        </div>
+      </div>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+      <i class="ti ti-circle-check"></i> <span id="toastMsg">Copied!</span>
+    </div>
+
+    <script>
+      /* ── Rate from Django context ── */
+      const RATE = parseFloat("{{ exchange_rate|default:'1400' }}");
+      const CURRENCY_SYM = "{{ currency_symbol|default:' ₦ ' }}";
+      const CURRENCY_CODE = "{{ currency_code|default:'NGN' }}";
+
+      /* ── Convert ── */
+      function convert() {
+        const usd = parseFloat(document.getElementById("usdInput").value) || 0;
+        amount_in_local = document.getElementById("amount_in_local");
+        const local = usd * RATE;
+
+        document.getElementById("convFrom").textContent = "$" + usd.toFixed(2);
+        amount_in_local.value = local;
+        document.getElementById("convTo").textContent =
+          CURRENCY_SYM +
+          local.toLocaleString("en", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        document.getElementById("bankAmount").textContent =
+          CURRENCY_SYM +
+          local.toLocaleString("en", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+
+        document.getElementById("hiddenUsd").value = usd.toFixed(2);
+        document.getElementById("hiddenLocal").value = local.toFixed(2);
+
+        // Update preset active state
+        document.querySelectorAll(".preset").forEach((p) => {
+          p.classList.toggle(
+            "active",
+            parseFloat(p.textContent.replace("$", "")) === usd,
+          );
+        });
+      }
+
+      function setAmount(v) {
+        document.getElementById("usdInput").value = v;
+        convert();
+      }
+
+      /* ── Upload handler ── */
+      function handleProof(input) {
+        if (input.files && input.files[0]) {
+          const name = input.files[0].name;
+          document.getElementById("uploadIcon").className =
+            "ti ti-circle-check";
+          document.getElementById("uploadIcon").style.color = "#00a878";
+          document.getElementById("uploadLabel").textContent =
+            name.length > 30 ? name.slice(0, 28) + "…" : name;
+          document.getElementById("uploadLabel").style.color = "#00a878";
+          document.getElementById("uploadZone").style.borderColor = "#00a878";
+          document.getElementById("uploadZone").style.background = "#f0fdf9";
+        }
+      }
+
+      /* ── Validate before submit ── */
+      function validateForm() {
+        const usd = parseFloat(document.getElementById("hiddenUsd").value);
+        if (!usd || usd < 10) {
+          alert("Please enter a deposit amount of at least $10.");
+          return false;
+        }
+        return true;
+      }
+
+      /* ── Copy helper ── */
+      function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+          const icon = btn.querySelector("i");
+          icon.className = "ti ti-check";
+          btn.style.borderColor = "#00a878";
+          btn.style.color = "#00a878";
+          showToast("Copied to clipboard");
+          setTimeout(() => {
+            icon.className = "ti ti-copy";
+            btn.style.borderColor = "";
+            btn.style.color = "";
+          }, 1800);
+        });
+      }
+
+      function showToast(msg) {
+        document.getElementById("toastMsg").textContent = msg;
+        const t = document.getElementById("toast");
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      }
+
+      function Submit_form() {
+        amount_in_local = document.getElementById("amount_in_local").value;
+        amount = document.getElementById("usdInput").value;
+
+        fetch("/dashboard/bank-deposit/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: `amount_in_local=${encodeURIComponent(amount_in_local)}&amount=${amount}`,
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            btn.disabled = false;
+            label.style.display = "flex";
+            spinner.style.display = "none";
+            if (data.success) {
+              showSuccess(username, amount, data.reference);
+              document.getElementById("agentBalance").textContent =
+                `$${data.new_balance}`;
+            } else if (data.is_min_deposit_error) {
+              document.getElementById("userErr").classList.add("show");
+              document
+                .getElementById("userErr")
+                .querySelector("span").textContent = " " + data.error;
+            } else {
+              document.getElementById("userErr").classList.add("show");
+              document
+                .getElementById("userErr")
+                .querySelector("span").textContent = " " + data.error;
+            }
+          });
+      }
+    </script>
+    {% if messages %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const mssg = document.getElementById("mssggi");
+        let text = mssg.getAttribute("data-msg");
+        showNotif(`${text}`, "success");
+      });
+    </script>
+    {% endif %} {% block script %} {% endblock script %}
+  </body>
+</html>

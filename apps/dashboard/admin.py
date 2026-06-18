@@ -25,6 +25,7 @@ from .models import (
     BotTrade,
     BotSession,
     BotTemplate,
+    TodayRate,
 )
 from django.contrib import admin
 from django.utils.html import format_html
@@ -35,6 +36,9 @@ admin.site.register(BotKey)
 admin.site.register(BotTrade)
 admin.site.register(BotSession)
 admin.site.register(BotTemplate)
+
+
+admin.site.register(TodayRate)
 
 
 @admin.register(HouseSettings)

@@ -29,5 +29,5 @@ urlpatterns = [
     path("agent/lookup-user/", views.lookup_user, name="lookup_user"),
     path("agent/credit-user/", views.credit_user, name="credit_user"),
     path("faq/", views.faq, name="faq"),
-    path("bank-deposit/", views.bank_deposit, name="bank depoosit"),
+    path("bank-deposit/", views.bank_deposit, name="bank_depoosit"),
 ]

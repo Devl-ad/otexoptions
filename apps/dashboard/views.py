@@ -11,11 +11,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
 from apps.account.models import KYCSubmission
-from apps.account.forms import KYCForm
+from apps.account.forms import KYCForm, Details
 from apps.account.referrals import record_referral_deposit
+from django.conf import settings as django_setting
+import requests
+from django.views.decorators.csrf import csrf_exempt
+
 
 from .tasks import run_bot_session
-from apps.dashboard.utils import get_account_mode
+from apps.dashboard.utils import get_account_mode, verify_korapay_transaction
 from .models import (
     BotTrade,
     Trade,
@@ -27,6 +31,7 @@ from .models import (
     Agent,
     BotSession,
     BotKey,
+    TodayRate,
 )
 from decimal import Decimal
 from apps.account.models import User
@@ -917,4 +922,79 @@ def faq(request):
 
 @login_required
 def bank_deposit(request):
+    if request.method == "POST":
+        amount = request.POST.get("amount")
+        amount_in_local = request.POST.get("amount_in_local")
+
+        try:
+            amount = Decimal(amount)
+        except:
+            messages.error(request, "Invalid amount.")
+            return redirect("bank_depoosit")
+
+        if amount < Decimal("20"):
+            messages.error(request, "Minimum deposit is $20.")
+            return redirect("bank_depoosit")
+
+        transaction = Transaction.objects.create(
+            user=request.user,
+            transaction_type=Transaction.TransactionType.DEPOSIT,
+            method=Transaction.Method.BANK,
+            amount=amount,
+            fee=Decimal("0.00"),
+            net_amount=amount,
+            status=Transaction.Status.PENDING,
+        )
+
+        payload = {
+            "tansaction": transaction,
+            "rate_today": TodayRate.objects.get(currency="NGN"),
+            "redirect_url": request.build_absolute_uri(
+                "/payment/flutterwave/callback/"
+            ),
+        }
+
+        return JsonResponse(payload)
+
     return render(request, "dashboard/bank_deposit.html")
+
+
+def payment_success(request):
+    return render(request, "dashboard/payment_success.html")
+
+
+def payment_failed(request, ref=None):
+    transaction = None
+    if transaction:
+        transaction = get_object_or_404(Transaction, ref=ref)
+    return render(request, "dashboard/payment_failed.html", {"order": transaction})
+
+
+def flutterwave_callback(request):
+    status = request.GET.get("status")
+    tx_ref = request.GET.get("tx_ref")
+
+    if not tx_ref:
+        return render(
+            request,
+            "errors.html",
+            {
+                "title": "Payment Error",
+                "message": "We couldn't verify your payment details.",
+                "sub_message": "This may happen due to a network issue or interrupted redirect.",
+            },
+        )
+
+    transaction = get_object_or_404(Transaction, reference=tx_ref)
+
+    # Flutterwave may send completed/successful depending on flow
+    if status not in ["successful", "completed"]:
+        transaction.status = Transaction.Status.FAILED
+        transaction.save(update_fields=["status"])
+        return redirect("payment_failed_with_order", order_id=transaction.reference)
+
+    # Save transaction id
+    transaction.status = Transaction.Status.COMPLETED
+    transaction.save(update_fields=["status"])
+
+    return redirect("payment_success")

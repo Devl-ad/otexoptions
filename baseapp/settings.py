@@ -230,6 +230,9 @@ SERVER_EMAIL = "support@otexoption.com"
 EMAIL_SUBJECT_PREFIX = "otexoption.com"
 
 
+KORAPAY_SECRET_KEY = env("KORAPAY_SECRET_KEY")
+
+
 # tell Django it's behind a proxy
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

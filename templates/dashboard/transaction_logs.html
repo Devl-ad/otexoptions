@@ -6,6 +6,45 @@
 <!-- ════════════════════════════════════════ -->
 
 <style>
+  span.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  span.status-pill.win {
+    background: #e6f8f2 !important;
+    color: #00a878 !important;
+  }
+
+  span.status-pill.pending {
+    background: #fef0ec !important;
+    color: #e85d35 !important;
+  }
+  .txn-amount.pending {
+    color: #444957 !important;
+  }
+
+  span.status-pill.success {
+    background: #e6f8f2 !important;
+    color: #00a878 !important;
+  }
+  .txn-amount.success {
+    color: #00a878 !important;
+  }
+
+  span.status-pill.failed {
+    background: #fef0ec !important;
+    color: #e85d35 !important;
+  }
+  .txn-amount.failed {
+    color: #e85d35 !important;
+  }
+
   .transaction-history {
     padding: 20px 8px;
   }
@@ -201,7 +240,7 @@
 
           <div class="txn-right">
             <p
-              class="txn-amount {% if tx.transaction_type == 'deposit' %}positive{% else %}negative{% endif %}"
+              class="txn-amount {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'pending' %}pending{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
             >
               {% if tx.transaction_type == "deposit" %}
               <!--  -->
@@ -225,6 +264,20 @@
           <div class="detail-row">
             <span>Transaction Type</span>
             <span>{{ tx.get_transaction_type_display }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span>Satus</span>
+            {% if tx.status == 'completed' %}
+
+            <span class="status-pill win">{{tx.status}}</span>
+            {% elif tx.status == 'failed' %}
+            <span class="status-pill failed">{{tx.status}}</span>
+            {% elif tx.status == 'confirmed' %}
+            <span class="status-pill confirmed">{{tx.status}}</span>
+            {% elif tx.status == 'pending' %}
+            <span class="status-pill pending">{{tx.status}}</span>
+            {% endif %}
           </div>
 
           <div class="detail-row">
