@@ -26,15 +26,18 @@
     color: #e85d35 !important;
   }
   .txn-amount.pending {
-    color: #444957 !important;
+    color: #9b786e !important;
   }
 
   span.status-pill.success {
     background: #e6f8f2 !important;
     color: #00a878 !important;
   }
-  .txn-amount.success {
+  .txn-amount.deposit.success {
     color: #00a878 !important;
+  }
+  .txn-amount.withdrawal.success {
+    color: #444957 !important;
   }
 
   span.status-pill.failed {
@@ -239,15 +242,22 @@
           </div>
 
           <div class="txn-right">
+            {% if tx.transaction_type == "deposit" %}
             <p
-              class="txn-amount {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'pending' %}pending{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
+              class="txn-amount deposit {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'pending' %}pending{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
             >
-              {% if tx.transaction_type == "deposit" %}
               <!--  -->
-              +${{ tx.amount }} {% else %} -${{ tx.amount }}
-              <!--  -->
-              {% endif %}
+              +${{ tx.amount }}
             </p>
+            {% else %}
+            <p
+              class="txn-amount withdrawal {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'pending' %}pending{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
+            >
+              -${{ tx.amount }}
+              <!--  -->
+            </p>
+
+            {% endif %}
 
             <div class="txn-arrow">
               <i class="ti ti-chevron-down"></i>

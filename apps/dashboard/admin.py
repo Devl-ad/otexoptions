@@ -246,8 +246,8 @@ def _send_transaction_email(user, transaction, status):
             },
         )
         subjects = {
-            Transaction.Status.COMPLETED: f"✅ Your deposit of ${transaction.amount} has been confirmed — OTEX",
-            Transaction.Status.FAILED: f"❌ Your transaction #{transaction.reference} could not be processed — OTEX",
+            Transaction.Status.COMPLETED: f"Transaction Completed — OTEX",
+            Transaction.Status.FAILED: f"Transaction Declined — OTEX",
         }
         send_mail(
             subject=subjects.get(status, f"Transaction Update — OTEX"),
