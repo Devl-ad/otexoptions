@@ -1,0 +1,12 @@
+<!-- templates/partials/pwa_script.html -->
+{% load static %}
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("{% static 'sw.js' %}")
+        .then(() => console.log("Service worker registered"))
+        .catch((err) => console.log("Service worker registration failed", err));
+    });
+  }
+</script>

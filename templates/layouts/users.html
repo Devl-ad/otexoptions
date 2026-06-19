@@ -20,11 +20,10 @@
       type="image/png"
       href="{% static '/icons/favicon.ico' %}"
     />
-    <!-- base.html — inside <head> -->
-    <link rel="manifest" href="{% static 'manifest.json' %}" />
-    <meta name="theme-color" content="#E85D35" />
-    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
+
     {% block style %} {% endblock style %}
+    <!--  -->
+    {% include "partials/pwa_head.html" %}
   </head>
   <body>
     {% if messages %} {% for msg in messages %}
@@ -172,34 +171,7 @@
     </nav>
 
     <!-- base.html — before </body> -->
-    <button id="installBtn" style="display: none">Install App</button>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("{% static 'sw.js' %}")
-            .then((reg) => console.log("Service worker registered"))
-            .catch((err) =>
-              console.log("Service worker registration failed", err),
-            );
-        });
-      }
-    </script>
-    <script>
-      let deferredPrompt;
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById("installBtn").style.display = "block";
-      });
 
-      document.getElementById("installBtn")?.addEventListener("click", () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          document.getElementById("installBtn").style.display = "none";
-        });
-      });
-    </script>
     <script>
       // CSRF helper
       function getCookie(name) {
@@ -292,5 +264,7 @@
       });
     </script>
     {% endif %} {% block script %} {% endblock script %}
+    <!--  -->
+    {% include "partials/pwa_script.html" %}
   </body>
 </html>
