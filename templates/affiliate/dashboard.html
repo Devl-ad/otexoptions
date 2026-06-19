@@ -9,6 +9,15 @@
     />
     <title>Referrals - OTEX</title>
     <link rel="stylesheet" href="/assets/css/user.css" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{% static '/icons/favicon.ico' %}"
+    />
+    <!-- base.html — inside <head> -->
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <meta name="theme-color" content="#E85D35" />
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
     <style>
       .main.referral {
         margin-left: 220px;
@@ -897,6 +906,34 @@
     <div class="copy-toast" id="copyToast">
       <i class="ti ti-circle-check"></i> Referral link copied!
     </div>
+    <button id="installBtn" style="display: none">Install App</button>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("{% static 'sw.js' %}")
+            .then((reg) => console.log("Service worker registered"))
+            .catch((err) =>
+              console.log("Service worker registration failed", err),
+            );
+        });
+      }
+    </script>
+    <script>
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById("installBtn").style.display = "block";
+      });
+
+      document.getElementById("installBtn")?.addEventListener("click", () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          document.getElementById("installBtn").style.display = "none";
+        });
+      });
+    </script>
 
     <script>
       /* ═══════════════════════════════════════

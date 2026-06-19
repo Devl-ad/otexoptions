@@ -933,6 +933,7 @@
     </div>
     <!-- /modal -->
     <!-- base.html — before </body> -->
+    <button id="installBtn" style="display: none">Install App</button>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -944,6 +945,21 @@
             );
         });
       }
+    </script>
+    <script>
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById("installBtn").style.display = "block";
+      });
+
+      document.getElementById("installBtn")?.addEventListener("click", () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          document.getElementById("installBtn").style.display = "none";
+        });
+      });
     </script>
     <script>
       const AGENT_BALANCE = {{ agent.balance }};
