@@ -18,8 +18,12 @@
     <link
       rel="icon"
       type="image/png"
-      href="{% static '/images/favicon.png' %}"
+      href="{% static '/icons/favicon.ico' %}"
     />
+    <!-- base.html — inside <head> -->
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <meta name="theme-color" content="#E85D35" />
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
     {% block style %} {% endblock style %}
   </head>
   <body>
@@ -166,6 +170,20 @@
         </div>
       </div>
     </nav>
+
+    <!-- base.html — before </body> -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("{% static 'sw.js' %}")
+            .then((reg) => console.log("Service worker registered"))
+            .catch((err) =>
+              console.log("Service worker registration failed", err),
+            );
+        });
+      }
+    </script>
 
     <script>
       // CSRF helper

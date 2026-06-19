@@ -142,11 +142,15 @@
 
         {% if status == "completed" %}
         <p style="font-size: 14px; color: #444; line-height: 1.7">
-          {% if tx.transaction_type == 'deposit' %} Your deposit has been
-          reviewed and confirmed. The amount has been credited to your live
-          wallet and is ready to trade. {% else %} Your withdrawal has been
-          reviewed and confirmed. The amount has been successfully sent to you.
-          {% endif %}
+          {% if transaction.transaction_type == 'deposit' %}
+          <!--  -->
+          Your deposit has been reviewed and confirmed. The amount has been
+          credited to your live wallet and is ready to trade.
+          <!--  -->
+          {% else %}
+          <!-- Withdrawal text -->
+          Your withdrawal has been reviewed and confirmed. The amount has been
+          successfully sent to you. {% endif %}
         </p>
         {% else %}
         <p style="font-size: 14px; color: #444; line-height: 1.7">

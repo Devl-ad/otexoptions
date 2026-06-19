@@ -11,6 +11,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
+
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <meta name="theme-color" content="#E85D35" />
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
     <title>Bank Deposit - OTEX</title>
     <link rel="stylesheet" href="/assets/css/user.css" />
     <style>
@@ -674,6 +678,20 @@
     <div class="toast" id="toast">
       <i class="ti ti-circle-check"></i> <span id="toastMsg">Copied!</span>
     </div>
+
+    <!-- base.html — before </body> -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("{% static 'sw.js' %}")
+            .then((reg) => console.log("Service worker registered"))
+            .catch((err) =>
+              console.log("Service worker registration failed", err),
+            );
+        });
+      }
+    </script>
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script>
       /* ── Rate from Django context ── */

@@ -5,10 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>OTEX - {% block title %}Auth{% endblock %}</title>
+    <!-- base.html — inside <head> -->
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <meta name="theme-color" content="#E85D35" />
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
     <link
       rel="icon"
       type="image/png"
-      href="{% static '/images/favicon.png' %}"
+      href="{% static '/icons/favicon.ico' %}"
     />
     <link
       rel="preload"
@@ -208,6 +212,35 @@
     <script src="{% static '/js/vendors/uikit.min.js' %}"></script>
     <script src="{% static '/js/vendors/indonez.min.js' %}"></script>
     <script src="{% static '/js/config-theme.js' %}"></script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("{% static 'sw.js' %}")
+            .then((reg) => console.log("Service worker registered"))
+            .catch((err) =>
+              console.log("Service worker registration failed", err),
+            );
+        });
+      }
+    </script>
+    <button id="installBtn" style="display: none">Install App</button>
+    <script>
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById("installBtn").style.display = "block";
+      });
+
+      document.getElementById("installBtn")?.addEventListener("click", () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          document.getElementById("installBtn").style.display = "none";
+        });
+      });
+    </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".loading-form").forEach((form) => {

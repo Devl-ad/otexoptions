@@ -8,6 +8,10 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
     <title>Agent Dashboard - OTEX</title>
+
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <meta name="theme-color" content="#E85D35" />
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
     <style>
       /* ── Reset ── */
       *,
@@ -928,7 +932,19 @@
       </div>
     </div>
     <!-- /modal -->
-
+    <!-- base.html — before </body> -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("{% static 'sw.js' %}")
+            .then((reg) => console.log("Service worker registered"))
+            .catch((err) =>
+              console.log("Service worker registration failed", err),
+            );
+        });
+      }
+    </script>
     <script>
       const AGENT_BALANCE = {{ agent.balance }};
       let lookupTimer = null;
