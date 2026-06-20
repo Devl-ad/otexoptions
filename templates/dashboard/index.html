@@ -3,6 +3,14 @@
 {% block title %} Dashboard {% endblock title %}
 <!--  -->
 {% block content %}
+<style>
+  .bot-tag {
+    display: inline-flex;
+    font-size: 10px;
+    color: #e85d35;
+    margin-left: 4px;
+  }
+</style>
 
 <main class="main dashboard">
   <div class="topbar">
@@ -147,29 +155,25 @@
 
           <div>
             <p class="trade-pair">
-              {{ trade.pair.symbol }} · {{ trade.get_direction_display }}
-            </p>
-
-            <p class="trade-meta">
-              {{ trade.get_duration_display }}
+              {{ trade.pair_symbol }} · {{ trade.direction_display }}
               <!--  -->
-              · {{ trade.get_trade_type_display }}
+              {% if trade.kind == "bot" %}
+              <span class="bot-tag"><i class="ti ti-robot"></i></span>
+              {% endif %}
             </p>
+            <p class="trade-meta">{{ trade.meta }}</p>
           </div>
         </div>
 
         <div class="trade-right">
           {% if trade.status == "WON" %}
           <p class="trade-amount win">+${{ trade.profit|floatformat:2 }}</p>
-
           {% elif trade.status == "LOST" %}
           <p class="trade-amount loss">-${{ trade.stake|floatformat:2 }}</p>
-
           {% else %}
           <p class="trade-amount">OPEN</p>
           {% endif %}
-
-          <p class="trade-time">{{ trade.opened_at|timesince }} ago</p>
+          <p class="trade-time">{{ trade.timestamp|timesince }} ago</p>
         </div>
       </div>
       {% empty %}

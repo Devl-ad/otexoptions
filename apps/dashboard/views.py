@@ -46,18 +46,63 @@ logger = logging.getLogger(__name__)
 def dashboard(request):
     user = request.user
     mode = get_account_mode(request)
+    is_demo = mode == "demo"
 
-    trades = Trade.objects.filter(user=user, is_demo=(mode == "demo"))
+    trades = Trade.objects.filter(user=user, is_demo=is_demo)
 
-    recent_trades = trades.select_related("pair").order_by("-opened_at")[:5]
-
+    # ── Normal trades stats ──────────────────────────────────────────────
     total_won = trades.filter(status="WON").count()
     total_lost = trades.filter(status="LOST").count()
     open_trades = trades.filter(status="OPEN").count()
-
     settled_trades = trades.filter(status__in=["WON", "LOST"]).count()
-
     win_rate = round((total_won / settled_trades) * 100, 1) if settled_trades > 0 else 0
+
+    # ── Pull last 10 normal trades, shape them uniformly ────────────────
+    normal_trades = trades.select_related("pair").order_by("-opened_at")[:10]
+
+    unified = []
+    for t in normal_trades:
+        unified.append(
+            {
+                "kind": "trade",
+                "pair_symbol": t.pair.symbol,
+                "direction_display": t.get_direction_display(),
+                "meta": f"{t.get_duration_display()} · {t.get_trade_type_display()}",
+                "status": t.status,
+                "profit": t.profit,
+                "stake": t.stake,
+                "timestamp": t.opened_at,
+            }
+        )
+
+    # ── Pull last 10 bot trades, shape them the same way ─────────────────
+
+    bot_trades = (
+        BotTrade.objects.filter(session__user=user, session__is_demo=is_demo)
+        .select_related("session__pair", "session__bot_key__template")
+        .order_by("-executed_at")[:10]
+    )
+
+    for bt in bot_trades:
+        unified.append(
+            {
+                "kind": "bot",
+                "pair_symbol": bt.session.pair.symbol,
+                "direction_display": bt.direction,
+                "meta": f"{bt.session.bot_key.template.name} · Bot",
+                "status": (
+                    "WON"
+                    if bt.result == "WON"
+                    else "LOST" if bt.result == "LOST" else "OPEN"
+                ),
+                "profit": bt.profit if bt.result == "WON" else None,
+                "stake": bt.stake,
+                "timestamp": bt.executed_at,
+            }
+        )
+
+    # ── Merge, sort by most recent, take top 10 ───────────────────────────
+    recent_trades = sorted(unified, key=lambda x: x["timestamp"], reverse=True)[:10]
 
     context = {
         "recent_trades": recent_trades,

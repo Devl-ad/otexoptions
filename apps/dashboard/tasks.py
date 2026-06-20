@@ -211,13 +211,15 @@ def determine_result(trade, entry, exit_price):
 
 def decide_trade_result(session, trade_number, total_trades, current_pnl):
     template = session.bot_key.template
-    house_outcome = session.house_outcome
-    base_win_rate = template.base_win_rate
+    settings_ = template.get_settings(session.is_demo)  # ← key change
+
+    house_outcome = settings_["house_outcome"]
+    base_win_rate = settings_["base_win_rate"]
+    breakeven_min = float(settings_["breakeven_min_pct"]) / 100
+    breakeven_max = float(settings_["breakeven_max_pct"]) / 100
 
     stake = float(session.stake_per_trade)
     profit_pct = float(template.profit_pct) / 100
-    breakeven_min = float(template.breakeven_min_pct) / 100
-    breakeven_max = float(template.breakeven_max_pct) / 100
     total_staked = stake * total_trades
     progress = trade_number / total_trades
     pnl_pct = current_pnl / total_staked if total_staked > 0 else 0
@@ -492,7 +494,6 @@ def finalize_bot_session(session_id):
 
 @shared_task
 def run_bot_session(session_id):
-    """Entry point — sets up session and fires the first trade."""
     try:
         session = BotSession.objects.select_related("bot_key__template").get(
             id=session_id
@@ -502,12 +503,13 @@ def run_bot_session(session_id):
         return
 
     template = session.bot_key.template
+    settings_ = template.get_settings(session.is_demo)  # ← key change
+
     total_trades = int((session.timeframe / 5) * template.trades_per_5min)
 
     session.total_trades = total_trades
     session.status = "RUNNING"
-    session.house_outcome = template.house_outcome
+    session.house_outcome = settings_["house_outcome"]
     session.save(update_fields=["total_trades", "status", "house_outcome"])
 
-    # fire first trade immediately — rest are chained via countdown
     execute_bot_trade.apply_async(args=[session_id, 1], countdown=1)

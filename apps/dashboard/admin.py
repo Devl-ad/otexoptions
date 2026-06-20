@@ -35,10 +35,72 @@ admin.site.register(PriceTick)
 admin.site.register(BotKey)
 admin.site.register(BotTrade)
 admin.site.register(BotSession)
-admin.site.register(BotTemplate)
 
 
 admin.site.register(TodayRate)
+
+
+@admin.register(BotTemplate)
+class BotTemplateAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "bot_type",
+        "risk_level",
+        "demo_house_outcome",
+        "demo_base_win_rate",
+        "house_outcome",
+        "base_win_rate",
+        "is_active",
+    ]
+    list_editable = [
+        "demo_house_outcome",
+        "demo_base_win_rate",
+        "house_outcome",
+        "base_win_rate",
+        "is_active",
+    ]
+    list_filter = ["bot_type", "risk_level"]
+
+    fieldsets = (
+        (
+            "Bot Info",
+            {
+                "fields": (
+                    "name",
+                    "bot_type",
+                    "risk_level",
+                    "trades_per_5min",
+                    "profit_pct",
+                    "description",
+                    "is_active",
+                )
+            },
+        ),
+        (
+            "Demo Mode Settings",
+            {
+                "fields": (
+                    "demo_base_win_rate",
+                    "demo_house_outcome",
+                    "demo_breakeven_min_pct",
+                    "demo_breakeven_max_pct",
+                ),
+                "description": "More generous settings to encourage users to go live.",
+            },
+        ),
+        (
+            "Live Mode Settings",
+            {
+                "fields": (
+                    "base_win_rate",
+                    "house_outcome",
+                    "breakeven_min_pct",
+                    "breakeven_max_pct",
+                ),
+                "description": "Real house edge — controls actual revenue.",
+            },
+        ),
+    )
 
 
 @admin.register(HouseSettings)

@@ -1,0 +1,484 @@
+{% extends "layouts/manager.html" %}
+<!--  -->
+{% block titlle %} Admin Dashboard {% endblock titlle %}
+<!--  -->
+{% block content %}
+
+<!-- ══════════════════════════════════════
+         MAIN
+    ══════════════════════════════════════ -->
+<main class="main admin">
+  <!-- Topbar -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-left">
+      <h1>Dashboard</h1>
+      <p>Welcome back, here's what's happening today</p>
+    </div>
+    <div class="admin-topbar-right">
+      <div class="admin-search">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Search users, trades, transactions…" />
+      </div>
+      <div class="topbar-icon-btn">
+        <i class="ti ti-bell"></i>
+        <span class="topbar-dot"></span>
+      </div>
+      <div class="topbar-icon-btn"><i class="ti ti-settings"></i></div>
+      <div class="admin-avatar" style="cursor: pointer">SA</div>
+    </div>
+  </div>
+
+  <div class="admin-inner">
+    <!-- ── Stat cards ── -->
+    <div class="admin-stats">
+      <div class="admin-stat-card">
+        <div class="admin-stat-top">
+          <div
+            class="admin-stat-icon"
+            style="background: #fef0ec; color: #e85d35"
+          >
+            <i class="ti ti-users"></i>
+          </div>
+          <div class="admin-stat-trend up">
+            <i class="ti ti-arrow-up-right"></i> 12.4%
+          </div>
+        </div>
+        <div class="admin-stat-label">Total Users</div>
+        <div class="admin-stat-val">12,480</div>
+        <div class="admin-stat-sub">348 new this week</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="admin-stat-top">
+          <div
+            class="admin-stat-icon"
+            style="background: #e6f8f2; color: #00a878"
+          >
+            <i class="ti ti-currency-dollar"></i>
+          </div>
+          <div class="admin-stat-trend up">
+            <i class="ti ti-arrow-up-right"></i> 8.1%
+          </div>
+        </div>
+        <div class="admin-stat-label">Total Deposits (30d)</div>
+        <div class="admin-stat-val">$284,920</div>
+        <div class="admin-stat-sub">1,204 transactions</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="admin-stat-top">
+          <div
+            class="admin-stat-icon"
+            style="background: #fef2f2; color: #dc2626"
+          >
+            <i class="ti ti-cash-banknote"></i>
+          </div>
+          <div class="admin-stat-trend down">
+            <i class="ti ti-arrow-down-right"></i> 3.2%
+          </div>
+        </div>
+        <div class="admin-stat-label">Total Withdrawals (30d)</div>
+        <div class="admin-stat-val">$96,310</div>
+        <div class="admin-stat-sub">412 transactions</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="admin-stat-top">
+          <div
+            class="admin-stat-icon"
+            style="background: #eff6ff; color: #2563eb"
+          >
+            <i class="ti ti-chart-candlestick"></i>
+          </div>
+          <div class="admin-stat-trend up">
+            <i class="ti ti-arrow-up-right"></i> 19.8%
+          </div>
+        </div>
+        <div class="admin-stat-label">Trades Today</div>
+        <div class="admin-stat-val">3,842</div>
+        <div class="admin-stat-sub">62% win rate avg</div>
+      </div>
+    </div>
+
+    <!-- ── Two column grid ── -->
+    <div class="admin-grid">
+      <!-- LEFT: Recent transactions table -->
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div class="admin-card-title">
+            <i class="ti ti-arrow-left-right"></i> Recent Transactions
+          </div>
+          <a href="#" class="admin-card-link">View all →</a>
+        </div>
+        <div class="admin-table-scroll">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Type</th>
+                <th>Method</th>
+                <th class="right">Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: Pending KYC -->
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div class="admin-card-title">
+            <i class="ti ti-shield-check"></i> Pending KYC
+          </div>
+          <a href="#" class="admin-card-link">View all →</a>
+        </div>
+        <div id="kycList"></div>
+      </div>
+    </div>
+
+    <!-- ── Second row ── -->
+    <div class="admin-grid">
+      <!-- LEFT: Quick actions -->
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div class="admin-card-title">
+            <i class="ti ti-bolt"></i> Quick Actions
+          </div>
+        </div>
+        <div class="admin-card-body">
+          <div class="qa-grid">
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #fef0ec; color: #e85d35">
+                <i class="ti ti-user-plus"></i>
+              </div>
+              <span class="qa-label">Add Agent</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #eff6ff; color: #2563eb">
+                <i class="ti ti-coin"></i>
+              </div>
+              <span class="qa-label">Update Rates</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #e6f8f2; color: #00a878">
+                <i class="ti ti-shield-check"></i>
+              </div>
+              <span class="qa-label">Review KYC</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #f5f3ff; color: #7c3aed">
+                <i class="ti ti-bell-ringing"></i>
+              </div>
+              <span class="qa-label">Send Notice</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #fffbeb; color: #d97706">
+                <i class="ti ti-building-bank"></i>
+              </div>
+              <span class="qa-label">Bank Accounts</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #fef2f2; color: #dc2626">
+                <i class="ti ti-flag"></i>
+              </div>
+              <span class="qa-label">Flagged Users</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #f0fdf4; color: #16a34a">
+                <i class="ti ti-report-money"></i>
+              </div>
+              <span class="qa-label">Reports</span>
+            </a>
+            <a class="qa-btn" href="#">
+              <div class="qa-icon" style="background: #f3f4f6; color: #6b7280">
+                <i class="ti ti-settings"></i>
+              </div>
+              <span class="qa-label">Platform Settings</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Activity feed -->
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div class="admin-card-title">
+            <i class="ti ti-activity"></i> Live Activity
+          </div>
+          <span
+            style="
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              font-size: 11px;
+              font-weight: 700;
+              color: #00a878;
+            "
+          >
+            <span
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #00a878;
+                display: inline-block;
+              "
+            ></span>
+            Live
+          </span>
+        </div>
+        <div id="activityFeed"></div>
+      </div>
+    </div>
+
+    <!-- ── Agent overview row ── -->
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <div class="admin-card-title">
+          <i class="ti ti-user-star"></i> Agent Overview
+        </div>
+        <a href="#" class="admin-card-link">Manage agents →</a>
+      </div>
+      <div class="admin-table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th class="right">Trades</th>
+              <th class="right">Volume (30d)</th>
+              <th class="right">Fee</th>
+            </tr>
+          </thead>
+          <tbody id="agentBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock content %}
+<!--  -->
+{% block script %}
+<script>
+  /* ═══════════════════════════════════════
+         Sample data — replace with:
+         const TRANSACTIONS = {{ transactions_json|safe }};
+      ═══════════════════════════════════════ */
+  const TRANSACTIONS = [
+    {
+      name: "Kwame Asante",
+      initials: "KA",
+      username: "kwame23",
+      type: "Deposit",
+      method: "USDT TRC20",
+      amount: 300,
+      status: "online",
+    },
+    {
+      name: "Fatou Diallo",
+      initials: "FD",
+      username: "fatou_trades",
+      type: "Withdrawal",
+      method: "Bitcoin",
+      amount: 150,
+      status: "pending",
+    },
+    {
+      name: "Moses Kamau",
+      initials: "MK",
+      username: "moses_k",
+      type: "Deposit",
+      method: "Bank",
+      amount: 500,
+      status: "online",
+    },
+    {
+      name: "Aisha Bello",
+      initials: "AB",
+      username: "aisha_b",
+      type: "Deposit",
+      method: "Agent",
+      amount: 200,
+      status: "flagged",
+    },
+    {
+      name: "Samuel Osei",
+      initials: "SO",
+      username: "samuel_ot",
+      type: "Withdrawal",
+      method: "Ethereum",
+      amount: 120,
+      status: "pending",
+    },
+    {
+      name: "Chioma Eze",
+      initials: "CE",
+      username: "chioma_e",
+      type: "Deposit",
+      method: "Bank",
+      amount: 450,
+      status: "online",
+    },
+  ];
+
+  const KYC_PENDING = [
+    { name: "Emmanuel Tetteh", initials: "ET", submitted: "2 hrs ago" },
+    { name: "Nkechi Okafor", initials: "NO", submitted: "5 hrs ago" },
+    { name: "Ibrahim Diop", initials: "ID", submitted: "Yesterday" },
+    { name: "Zara Musa", initials: "ZM", submitted: "Yesterday" },
+  ];
+
+  const ACTIVITY = [
+    {
+      text: "<strong>Kwame Asante</strong> deposited $300 via USDT",
+      time: "Just now",
+      color: "#00a878",
+    },
+    {
+      text: "<strong>Agent Fatoumata</strong> credited @moses_k $500",
+      time: "4 min ago",
+      color: "#e85d35",
+    },
+    {
+      text: "<strong>New user</strong> Zara Musa registered",
+      time: "12 min ago",
+      color: "#2563eb",
+    },
+    {
+      text: "<strong>KYC submitted</strong> by Ibrahim Diop",
+      time: "22 min ago",
+      color: "#d97706",
+    },
+    {
+      text: "<strong>Withdrawal</strong> of $150 flagged for review",
+      time: "40 min ago",
+      color: "#dc2626",
+    },
+    {
+      text: "<strong>Trade closed</strong> OTV90 · +$95 profit",
+      time: "1 hr ago",
+      color: "#7c3aed",
+    },
+  ];
+
+  const AGENTS = [
+    {
+      name: "Agent Kwame",
+      initials: "AK",
+      location: "Accra, Ghana",
+      status: "online",
+      trades: 124,
+      volume: 24800,
+      fee: 1.5,
+    },
+    {
+      name: "Agent Fatoumata",
+      initials: "FO",
+      location: "Lagos, Nigeria",
+      status: "online",
+      trades: 87,
+      volume: 18200,
+      fee: 1.2,
+    },
+    {
+      name: "Agent Moses B.",
+      initials: "MB",
+      location: "Nairobi, Kenya",
+      status: "pending",
+      trades: 210,
+      volume: 42100,
+      fee: 1.0,
+    },
+  ];
+
+  const colors = [
+    ["#fef0ec", "#e85d35"],
+    ["#e6f8f2", "#00a878"],
+    ["#eff6ff", "#2563eb"],
+    ["#f5f3ff", "#7c3aed"],
+    ["#fffbeb", "#d97706"],
+    ["#fce7f3", "#db2777"],
+  ];
+
+  function renderTransactions() {
+    document.getElementById("txBody").innerHTML = TRANSACTIONS.map((t, i) => {
+      const [bg, fg] = colors[i % colors.length];
+      return `<tr>
+            <td>
+              <div class="admin-user-cell">
+                <div class="table-avatar" style="background:${bg};color:${fg}">${t.initials}</div>
+                <div>
+                  <div class="table-name">${t.name}</div>
+                  <div class="table-sub">@${t.username}</div>
+                </div>
+              </div>
+            </td>
+            <td>${t.type}</td>
+            <td>${t.method}</td>
+            <td class="right" style="font-weight:700;color:#111">$${t.amount.toFixed(2)}</td>
+            <td><span class="status-badge ${t.status}">${t.status.charAt(0).toUpperCase() + t.status.slice(1)}</span></td>
+          </tr>`;
+    }).join("");
+  }
+
+  function renderKyc() {
+    document.getElementById("kycList").innerHTML = KYC_PENDING.map((k, i) => {
+      const [bg, fg] = colors[i % colors.length];
+      return `<div class="pending-row">
+            <div class="pending-icon" style="background:${bg};color:${fg}">${k.initials}</div>
+            <div>
+              <div class="pending-title">${k.name}</div>
+              <div class="pending-sub">Submitted ${k.submitted}</div>
+            </div>
+            <div class="pending-right">
+              <button class="mini-btn approve" title="Approve"><i class="ti ti-check"></i></button>
+              <button class="mini-btn reject" title="Reject"><i class="ti ti-x"></i></button>
+            </div>
+          </div>`;
+    }).join("");
+  }
+
+  function renderActivity() {
+    document.getElementById("activityFeed").innerHTML = ACTIVITY.map(
+      (a, i) => `
+          <div class="activity-row">
+            <div class="activity-dot-wrap">
+              <div class="activity-dot" style="background:${a.color}"></div>
+              ${i < ACTIVITY.length - 1 ? '<div class="activity-line"></div>' : ""}
+            </div>
+            <div>
+              <div class="activity-text">${a.text}</div>
+              <div class="activity-time">${a.time}</div>
+            </div>
+          </div>`,
+    ).join("");
+  }
+
+  function renderAgents() {
+    document.getElementById("agentBody").innerHTML = AGENTS.map((a, i) => {
+      const [bg, fg] = colors[i % colors.length];
+      return `<tr>
+            <td>
+              <div class="admin-user-cell">
+                <div class="table-avatar" style="background:${bg};color:${fg}">${a.initials}</div>
+                <div class="table-name">${a.name}</div>
+              </div>
+            </td>
+            <td style="color:#9ca3af;font-size:12px">${a.location}</td>
+            <td><span class="status-badge ${a.status === "online" ? "online" : "pending"}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td>
+            <td class="right">${a.trades}</td>
+            <td class="right" style="font-weight:700;color:#111">$${a.volume.toLocaleString()}</td>
+            <td class="right">${a.fee}%</td>
+          </tr>`;
+    }).join("");
+  }
+
+  renderTransactions();
+  renderKyc();
+  renderActivity();
+  renderAgents();
+</script>
+{% endblock script %}

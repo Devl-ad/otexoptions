@@ -491,9 +491,37 @@ class BotTemplate(models.Model):
         max_digits=5, decimal_places=2, default=5.00
     )
 
+    # ── Demo settings  ──────────────────────
+    demo_base_win_rate = models.PositiveIntegerField(default=65)
+    demo_house_outcome = models.CharField(
+        max_length=10, choices=OUTCOME_CHOICES, default="PROFIT"
+    )
+    demo_breakeven_min_pct = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0.00
+    )
+    demo_breakeven_max_pct = models.DecimalField(
+        max_digits=5, decimal_places=2, default=8.00
+    )
+
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # ── Helper — get the right settings based on mode ──────────────────────
+    def get_settings(self, is_demo):
+        if is_demo:
+            return {
+                "base_win_rate": self.demo_base_win_rate,
+                "house_outcome": self.demo_house_outcome,
+                "breakeven_min_pct": self.demo_breakeven_min_pct,
+                "breakeven_max_pct": self.demo_breakeven_max_pct,
+            }
+        return {
+            "base_win_rate": self.base_win_rate,
+            "house_outcome": self.house_outcome,
+            "breakeven_min_pct": self.breakeven_min_pct,
+            "breakeven_max_pct": self.breakeven_max_pct,
+        }
 
     def __str__(self):
         return f"{self.name} — {self.bot_type} ({self.risk_level})"
