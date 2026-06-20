@@ -947,9 +947,9 @@ def bank_deposit(request):
 
             return JsonResponse({"error": True, "msg": "Invalid amount."})
 
-        if amount < Decimal("20"):
+        if amount < Decimal("10"):
 
-            return JsonResponse({"error": True, "msg": "Minimum deposit is $20."})
+            return JsonResponse({"error": True, "msg": "Minimum deposit is $10."})
 
         transaction = Transaction.objects.create(
             user=request.user,
