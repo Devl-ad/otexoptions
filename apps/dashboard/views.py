@@ -1186,7 +1186,7 @@ def initiate_withdrawal(request):
 
     messages.info(
         request,
-        "We've received your withdrawal request. Check your email and confirm to continue.",
+        "Check your email and confirm the withdrawal request.",
     )
     return redirect("dashboard")
 
