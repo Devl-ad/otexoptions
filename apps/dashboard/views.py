@@ -17,6 +17,7 @@ from django.conf import settings as django_setting
 import requests
 from django.views.decorators.csrf import csrf_exempt
 from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
+from django.core.paginator import Paginator
 
 
 from .tasks import run_bot_session
@@ -284,162 +285,186 @@ def trade_status(request, trade_id):
 
 @login_required
 def transactions_logs(request):
-    transactions = Transaction.objects.filter(user=request.user).order_by("-created_at")
-
-    return render(
-        request, "dashboard/transaction_logs.html", {"transactions": transactions}
+    transactions_qs = Transaction.objects.filter(user=request.user).order_by(
+        "-created_at"
     )
+
+    paginator = Paginator(transactions_qs, 12)  # 15 p er page
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "transactions": page_obj,
+    }
+
+    return render(request, "dashboard/transaction_logs.html", context)
 
 
 @login_required
 def trade_logs(request):
     mode = get_account_mode(request)
-    qs = Trade.objects.filter(
-        user=request.user, is_demo=(mode == "demo")
-    ).select_related("pair")
+    is_demo = mode == "demo"
 
-    total_trades = qs.count()
-    won_count = qs.filter(status="WON").count()
-    win_rate = round(won_count / total_trades * 100, 1) if total_trades else 0
+    # ── Filters from query params ────────────────────────────────────────
+    status_filter = request.GET.get("status", "all")
+    type_filter = request.GET.get("type", "all")
+    search_q = request.GET.get("q", "").strip()
+    date_from = request.GET.get("from", "").strip()
+    date_to = request.GET.get("to", "").strip()
+    page_number = request.GET.get("page", 1)
 
-    # Profit from WON trades: stake * payout_pct / 100
-    won_profit = (
-        qs.filter(status="WON")
-        .annotate(
-            trade_profit=ExpressionWrapper(
-                F("stake") * F("payout_pct") / 100, output_field=DecimalField()
-            )
-        )
-        .aggregate(total=Sum("trade_profit"))["total"]
-        or 0
+    # ── Base querysets ───────────────────────────────────────────────────
+    manual_qs = Trade.objects.filter(user=request.user, is_demo=is_demo).select_related(
+        "pair"
+    )
+    bot_qs = BotTrade.objects.filter(
+        session__user=request.user, session__is_demo=is_demo
+    ).select_related("session", "session__pair")
+
+    # ── Stats — computed once, from full unfiltered set ──────────────────
+    manual_total = manual_qs.count()
+    manual_won = manual_qs.filter(status="WON").count()
+    manual_profit = sum(
+        float(t.profit) for t in manual_qs if t.status in ["WON", "LOST"]
+    )
+    manual_stakes = [float(t.stake) for t in manual_qs]
+    manual_best = max(
+        [float(t.profit) for t in manual_qs if t.status == "WON"], default=0
     )
 
-    # Loss from LOST trades: sum of stakes
-    lost_stakes = qs.filter(status="LOST").aggregate(total=Sum("stake"))["total"] or 0
+    bot_total = bot_qs.count()
+    bot_won = bot_qs.filter(result="WON").count()
+    bot_profit = sum(float(bt.profit) for bt in bot_qs if bt.result in ["WON", "LOST"])
+    bot_stakes = [float(bt.stake) for bt in bot_qs]
+    bot_best = max([float(bt.profit) for bt in bot_qs if bt.result == "WON"], default=0)
 
-    total_pnl = round(float(won_profit) - float(lost_stakes), 2)
-    avg_stake = qs.aggregate(avg=Avg("stake"))["avg"] or 0
-    avg_stake = round(float(avg_stake), 2)
+    total_trades = manual_total + bot_total
+    won_count = manual_won + bot_won
+    win_rate = round((won_count / total_trades) * 100, 1) if total_trades else 0
+    total_pnl = round(manual_profit + bot_profit, 2)
+    all_stakes = manual_stakes + bot_stakes
+    avg_stake = round(sum(all_stakes) / len(all_stakes), 2) if all_stakes else 0
+    best_trade = round(max(manual_best, bot_best), 2)
 
-    # Best single trade profit
-    best_trade = (
-        qs.filter(status="WON")
-        .annotate(
-            trade_profit=ExpressionWrapper(
-                F("stake") * F("payout_pct") / 100, output_field=DecimalField()
-            )
-        )
-        .order_by("-trade_profit")
-        .values_list("trade_profit", flat=True)
-        .first()
-        or 0
-    )
+    # ── Build unified list — normalize both trade sources into one shape ─
+    combined = []
 
-    # ── Trade list for the table
-    trades_list = [
-        {
-            "id": t.id,
-            "asset": t.pair.symbol,
-            "trade_type": t.trade_type,
-            "direction": t.direction,
-            "stake": float(t.stake),
-            "payout_pct": float(t.payout_pct),
-            "pnl": t.profit,
-            "payout": t.payout,
-            "duration": t.get_duration_display(),
-            "entry_price": float(t.entry_price),
-            "exit_price": float(t.exit_price) if t.exit_price is not None else None,
-            "barrier": float(t.barrier) if t.barrier is not None else None,
-            "status": t.status,
-            "is_demo": t.is_demo,
-            "opened_at": t.opened_at,
-        }
-        for t in qs.order_by("-opened_at")
-    ]
-    bot_trades = BotTrade.objects.filter(
-        session__user=request.user, session__is_demo=(mode == "demo")
-    ).select_related("session")
-    for bt in bot_trades:
-        trades_list.append(
+    for t in manual_qs:
+        combined.append(
             {
-                "id": bt.id,
+                "id": f"trade-{t.id}",
+                "source": "manual",
+                "asset": t.pair.symbol,
+                "trade_type": t.trade_type,  # RISE_FALL / OVER_UNDER / ACCUMULATOR
+                "direction": t.direction,
+                "stake": float(t.stake),
+                "payout_pct": float(t.payout_pct),
+                "pnl": float(t.profit) if t.profit is not None else 0,
+                "payout": float(t.payout) if t.payout is not None else 0,
+                "duration": t.get_duration_display(),
+                "entry_price": float(t.entry_price),
+                "exit_price": float(t.exit_price) if t.exit_price is not None else None,
+                "barrier": float(t.barrier) if t.barrier is not None else None,
+                "status": t.status,  # WON / LOST / OPEN / EXPIRED
+                "is_demo": t.is_demo,
+                "opened_at": t.opened_at,
+            }
+        )
+
+    for bt in bot_qs:
+        # map bot result -> same status vocabulary as manual trades
+        status_map = {"WON": "WON", "LOST": "LOST", "PENDING": "OPEN"}
+        combined.append(
+            {
+                "id": f"bot-{bt.id}",
                 "source": "bot",
-                "asset": "BOT",  # or actual asset if available
+                "asset": bt.session.pair.symbol if bt.session.pair else "BOT",
                 "trade_type": "BOT",
                 "direction": bt.direction,
                 "stake": float(bt.stake),
                 "payout_pct": None,
-                "pnl": float(bt.profit),
+                "pnl": float(bt.profit) if bt.profit is not None else 0,
                 "payout": (
                     float(bt.stake) + float(bt.profit) if bt.result == "WON" else 0
                 ),
                 "duration": None,
                 "entry_price": float(bt.entry_price),
                 "exit_price": float(bt.exit_price) if bt.exit_price else None,
-                "status": bt.result,
+                "barrier": None,
+                "status": status_map.get(bt.result, bt.result),
+                "is_demo": bt.session.is_demo,
                 "opened_at": bt.executed_at,
             }
         )
 
-    # Sort everything together
-    trades_list.sort(key=lambda x: x["opened_at"], reverse=True)
+    # ── Apply filters server-side ─────────────────────────────────────────
+    if status_filter != "all":
+        status_key_map = {
+            "win": "WON",
+            "loss": "LOST",
+            "open": "OPEN",
+            "refunded": "EXPIRED",
+        }
+        target_status = status_key_map.get(status_filter, status_filter.upper())
+        combined = [t for t in combined if t["status"] == target_status]
 
-    # Format dates after sorting
-    for trade in trades_list:
-        trade["opened_at"] = trade["opened_at"].strftime("%d %b %Y, %I:%M %p")
+    if type_filter != "all":
+        type_key_map = {"risefall": "RISE_FALL", "overunder": "OVER_UNDER"}
+        target_type = type_key_map.get(type_filter, type_filter.upper())
+        combined = [t for t in combined if t["trade_type"] == target_type]
 
-    # ── Combined Statistics
+    if search_q:
+        combined = [t for t in combined if search_q.lower() in t["asset"].lower()]
 
-    # Manual trades
-    manual_total = qs.count()
-    manual_won = qs.filter(status="WON").count()
+    if date_from:
+        from datetime import datetime
 
-    manual_profit = sum(t.profit for t in qs if t.status in ["WON", "LOST"])
+        try:
+            from_date = datetime.strptime(date_from, "%Y-%m-%d").date()
+            combined = [t for t in combined if t["opened_at"].date() >= from_date]
+        except ValueError:
+            pass
 
-    manual_stakes = [float(t.stake) for t in qs]
+    if date_to:
+        from datetime import datetime
 
-    manual_best = max(
-        [float(t.profit) for t in qs if t.status == "WON"],
-        default=0,
-    )
+        try:
+            to_date = datetime.strptime(date_to, "%Y-%m-%d").date()
+            combined = [t for t in combined if t["opened_at"].date() <= to_date]
+        except ValueError:
+            pass
 
-    # Bot trades
-    bot_total = bot_trades.count()
-    bot_won = bot_trades.filter(result="WON").count()
+    # ── Sort by most recent ────────────────────────────────────────────────
+    combined.sort(key=lambda x: x["opened_at"], reverse=True)
 
-    bot_profit = sum(
-        float(bt.profit) for bt in bot_trades if bt.result in ["WON", "LOST"]
-    )
+    # ── Real server-side pagination ────────────────────────────────────────
+    paginator = Paginator(combined, 10)  # 10 per page
+    page_obj = paginator.get_page(page_number)
 
-    bot_stakes = [float(bt.stake) for bt in bot_trades]
-
-    bot_best = max(
-        [float(bt.profit) for bt in bot_trades if bt.result == "WON"],
-        default=0,
-    )
-
-    # Combined values
-    total_trades = manual_total + bot_total
-    won_count = manual_won + bot_won
-
-    win_rate = round((won_count / total_trades) * 100, 1) if total_trades else 0
-
-    total_pnl = round(manual_profit + bot_profit, 2)
-
-    all_stakes = manual_stakes + bot_stakes
-
-    avg_stake = round(sum(all_stakes) / len(all_stakes), 2) if all_stakes else 0
-
-    best_trade = round(max(manual_best, bot_best), 2)
+    # ── Format dates AFTER filtering/sorting/pagination — only for this page
+    trades_page = []
+    for t in page_obj.object_list:
+        t_copy = dict(t)
+        t_copy["opened_at"] = t["opened_at"].strftime("%d %b %Y, %I:%M %p")
+        trades_page.append(t_copy)
 
     context = {
-        "trades_json": json.dumps(trades_list),
+        "trades_json": json.dumps(trades_page),
         "total_trades": total_trades,
         "win_rate": win_rate,
         "total_pnl": total_pnl,
         "avg_stake": avg_stake,
-        "best_trade": round(float(best_trade), 2),
+        "best_trade": best_trade,
         "won_count": won_count,
+        # pagination + filter state — needed to rebuild links/keep state
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "current_status": status_filter,
+        "current_type": type_filter,
+        "current_search": search_q,
+        "current_from": date_from,
+        "current_to": date_to,
+        "filtered_count": len(combined),
     }
     return render(request, "dashboard/trade_logs.html", context)
 
@@ -456,7 +481,7 @@ def deposit_withcrypto_page(request):
     if request.method == "POST":
         coin = request.POST.get("coin")
         amount = request.POST.get("amount")
-        tx_hash = request.POST.get("tx_hash")
+        tx_hash = "********"
 
         try:
             amount = Decimal(amount)
@@ -516,8 +541,8 @@ def withdrawal(request):
             messages.error(request, "Invalid withdrawal amount.")
             return redirect("withdrawal")
 
-        if amount < Decimal("30"):
-            messages.error(request, "Minimum withdrawal is $30.")
+        if amount < Decimal("10"):
+            messages.error(request, "Minimum withdrawal is $10.")
             return redirect("withdrawal")
 
         if amount > wallet.balance:
@@ -530,7 +555,7 @@ def withdrawal(request):
             "eth": Transaction.Method.CRYPTO_ETH,
         }
 
-        Transaction.objects.create(
+        transaction = Transaction.objects.create(
             user=request.user,
             transaction_type=Transaction.TransactionType.WITHDRAWAL,
             method=method_map.get(
@@ -546,12 +571,9 @@ def withdrawal(request):
 
         wallet.debit(float(amount), mode="live")
 
-        messages.success(
-            request,
-            "Your withdrawal request has been received and is under review.",
+        return redirect(
+            f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
-
-        return redirect("withdrawal")
     return render(request, "dashboard/withdrawal.html")
 
 
@@ -1074,3 +1096,47 @@ def flutterwave_callback(request):
     return redirect(
         f"/dashboard/payment/status/?tx_ref={tx_ref}&status={transaction.status}"
     )
+
+
+@login_required
+def agent_withdrawal(request):
+    agents = Agent.objects.all()
+    if request.method == "POST":
+        amount = request.POST.get("amount")
+        agent_id = request.POST.get("agent_id")
+        agent = get_object_or_404(Agent, pk=int(agent_id))
+
+        wallet = get_object_or_404(Wallet, user=request.user)
+
+        try:
+            amount = Decimal(amount)
+        except:
+            messages.error(request, "Invalid withdrawal amount.")
+            return redirect("agent_withdrawal")
+
+        if amount < Decimal("10"):
+            messages.error(request, "Minimum withdrawal is $10.")
+            return redirect("agent_withdrawal")
+
+        if amount > wallet.balance:
+            messages.error(request, "Insufficient balance.")
+            return redirect("agent_withdrawal")
+
+        transaction = Transaction.objects.create(
+            user=request.user,
+            transaction_type=Transaction.TransactionType.WITHDRAWAL,
+            method=Transaction.Method.AGENT,
+            amount=amount,
+            fee=Decimal("0.00"),
+            net_amount=amount,
+            status=Transaction.Status.PENDING,
+            agent=agent,
+        )
+
+        wallet.debit(float(amount), mode="live")
+
+        return redirect(
+            f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
+        )
+
+    return render(request, "dashboard/agent_withdrawal.html", {"agents": agents})

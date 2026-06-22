@@ -13,7 +13,7 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
 
-    <title>Bank Deposit - OTEX</title>
+    <title>Agent Withdrawal Request - OTEX</title>
     <link rel="stylesheet" href="/assets/css/user.css" />
     <style>
       .main.bank-dep {
@@ -407,6 +407,69 @@
         }
       }
     </style>
+    <style>
+      .agent-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        margin-top: 4px;
+        max-height: 260px;
+        overflow-y: auto;
+        z-index: 50;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .agent-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .agent-option:hover,
+      .agent-option.highlighted {
+        background: #fff4f0;
+      }
+
+      .agent-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #fff4f0;
+        color: #e85d35;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .agent-option-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111;
+      }
+
+      .agent-option-sub {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 1px;
+      }
+
+      .agent-no-results {
+        padding: 16px;
+        text-align: center;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+    </style>
     <!--  -->
     {% include "partials/pwa_head.html" %}
   </head>
@@ -540,26 +603,85 @@
       <div class="topbar">
         <div class="topbar-left">
           <h1 style="font-size: 22px; font-weight: 700; color: #111">
-            Bank Transfer Deposit
+            Agent (P2P)
           </h1>
           <p style="font-size: 13px; color: #9ca3af; margin-top: 4px">
-            Transfer directly from your local bank account
+            withdraw with a local agent
           </p>
         </div>
       </div>
 
-      <form class="bd-inner" onsubmit="Submit_form(event)">
+      <form
+        class="bd-inner"
+        method="post"
+        action="{% url 'agent_withdrawal' %}"
+      >
         {% csrf_token %}
         <div class="bd-wrap">
           <!-- ── Amount + Conversion ── -->
           <div class="bd-card">
-            <div class="bd-card-title">
-              <i class="ti ti-currency-dollar"></i> Enter Deposit Amount
+            <div
+              class="field-wrap"
+              style="margin-bottom: 10px; position: relative"
+            >
+              <label class="flabel" for="agentSearchInput">Select Agent</label>
+
+              <input
+                type="text"
+                class="finput"
+                id="agentSearchInput"
+                placeholder="Search agent by name..."
+                autocomplete="off"
+                onfocus="openAgentDropdown()"
+                oninput="filterAgents()"
+              />
+              <input
+                type="hidden"
+                id="agentSelectedId"
+                name="agent_id"
+                required
+              />
+
+              <div
+                class="agent-dropdown"
+                id="agentDropdown"
+                style="display: none"
+              >
+                {% for agent in agents %}
+                <div
+                  class="agent-option"
+                  data-id="{{ agent.id }}"
+                  data-name="{{ agent.name }}"
+                  onclick="selectAgent(this)"
+                >
+                  <div class="agent-avatar">
+                    {{ agent.name|slice:":2"|upper }}
+                  </div>
+                  <div>
+                    <p class="agent-option-name">{{ agent.name }}</p>
+                    {% if agent.whatsapp_url %}
+                    <p class="agent-option-sub">Available on WhatsApp</p>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+                <div
+                  class="agent-no-results"
+                  id="agentNoResults"
+                  style="display: none"
+                >
+                  No agents match your search.
+                </div>
+              </div>
             </div>
-            <input type="hidden" name="amount_in_local" id="amount_in_local" />
+            <div
+              class="bd-card-title"
+              style="margin-bottom: 13px !important; margin-top: 20px"
+            >
+              Amount to withdraw
+            </div>
 
             <div class="amount-block">
-              <label class="flabel" for="usdInput">Amount in USD</label>
               <div class="amount-row">
                 <span class="amount-currency-tag">
                   <i
@@ -575,7 +697,6 @@
                   placeholder="0"
                   min="10"
                   step="1"
-                  oninput="convert()"
                   autocomplete="off"
                   name="amount"
                   required
@@ -603,43 +724,11 @@
               </div>
             </div>
 
-            <!-- Conversion display -->
-            <div class="conversion-box">
-              <div class="conv-row">
-                <div class="conv-from">
-                  <span class="conv-label">You Recieve (USD)</span>
-                  <span class="conv-val" id="convFrom">$0.00</span>
-                  <span class="conv-sub">US Dollar</span>
-                </div>
-                <div class="conv-arrow">
-                  <i class="ti ti-arrow-right"></i>
-                </div>
-                <div class="conv-to" style="text-align: right">
-                  <!-- currency_code and currency_name come from Django context -->
-                  <span class="conv-label"></span>
-                  <span class="conv-val" id="convTo"> 0.00</span>
-                  <span class="conv-sub">{{ currency }}</span>
-                </div>
-              </div>
-              <div class="conv-rate-row">
-                <span class="conv-rate-label">Exchange rate</span>
-                <span class="conv-rate-val" id="rateDisplay">
-                  1 USD =
-                  <!--  -->
-                  {{ rate }}
-                  <!--  -->
-
-                  {{ currency }}
-                </span>
-              </div>
-            </div>
-
             <div class="dep-warning" style="margin-top: 10px">
               <i class="ti ti-alert-triangle" aria-hidden="true"></i>
               <div>
-                <strong>Important:</strong> Secured checkout. Instant wallet
-                credit once received. If bank transfer does not reflect after 30
-                minutes, contact support.
+                <strong>Important:</strong> Contact the agent once you have
+                submitted the transaction.
               </div>
             </div>
 
@@ -649,7 +738,7 @@
               style="margin-top: 7px"
               id="dep-submit-btn"
             >
-              <i class="ti ti-send" aria-hidden="true"></i> Pay
+              <i class="ti ti-send" aria-hidden="true"></i> Submit
             </button>
           </div>
         </div>
@@ -672,7 +761,7 @@
           <i class="fa-solid fa-chart-line"></i>Markets
         </div>
         <div
-          class="mob-nav-item {% if '/dashboard/agents/' in request.path %}active{% endif %} {% if '/deposit-funds/crypto/' in request.path %}active{% endif %} {% if '/dashboard/bank-deposit/' in request.path %}active{% endif %}"
+          class="mob-nav-item {% if '/dashboard/agents/' in request.path %}active{% endif %} {% if '/deposit-funds/crypto/' in request.path %}active{% endif %} {% if '/dashboard/bank-deposit/' in request.path %}active{% endif %} {% if '/dashboard/withdrawal/agents/' in request.path %}active{% endif %}"
           onclick="window.location.href = '/dashboard/agents/'"
         >
           <i class="fa-solid fa-money-bill-transfer"></i>Finance
@@ -686,208 +775,51 @@
       </div>
     </nav>
 
-    <!-- Toast -->
-    <div class="toast" id="toast">
-      <i class="ti ti-circle-check"></i> <span id="toastMsg">Copied!</span>
-    </div>
-
-    <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script>
-      /* ── Rate from Django context ── */
-      const RATE = parseFloat("{{ rate|default:'1400' }}");
-      const CURRENCY_SYM = "{{ currency|default:' ₦ ' }}";
-      const CURRENCY_CODE = "{{ currency_code|default:'NGN' }}";
+      function openAgentDropdown() {
+        document.getElementById("agentDropdown").style.display = "block";
+      }
+
+      function filterAgents() {
+        const query = document
+          .getElementById("agentSearchInput")
+          .value.trim()
+          .toLowerCase();
+        const options = document.querySelectorAll(".agent-option");
+        let visibleCount = 0;
+
+        options.forEach((opt) => {
+          const name = opt.dataset.name.toLowerCase();
+          const match = name.includes(query);
+          opt.style.display = match ? "flex" : "none";
+          if (match) visibleCount++;
+        });
+
+        document.getElementById("agentNoResults").style.display =
+          visibleCount === 0 ? "block" : "none";
+        openAgentDropdown();
+      }
+
+      function selectAgent(el) {
+        document.getElementById("agentSearchInput").value = el.dataset.name;
+        document.getElementById("agentSelectedId").value = el.dataset.id;
+        document.getElementById("agentDropdown").style.display = "none";
+      }
+
+      // close dropdown when clicking outside
+      document.addEventListener("click", function (e) {
+        const wrap = document.getElementById("agentSearchInput");
+        const dropdown = document.getElementById("agentDropdown");
+        if (!wrap.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = "none";
+        }
+      });
 
       /* ── Convert ── */
-      function convert() {
-        const usd = parseFloat(document.getElementById("usdInput").value) || 0;
-        amount_in_local = document.getElementById("amount_in_local");
-        const local = usd * RATE;
-
-        document.getElementById("convFrom").textContent = "$" + usd.toFixed(2);
-        amount_in_local.value = local;
-        document.getElementById("convTo").textContent = local.toLocaleString(
-          "en",
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        );
-        document.getElementById("bankAmount").textContent =
-          CURRENCY_SYM +
-          local.toLocaleString("en", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-
-        document.getElementById("hiddenUsd").value = usd.toFixed(2);
-        document.getElementById("hiddenLocal").value = local.toFixed(2);
-
-        // Update preset active state
-        document.querySelectorAll(".preset").forEach((p) => {
-          p.classList.toggle(
-            "active",
-            parseFloat(p.textContent.replace("$", "")) === usd,
-          );
-        });
-      }
-
-      function setAmount(v) {
-        document.getElementById("usdInput").value = v;
-        convert();
-      }
-
-      /* ── Upload handler ── */
-      function handleProof(input) {
-        if (input.files && input.files[0]) {
-          const name = input.files[0].name;
-          document.getElementById("uploadIcon").className =
-            "ti ti-circle-check";
-          document.getElementById("uploadIcon").style.color = "#00a878";
-          document.getElementById("uploadLabel").textContent =
-            name.length > 30 ? name.slice(0, 28) + "…" : name;
-          document.getElementById("uploadLabel").style.color = "#00a878";
-          document.getElementById("uploadZone").style.borderColor = "#00a878";
-          document.getElementById("uploadZone").style.background = "#f0fdf9";
-        }
-      }
-
-      /* ── Validate before submit ── */
-      function validateForm() {
-        const usd = parseFloat(document.getElementById("hiddenUsd").value);
-        if (!usd || usd < 10) {
-          alert("Please enter a deposit amount of at least $10.");
-          return false;
-        }
-        return true;
-      }
-
-      /* ── Copy helper ── */
-      function copyText(text, btn) {
-        navigator.clipboard.writeText(text).then(() => {
-          const icon = btn.querySelector("i");
-          icon.className = "ti ti-check";
-          btn.style.borderColor = "#00a878";
-          btn.style.color = "#00a878";
-          showToast("Copied to clipboard");
-          setTimeout(() => {
-            icon.className = "ti ti-copy";
-            btn.style.borderColor = "";
-            btn.style.color = "";
-          }, 1800);
-        });
-      }
-
-      function showToast(msg) {
-        document.getElementById("toastMsg").textContent = msg;
-        const t = document.getElementById("toast");
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2000);
-      }
-
-      function Submit_form(event) {
-        event.preventDefault();
-        const btn = document.getElementById("dep-submit-btn");
-        const amount_in_local =
-          document.getElementById("amount_in_local").value;
-        const amount = document.getElementById("usdInput").value;
-
-        btn.disabled = true;
-        btn.dataset.originalText = btn.innerHTML;
-        btn.innerHTML = `
-                    <span class="spinner-border spinner-border-sm"></span>
-                    Processing...
-                `;
-
-        if (!amount || !amount_in_local) {
-          alert("Input Amounts");
-        }
-
-        fetch("/dashboard/bank-deposit/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: `amount_in_local=${encodeURIComponent(amount_in_local)}&amount=${amount}`,
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.error) {
-              showNotif(data.msg, "error");
-            } else {
-              payWithFlutterwave(
-                data.public_key,
-                data.amount_in_local,
-                data.currency,
-                data.email,
-                data.name,
-                data.ref,
-                data.redirect_url,
-                data.currency,
-              );
-            }
-          });
-      }
-
-      function payWithFlutterwave(
-        pub_key,
-        amount,
-        currency,
-        email,
-        name,
-        ref,
-        redirect_url,
-        currency,
-      ) {
-        FlutterwaveCheckout({
-          public_key: pub_key,
-
-          tx_ref: ref,
-
-          amount: amount,
-
-          currency: currency,
-
-          redirect_url: redirect_url,
-
-          payment_options: "card,banktransfer,ussd,mobilemoneyghana",
-
-          customer: {
-            email: email,
-
-            name: name,
-          },
-
-          customizations: {
-            title: "OTEX",
-            description: `Deposit`,
-            logo: "/assets/images/logo_pt.png",
-          },
-        });
-      }
-
-      function getCookie(name) {
-        const val = `; ${document.cookie}`;
-        const parts = val.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
-      }
-
-      function showNotif(msg, type) {
-        const el = document.createElement("div");
-        el.textContent = msg;
-        el.style.cssText = `
-        position:fixed; top:20px; right:20px; z-index:9999;
-        padding:12px 20px; border-radius:8px; font-size:13px; font-weight:600;
-        background:${type === "success" ? "#00A878" : "#E85D35"}; color:#fff;
-        box-shadow:0 4px 12px rgba(0,0,0,0.15); max-width:320px;
-        animation: slideIn 0.2s ease;
-    `;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
+      function setAmount(amount) {
+        document.getElementById("usdInput").value = amount;
       }
     </script>
-
     {% if messages %}
     <script>
       document.addEventListener("DOMContentLoaded", function () {

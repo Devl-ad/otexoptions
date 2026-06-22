@@ -139,7 +139,7 @@
   }
 
   .txn-amount {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     margin: 0;
   }
@@ -166,7 +166,7 @@
   }
 
   .txn-item.active .txn-details {
-    max-height: 250px;
+    max-height: 445px;
     padding: 16px;
   }
 
@@ -203,6 +203,43 @@
   .status.failed {
     color: #e85d35;
   }
+  
+  .txn-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 8px 14px;
+}
+.txn-page-info {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+.txn-page-btns {
+  display: flex;
+  gap: 5px;
+}
+.txn-page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #ececec;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.txn-page-btn:hover { border-color: #e85d35; color: #e85d35; }
+.txn-page-btn.active { background: #e85d35; border-color: #e85d35; color: #fff; }
+.txn-page-btn.disabled { opacity: 0.35; pointer-events: none; }
 </style>
 <main class="main deposit">
   <div class="topbar">
@@ -215,6 +252,53 @@
       </p>
     </div>
   </div>
+  {% if transactions.paginator.num_pages > 1 %}
+  <div class="txn-pagination">
+    <span class="txn-page-info">
+      Page {{ transactions.number }} of {{ transactions.paginator.num_pages }} ·
+      {{ transactions.paginator.count }}
+      <!--  -->
+      transaction{{ transactions.paginator.count|pluralize }}
+      <!--  -->
+     
+    </span>
+
+    <div class="txn-page-btns">
+      <a
+        href="?page={% if transactions.has_previous %}{{ transactions.previous_page_number }}{% else %}{{ transactions.number }}{% endif %}"
+        class="txn-page-btn {% if not transactions.has_previous %}disabled{% endif %}"
+      >
+         <i class="ti ti-chevron-left"></i>
+      </a>
+
+      {% for num in transactions.paginator.page_range %}
+      <!--  -->
+      {% if num == transactions.number %} 
+      <span class="txn-page-btn active">{{ num }}</span>
+     {% elif num == 1 or num == transactions.paginator.num_pages or num >= transactions.number|add:"-1" and num <= transactions.number|add:"1" %} 
+      <a href="?page={{ num }}" class="txn-page-btn">{{ num }}</a>
+      {% elif num == 2 and transactions.number > 3 %}
+      <span
+        class="txn-page-btn"
+        style="pointer-events: none; border: none; background: transparent"
+        >…</span
+      >
+      {% elif num == transactions.paginator.num_pages|add:"-1" and transactions.number < transactions.paginator.num_pages|add:"-2" %} 
+      <span
+        class="txn-page-btn"
+        style="pointer-events: none; border: none; background: transparent"
+        >…</span
+      >
+      {% endif %} {% endfor %}
+
+      <a href="?page={% if transactions.has_next %}{{ transactions.next_page_number }}{% else %}{{ transactions.number }}{% endif %}"
+        class="txn-page-btn {% if not transactions.has_next %}disabled{% endif %}"
+      >
+          <i class="ti ti-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="transaction-history">
     <div class="transaction-history">
@@ -236,7 +320,7 @@
               <p class="txn-title">{{ tx.get_transaction_type_display }}</p>
 
               <p class="txn-meta">
-                {{ tx.get_method_display }} • {{ tx.created_at|date:"M d, Y" }}
+                {{ tx.get_method_display }} • {{ tx.created_at|date:"M d, Y "  }}
               </p>
             </div>
           </div>
@@ -309,59 +393,26 @@
             <span>Net Amount</span>
             <span>${{ tx.net_amount }}</span>
           </div>
-
+          
+          
+          
           <div class="detail-row">
-            <span>Status</span>
-
-            <span
-              class="status {% if tx.status == 'completed' %}success{% endif %} {% if tx.status == 'confirmed' %}success{% endif %} {% if tx.status == 'failed' %}failed{% endif %} {% if tx.status == 'cancelled' %}failed{% endif %}"
-            >
-              {{ tx.get_status_display }}
-            </span>
+            <span>Time</span>
+            <span>{{ tx.created_at|date:"h:i A" }}</span>
           </div>
+             
+
+          
 
           {% if tx.agent %}
           <div class="detail-row">
             <span>Agent</span>
             <span>{{ tx.agent }}</span>
           </div>
-          {% endif %} {% if tx.tx_hash %}
-          <div class="detail-row">
-            <span>Transaction Hash</span>
-            <span
-              style="
-                max-width: 180px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              "
-            >
-              {{ tx.tx_hash }}
-            </span>
-          </div>
-          {% endif %} {% if tx.crypto_address %}
-          <div class="detail-row">
-            <span>Wallet Address</span>
-            <span
-              style="
-                max-width: 180px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              "
-            >
-              {{ tx.crypto_address }}
-            </span>
-          </div>
-          {% endif %} {% if tx.confirmed_at %}
-          <div class="detail-row">
-            <span>Confirmed At</span>
-            <span>{{ tx.confirmed_at|date:"M d, Y H:i" }}</span>
-          </div>
-          {% endif %}
+          {% endif %}   
 
-          <div class="detail-row">
-            <span>Created</span>
-            <span>{{ tx.created_at|date:"M d, Y H:i" }}</span>
-          </div>
+         
+         
         </div>
       </div>
 

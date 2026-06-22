@@ -724,7 +724,7 @@
   </div>
 
   <div class="hist-inner">
-    <!-- Stat cards -->
+    <!-- Stat cards — unchanged, still server-rendered from full dataset -->
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-icon" style="background: #fef0ec; color: #e85d35">
@@ -734,7 +734,6 @@
         <div class="stat-value">{{ total_trades }}</div>
         <div class="stat-sub">Wins: <strong>{{ won_count }}</strong></div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon" style="background: #e6f8f2; color: #00a878">
           <i class="ti ti-trending-up"></i>
@@ -747,7 +746,6 @@
           {{ won_count }} of {{ total_trades }} trades
         </div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon" style="background: #e6f8f2; color: #00a878">
           <i class="ti ti-currency-dollar"></i>
@@ -765,7 +763,6 @@
           All time net profit
         </div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon" style="background: #eff6ff; color: #2563eb">
           <i class="ti ti-chart-pie"></i>
@@ -778,89 +775,129 @@
       </div>
     </div>
 
-    <!-- Filter bar -->
-    <div class="filter-bar">
+    <!-- Filter bar — now a real GET form -->
+    <form method="get" id="filterForm" class="filter-bar">
       <span class="filter-bar-label">Status:</span>
       <div class="filter-chips" id="statusChips">
         <span
-          class="fchip active"
+          class="fchip {% if current_status == 'all' %}active{% endif %}"
           data-status="all"
-          onclick="setStatus('all', this)"
+          onclick="setFilter('status', 'all')"
           >All</span
         >
-        <span class="fchip" data-status="win" onclick="setStatus('win', this)"
+        <span
+          class="fchip {% if current_status == 'win' %}active{% endif %}"
+          data-status="win"
+          onclick="setFilter('status', 'win')"
           >Wins</span
         >
-        <span class="fchip" data-status="loss" onclick="setStatus('loss', this)"
+        <span
+          class="fchip {% if current_status == 'loss' %}active{% endif %}"
+          data-status="loss"
+          onclick="setFilter('status', 'loss')"
           >Losses</span
         >
-        <span class="fchip" data-status="open" onclick="setStatus('open', this)"
+        <span
+          class="fchip {% if current_status == 'open' %}active{% endif %}"
+          data-status="open"
+          onclick="setFilter('status', 'open')"
           >Open</span
         >
         <span
-          class="fchip"
+          class="fchip {% if current_status == 'refunded' %}active{% endif %}"
           data-status="refunded"
-          onclick="setStatus('refunded', this)"
+          onclick="setFilter('status', 'refunded')"
           >Refunded</span
         >
       </div>
       <div class="filter-sep"></div>
+
       <span class="filter-bar-label">Type:</span>
       <div class="filter-chips" id="typeChips">
         <span
-          class="fchip active"
+          class="fchip {% if current_type == 'all' %}active{% endif %}"
           data-type="all"
-          onclick="setType('all', this)"
+          onclick="setFilter('type', 'all')"
           >All</span
         >
         <span
-          class="fchip"
+          class="fchip {% if current_type == 'risefall' %}active{% endif %}"
           data-type="risefall"
-          onclick="setType('risefall', this)"
+          onclick="setFilter('type', 'risefall')"
           >Rise/Fall</span
         >
         <span
-          class="fchip"
+          class="fchip {% if current_type == 'overunder' %}active{% endif %}"
           data-type="overunder"
-          onclick="setType('overunder', this)"
+          onclick="setFilter('type', 'overunder')"
           >Over/Under</span
         >
       </div>
       <div class="filter-sep"></div>
+
       <input
         class="date-input"
         type="date"
+        name="from"
         id="dateFrom"
+        value="{{ current_from }}"
         title="From"
-        oninput="render()"
+        onchange="document.getElementById('filterForm').submit()"
       />
       <input
         class="date-input"
         type="date"
+        name="to"
         id="dateTo"
+        value="{{ current_to }}"
         title="To"
-        oninput="render()"
+        onchange="document.getElementById('filterForm').submit()"
       />
+
       <div class="search-wrap">
         <i class="ti ti-search"></i>
         <input
           class="search-input"
           type="text"
+          name="q"
           id="searchQ"
+          value="{{ current_search }}"
           placeholder="Search asset…"
-          oninput="render()"
         />
       </div>
-      <button class="export-btn" onclick="exportCSV()">
+
+      <!-- hidden fields to preserve filter state when typing search -->
+      <input
+        type="hidden"
+        name="status"
+        id="statusInput"
+        value="{{ current_status }}"
+      />
+      <input
+        type="hidden"
+        name="type"
+        id="typeInput"
+        value="{{ current_type }}"
+      />
+
+      <button class="export-btn" type="button" onclick="exportCSV()">
         <i class="ti ti-download"></i><span>Export CSV</span>
       </button>
-    </div>
+    </form>
 
     <!-- Table -->
     <div class="table-card">
       <div class="table-header">
         <div class="table-title"><i class="ti ti-list"></i> Trades</div>
-        <span class="table-count" id="tradeCount">—</span>
+        <span class="table-count">
+          {% if filtered_count %}
+            <!-- Table -->
+          Showing {{ page_obj.start_index }}
+            <!-- Table -->
+          –{{ page_obj.end_index }} of {{ filtered_count }} {% else %} No results 
+            <!-- Table -->
+          {% endif %}
+        </span>
       </div>
       <div class="table-scroll">
         <table class="trade-table">
@@ -870,9 +907,7 @@
               <th>Type</th>
               <th>Direction</th>
               <th>Stake</th>
-              <!-- <th>Payout</th> -->
               <th class="right">P&amp;L</th>
-              <!-- <th>Duration</th> -->
               <th>Entry</th>
               <th>Exit</th>
               <th>Status</th>
@@ -887,166 +922,142 @@
           <p>Try adjusting your filters or search term.</p>
         </div>
       </div>
+
+      <!-- Real server-side pagination -->
       <div class="pagination">
-        <span class="page-info" id="pageInfo"></span>
-        <div class="page-btns" id="pageBtns"></div>
+        <span class="page-info"
+          >Page {{ page_obj.number }} of {{ paginator.num_pages }}</span
+        >
+        <div class="page-btns">
+          {% if page_obj.has_previous %}
+          <button
+            class="page-btn"
+            onclick="goToPage({{ page_obj.previous_page_number }})"
+          >
+            <i class="ti ti-chevron-left"></i>
+          </button>
+          {% else %}
+          <button class="page-btn disabled">
+            <i class="ti ti-chevron-left"></i>
+          </button>
+          {% endif %} {% for num in paginator.page_range %} {% if num == page_obj.number %}  
+          <button class="page-btn active">{{ num }}</button>
+         {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}  
+          <button class="page-btn" onclick="goToPage({{ num }})">
+            {{ num }}
+          </button>
+          {% endif %} {% endfor %} {% if page_obj.has_next %}
+          <button
+            class="page-btn"
+            onclick="goToPage({{ page_obj.next_page_number }})"
+          >
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          {% else %}
+          <button class="page-btn disabled">
+            <i class="ti ti-chevron-right"></i>
+          </button>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 </main>
 
-{% endblock content %} {% block script %}
+{% endblock content %}
+<!--  -->
 
+{% block script %}
 <script>
-         /* ═══════════════════════════════════════
-              Data  —  replace with Django template / API
-           ═══════════════════════════════════════ */
-        const TRADES = {{ trades_json|safe }};
+  // ── Current page's trades — only 10 rows, already filtered+paginated server-side
+  const TRADES = {{ trades_json|safe }};
 
+  function setFilter(key, value) {
+    document.getElementById(key === "status" ? "statusInput" : "typeInput").value = value;
+    document.getElementById("filterForm").submit();
+  }
 
-         const PER_PAGE = 10;
-         let activeStatus = "all",
-           activeType = "all",
-           page = 1;
+  function goToPage(n) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", n);
+    window.location.href = url.toString();
+  }
 
-         function setStatus(v, el) {
-           activeStatus = v;
-           page = 1;
-           document
-             .querySelectorAll("#statusChips .fchip")
-             .forEach((c) => c.classList.remove("active"));
-           el.classList.add("active");
-           render();
-         }
-         function setType(v, el) {
-           activeType = v;
-           page = 1;
-           document
-             .querySelectorAll("#typeChips .fchip")
-             .forEach((c) => c.classList.remove("active"));
-           el.classList.add("active");
-           render();
-         }
+  function renderRow(t) {
+    const dirB = ["RISE", "OVER"].includes(t.direction)
+      ? `<span class="dir-badge rise"><i class="ti ti-trending-up"></i>${t.direction}</span>`
+      : `<span class="dir-badge fall"><i class="ti ti-trending-down"></i>${t.direction}</span>`;
 
-      function filtered() {
-          const q = document.getElementById("searchQ").value.trim().toLowerCase();
-          return TRADES.filter(t => {
-          if (activeStatus !== "all" && t.status !== activeStatus) return false;
-          if (activeType   !== "all" && t.trade_type !== activeType) return false;
-          if (q && !t.asset.toLowerCase().includes(q)) return false;
-          return true;
-          });
-    }
+    const typeLabels = { RISE_FALL: "Rise/Fall", OVER_UNDER: "Over/Under", ACCUMULATOR: "Accumulator", BOT: "Bot Trade" };
+    const typeCss = { RISE_FALL: "risefall", OVER_UNDER: "overunder", ACCUMULATOR: "risefall", BOT: "overunder" };
+    const typeP = `<span class="type-pill ${typeCss[t.trade_type] || "risefall"}">${typeLabels[t.trade_type] || t.trade_type}</span>`;
 
-      function render() {
-        const data  = filtered();
-        const total = data.length;
-        const pages = Math.max(1, Math.ceil(total / PER_PAGE));
-        page = Math.min(page, pages);
-        const slice = data.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    const stMap = {
+      WON: `<span class="status-pill win">Won</span>`,
+      LOST: `<span class="status-pill loss">Lost</span>`,
+      OPEN: `<span class="status-pill open">Live</span>`,
+      EXPIRED: `<span class="status-pill refunded">Expired</span>`,
+    };
 
-        document.getElementById("tradeCount").textContent =
-          total ? `Showing ${(page - 1) * PER_PAGE + 1}–${(page - 1) * PER_PAGE + slice.length} of ${total}` : "No results";
-        document.getElementById("emptyState").style.display = slice.length ? "none" : "block";
+    let pnlH;
+    if (t.status === "OPEN") pnlH = `<span class="pnl-neu">—</span>`;
+    else if (t.pnl > 0) pnlH = `<span class="pnl-up">+$${t.pnl.toFixed(2)}</span>`;
+    else if (t.pnl < 0) pnlH = `<span class="pnl-down">-$${Math.abs(t.pnl).toFixed(2)}</span>`;
+    else pnlH = `<span class="pnl-neu">$0.00</span>`;
 
-        document.getElementById("tradeBody").innerHTML = slice.map(t => {
+    const exitH = t.exit_price != null
+      ? `${parseFloat(t.exit_price).toFixed(2)}`
+      : `<span style="color:#f59e0b">Live…</span>`;
 
-          // ── Direction badge
-          const dirB = ["RISE", "OVER"].includes(t.direction)
-            ? `<span class="dir-badge rise"><i class="ti ti-trending-up"></i>${t.direction}</span>`
-            : `<span class="dir-badge fall"><i class="ti ti-trending-down"></i>${t.direction}</span>`;
+    const demoTag = t.is_demo
+      ? `<span style="font-size:9px;background:#f3f4f6;color:#9ca3af;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:5px">DEMO</span>`
+      : "";
 
-          // ── Type pill
-          const typeLabels = { RISE_FALL: "Rise/Fall", OVER_UNDER: "Over/Under", ACCUMULATOR: "Accumulator" };
-          const typeCss    = { RISE_FALL: "risefall",  OVER_UNDER: "overunder",  ACCUMULATOR: "risefall" };
-          const typeP = `<span class="type-pill ${typeCss[t.trade_type] || "risefall"}">${typeLabels[t.trade_type] || t.trade_type}</span>`;
+    const botTag = t.source === "bot"
+      ? `<span style="font-size:9px;color:#E85D35;margin-left:4px"><i class="ti ti-robot"></i></span>`
+      : "";
 
-          // ── Status pill
-          const stMap = {
-            WON:     `<span class="status-pill win">Won</span>`,
-            LOST:    `<span class="status-pill loss">Lost</span>`,
-            OPEN:    `<span class="status-pill open">Live</span>`,
-            EXPIRED: `<span class="status-pill refunded">Expired</span>`,
-          };
+    return `<tr onclick="openDrawer('${t.id}')">
+      <td>
+        <div class="asset-cell">
+          <div class="asset-icon">${t.asset.replace(/[^0-9]/g, "").slice(-3) || t.asset.slice(0,2)}</div>
+          <div>
+            <div class="asset-name">${t.asset}${demoTag}${botTag}</div>
+            <div class="asset-sub">${typeLabels[t.trade_type] || t.trade_type}</div>
+          </div>
+        </div>
+      </td>
+      <td>${typeP}</td>
+      <td>${dirB}</td>
+      <td>$${parseFloat(t.stake).toFixed(2)}</td>
+      <td class="right">${pnlH}</td>
+      <td>${parseFloat(t.entry_price).toFixed(2)}</td>
+      <td>${exitH}</td>
+      <td>${stMap[t.status] || t.status}</td>
+      <td style="color:#9ca3af;font-size:12px">${t.opened_at}</td>
+    </tr>`;
+  }
 
-          // ── P&L
-          let pnlH;
-          if (t.status === "OPEN")         pnlH = `<span class="pnl-neu">—</span>`;
-          else if (t.pnl > 0)              pnlH = `<span class="pnl-up">+$${t.pnl.toFixed(2)}</span>`;
-          else if (t.pnl < 0)             pnlH = `<span class="pnl-down">-$${Math.abs(t.pnl).toFixed(2)}</span>`;
-          else                             pnlH = `<span class="pnl-neu">$0.00</span>`;
+  function renderTable() {
+    document.getElementById("emptyState").style.display = TRADES.length ? "none" : "block";
+    document.getElementById("tradeBody").innerHTML = TRADES.map(renderRow).join("");
+  }
 
-          // ── Exit price
-          const exitH = t.exit_price != null
-            ? `${parseFloat(t.exit_price).toFixed(2)}`
-            : `<span style="color:#f59e0b">Live…</span>`;
-
-          // ── Demo badge
-          const demoTag = t.is_demo
-            ? `<span style="font-size:9px;background:#f3f4f6;color:#9ca3af;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:5px">DEMO</span>`
-            : "";
-
-          return `<tr onclick="openDrawer(${t.id})">
-            <td>
-              <div class="asset-cell">
-                <div class="asset-icon">${t.asset.replace(/[^0-9]/g, "").slice(-3) || t.asset.slice(0,2)}</div>
-                <div>
-                  <div class="asset-name">${t.asset}${demoTag}</div>
-                  <div class="asset-sub">${typeLabels[t.trade_type] || t.trade_type}</div>
-                </div>
-              </div>
-            </td>
-            <td>${typeP}</td>
-            <td>${dirB}</td>
-            <td>$${parseFloat(t.stake).toFixed(2)}</td>
-
-            <td class="right">${pnlH}</td>
-
-            <td>${parseFloat(t.entry_price).toFixed(2)}</td>
-            <td>${exitH}</td>
-            <td>${stMap[t.status] || t.status}</td>
-            <td style="color:#9ca3af;font-size:12px">${t.opened_at}</td>
-          </tr>`;
-        }).join("");
-
-        // ── Pagination
-        document.getElementById("pageInfo").textContent = `Page ${page} of ${pages}`;
-        let btns = `<button class="page-btn ${page === 1 ? "disabled" : ""}" onclick="goPage(${page - 1})"><i class="ti ti-chevron-left"></i></button>`;
-        const range  = new Set([1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
-        const sorted = [...range].sort((a, b) => a - b);
-        let prev = 0;
-        sorted.forEach(n => {
-          if (prev && n - prev > 1) btns += `<button class="page-btn" disabled>…</button>`;
-          btns += `<button class="page-btn ${n === page ? "active" : ""}" onclick="goPage(${n})">${n}</button>`;
-          prev = n;
-        });
-        btns += `<button class="page-btn ${page === pages ? "disabled" : ""}" onclick="goPage(${page + 1})"><i class="ti ti-chevron-right"></i></button>`;
-        document.getElementById("pageBtns").innerHTML = btns;
-      }
-
-         function goPage(n) {
-           page = n;
-           render();
-           window.scrollTo({ top: 0, behavior: "smooth" });
-         }
-
-         /* ── Drawer ── */
-        function openDrawer(id) {
+  function openDrawer(id) {
     const t = TRADES.find(x => x.id === id);
     if (!t) return;
 
-    const hc    = { WON:"win", LOST:"loss", OPEN:"open", EXPIRED:"refunded" }[t.status] || "open";
-    const icon  = { WON:"ti-trophy", LOST:"ti-x", OPEN:"ti-clock", EXPIRED:"ti-refresh" }[t.status];
-    const label = { WON:"Trade Won", LOST:"Trade Lost", OPEN:"Trade Open", EXPIRED:"Expired" }[t.status];
+    const hc = { WON: "win", LOST: "loss", OPEN: "open", EXPIRED: "refunded" }[t.status] || "open";
+    const icon = { WON: "ti-trophy", LOST: "ti-x", OPEN: "ti-clock", EXPIRED: "ti-refresh" }[t.status];
+    const label = { WON: "Trade Won", LOST: "Trade Lost", OPEN: "Trade Open", EXPIRED: "Expired" }[t.status];
 
-    const pnlTxt = t.status === "WON"  ? `+$${t.pnl.toFixed(2)}`
-                 : t.status === "LOST" ? `-$${Math.abs(t.pnl).toFixed(2)}`
-                 : t.status === "EXPIRED" ? `$0.00`
-                 : `$${parseFloat(t.stake).toFixed(2)} at stake`;
+    const pnlTxt = t.status === "WON" ? `+$${t.pnl.toFixed(2)}`
+      : t.status === "LOST" ? `-$${Math.abs(t.pnl).toFixed(2)}`
+      : t.status === "EXPIRED" ? `$0.00`
+      : `$${parseFloat(t.stake).toFixed(2)} at stake`;
 
     const pnlClass = t.pnl > 0 ? "pnl-up" : t.pnl < 0 ? "pnl-down" : "pnl-neu";
-    const potPayout = t.status === "WON" ? `$${t.payout.toFixed(2)}` : `$${(parseFloat(t.stake) * (1 + parseFloat(t.payout_pct) / 100)).toFixed(2)}`;
-    const typeLabels = { RISE_FALL:"Rise / Fall", OVER_UNDER:"Over / Under", ACCUMULATOR:"Accumulator" };
+    const typeLabels = { RISE_FALL: "Rise / Fall", OVER_UNDER: "Over / Under", ACCUMULATOR: "Accumulator", BOT: "Bot Trade" };
 
     document.getElementById("drawerTitle").textContent = `${t.asset} · #${t.id}`;
     document.getElementById("drawerBody").innerHTML = `
@@ -1061,7 +1072,7 @@
           <div class="detail-row"><span class="dk">Asset</span><span class="dv">${t.asset}</span></div>
           <div class="detail-row"><span class="dk">Trade Type</span><span class="dv">${typeLabels[t.trade_type] || t.trade_type}</span></div>
           <div class="detail-row"><span class="dk">Direction</span><span class="dv">${t.direction}</span></div>
-          <div class="detail-row"><span class="dk">Duration</span><span class="dv">${t.duration}</span></div>
+          ${t.duration ? `<div class="detail-row"><span class="dk">Duration</span><span class="dv">${t.duration}</span></div>` : ""}
           <div class="detail-row"><span class="dk">Account</span><span class="dv">${t.is_demo ? "Demo" : "Real"}</span></div>
           <div class="detail-row"><span class="dk">Opened At</span><span class="dv">${t.opened_at}</span></div>
         </div>
@@ -1073,14 +1084,10 @@
           <div class="detail-row"><span class="dk">Exit Price</span><span class="dv">${t.exit_price != null ? "$" + parseFloat(t.exit_price).toFixed(2) : "Live…"}</span></div>
           ${t.barrier != null ? `<div class="detail-row"><span class="dk">Barrier</span><span class="dv">$${parseFloat(t.barrier).toFixed(2)}</span></div>` : ""}
           <div class="detail-row"><span class="dk">Stake</span><span class="dv">$${parseFloat(t.stake).toFixed(2)}</span></div>
-          <div class="detail-row"><span class="dk">Payout Rate</span><span class="dv">${t.payout_pct}%</span></div>
-          <div class="detail-row"><span class="dk">Total Payout</span><span class="dv">${potPayout}</span></div>
+          ${t.payout_pct != null ? `<div class="detail-row"><span class="dk">Payout Rate</span><span class="dv">${t.payout_pct}%</span></div>` : ""}
+          <div class="detail-row"><span class="dk">Total Payout</span><span class="dv">$${t.payout.toFixed(2)}</span></div>
           <div class="detail-row"><span class="dk">Net P&amp;L</span><span class="dv ${pnlClass}">${pnlTxt}</span></div>
         </div>
-      </div>
-      <div>
-        <div class="section-label">Price Movement</div>
-        <div class="mini-chart"><i class="ti ti-chart-line"></i><span>Chart coming soon</span></div>
       </div>
       <div style="background:#f9fafb;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:12px;color:#9ca3af">Trade ID</span>
@@ -1092,50 +1099,23 @@
     document.body.style.overflow = "hidden";
   }
 
-         function closeDrawer() {
-           document.getElementById("overlay").classList.remove("open");
-           document.getElementById("drawer").classList.remove("open");
-           document.body.style.overflow = "";
-         }
+  function closeDrawer() {
+    document.getElementById("overlay").classList.remove("open");
+    document.getElementById("drawer").classList.remove("open");
+    document.body.style.overflow = "";
+  }
 
-         /* ── CSV Export ── */
-         function exportCSV() {
-           const headers = [
-             "ID",
-             "Asset",
-             "Type",
-             "Direction",
-             "Stake",
-             "Payout%",
-             "P&L",
-             "Duration",
-             "Entry",
-             "Exit",
-             "Status",
-             "Date",
-           ];
-           const rows = TRADES.map((t) => [
-             t.id,
-             t.asset,
-             t.type,
-             t.dir,
-             t.stake,
-             t.payout,
-             t.pnl,
-             t.dur,
-             t.entry,
-             t.exit ?? "",
-             t.status,
-             t.ts,
-           ]);
-           const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
-           const a = document.createElement("a");
-           a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-           a.download = "otex-trade-history.csv";
-           a.click();
-         }
+  // CSV export — only exports current page; for full export, hit a dedicated endpoint
+  function exportCSV() {
+    const headers = ["ID", "Asset", "Type", "Direction", "Stake", "P&L", "Entry", "Exit", "Status", "Date"];
+    const rows = TRADES.map(t => [t.id, t.asset, t.trade_type, t.direction, t.stake, t.pnl, t.entry_price, t.exit_price ?? "", t.status, t.opened_at]);
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    a.download = "otex-trade-history.csv";
+    a.click();
+  }
 
-         render();
+  renderTable();
 </script>
-
 {% endblock script %}

@@ -60,24 +60,36 @@
         <span class="logo-name">OTEX</span>
       </div>
       <nav class="nav">
-        <a class="nav-item" href="/dashboard/"
-          ><i class="ti ti-home" aria-hidden="true"></i>dashboard</a
+        <a
+          class="nav-item {% if request.path == '/dashboard/' %}active{% endif %}"
+          href="/dashboard/"
+          ><i class="ti ti-home" aria-hidden="true"></i>Dashboard</a
         >
-        <a class="nav-item" href="/dashboard/trade/"
-          ><i class="ti ti-filter" aria-hidden="true"></i>Trade</a
+        <a
+          class="nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if '/dashboard/ai-trading/' in request.path %}active{% endif %}"
+          href="/dashboard/trade/"
+          ><i class="ti ti-filter" aria-hidden="true"></i>Markets</a
         >
-        <a class="nav-item" href="/dashboard/trade-history/"
+        <a
+          class="nav-item {% if '/dashboard/trade-history/' in request.path %}active{% endif %}"
+          href="/dashboard/trade-history/"
           ><i class="ti ti-files" aria-hidden="true"></i>Trade History</a
         >
-        <a class="nav-item" href="/dashboard/transaction-logs/"
+        <a
+          class="nav-item {% if '/dashboard/transaction-logs/' in request.path %}active{% endif %}"
+          href="/dashboard/transaction-logs/"
           ><i class="ti ti-arrow-left-right" aria-hidden="true"></i
           >Transactions</a
         >
-        <a class="nav-item" href="/dashboard/agents/"
+        <a
+          class="nav-item {% if '/dashboard/withdraw-funds/' in request.path %}active{% endif %} {% if '/dashboard/agents/' in request.path %}active{% endif %} {% if '/deposit-funds/crypto/' in request.path %}active{% endif %} {% if '/dashboard/bank-deposit/' in request.path %}active{% endif %} {% if '/dashboard/withdrawal/agents/' in request.path %}active{% endif %}"
+          href="/dashboard/agents/"
           ><i class="ti ti-user" aria-hidden="true"></i>Finance</a
         >
 
-        <a class="nav-item" href="/dashboard/profile/"
+        <a
+          class="nav-item {% if '/dashboard/profile/' in request.path %}active{% endif %}"
+          href="/dashboard/profile/"
           ><i class="ti ti-settings" aria-hidden="true"></i>Settings</a
         >
       </nav>
@@ -143,26 +155,26 @@
     <nav class="mobile-nav">
       <div class="mob-nav-inner">
         <div
-          class="mob-nav-item"
+          class="mob-nav-item {% if request.path == '/dashboard/' %}active{% endif %}"
           onclick="window.location.href = '/dashboard/'"
         >
           <i class="fa-solid fa-chart-pie"></i>
           Portfolio
         </div>
         <div
-          class="mob-nav-item"
+          class="mob-nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if ' /dashboard/bank-deposit/' in request.path %}active{% endif %}"
           onclick="window.location.href = '/dashboard/trade/'"
         >
           <i class="fa-solid fa-chart-line"></i>Markets
         </div>
         <div
-          class="mob-nav-item"
+          class="mob-nav-item {% if '/dashboard/agents/' in request.path %}active{% endif %} {% if '/deposit-funds/crypto/' in request.path %}active{% endif %} {% if '/dashboard/bank-deposit/' in request.path %}active{% endif %} {% if '/dashboard/transaction-logs/' in request.path %}active{% endif %}"
           onclick="window.location.href = '/dashboard/agents/'"
         >
           <i class="fa-solid fa-money-bill-transfer"></i>Finance
         </div>
         <div
-          class="mob-nav-item"
+          class="mob-nav-item {% if '/dashboard/trade-history/' in request.path %}active{% endif %}"
           onclick="window.location.href = '/dashboard/trade-history/'"
         >
           <i class="fa-solid fa-clock-rotate-left"></i>Trade History

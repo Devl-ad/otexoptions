@@ -353,8 +353,15 @@
       </div>
       <div class="ps-title">Payment Pending</div>
       <div class="ps-sub">
-        Your payment is being processed. This usually takes a few minutes. Your
-        balance will be updated automatically once confirmed.
+        {% if transaction.agent %} Your withdrawal request has been received
+        contact the agent to proceed.
+        <!--  -->
+        {% elif tx.transaction_type == "withdrawal" %} Your withdrawal request
+        has been received and is under review. This usually takes a few minutes.
+        {% else %} Your payment is being processed. This usually takes a few
+        minutes. Your balance will be updated automatically once confirmed.
+        <!--  -->
+        {% endif %}
       </div>
 
       {% if transaction %}
@@ -377,6 +384,15 @@
             ><span class="ps-badge pending">Pending</span></span
           >
         </div>
+        {% if transaction.agent %}
+        <div class="ps-row">
+          <span class="ps-key">Agent</span>
+          <span class="ps-val"
+            ><span class="ps-badge pending">{{transaction.agent}}</span></span
+          >
+        </div>
+        {% endif %}
+
         <div class="ps-row">
           <span class="ps-key">Date</span>
           <span class="ps-val"
@@ -388,12 +404,21 @@
 
       <div class="ps-info" style="margin-bottom: 20px">
         <i class="ti ti-alert-triangle"></i>
-        <span
-          >Do not attempt another payment for this deposit. If your balance has
-          not updated within <strong>30 minutes</strong>, contact our support
-          team with your reference number.</span
-        >
+        <span>
+          {% if transaction.agent %} Funds has been debited from your account.
+          <!--  -->
+          {% else %} Do not attempt another payment for this deposit. If your
+          balance has not updated within
+          <strong>30 minutes</strong>, contact our support team with your
+          reference number. {% endif %}
+        </span>
       </div>
+
+      {% if transaction.agent %}
+      <a href="{{transaction.whatsapp_withdrawal_url}}" class="ps-btn-primary">
+        <i class="ti ti-brand-whatsapp"></i> Contact on WhatsApp
+      </a>
+      {% else %}
 
       <a href="/dashboard/" class="ps-btn-primary">
         <i class="ti ti-home"></i> Back to Dashboard
@@ -404,8 +429,9 @@
         target="_blank"
         rel="noopener"
       >
-        <i class="ti ti-brand-whatsapp"></i> Contact Support
+        <i class="ti ti-mail"></i> Contact Support
       </a>
+      {% endif %}
     </div>
     {% endif %}
   </div>

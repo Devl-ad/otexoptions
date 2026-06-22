@@ -436,14 +436,19 @@ class Transaction(models.Model):
             self.Status.CANCELLED: "#9ca3af",
         }.get(self.status, "#9ca3af")
 
+    @property
+    def whatsapp_withdrawal_url(self):
+        """Pre-filled WhatsApp deep link."""
+        msg = f"Hi {self.agent.name}, I just placed a withdrawal request of ${self.amount} on OTEX."
+        from urllib.parse import quote
+
+        return f"https://wa.me/{self.agent.whatsapp_number}?text={quote(msg)}"
+
 
 def generate_bot_key():
     """Generate a unique 16-character alphanumeric key."""
     chars = string.ascii_uppercase + string.digits
     return "".join(random.choices(chars, k=16))
-
-
-1
 
 
 class BotTemplate(models.Model):
