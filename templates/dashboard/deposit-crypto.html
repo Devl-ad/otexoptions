@@ -89,7 +89,7 @@
             <div class="flabel">Deposit Address</div>
             <div style="margin-top: 8px" class="address-box">
               <span class="address-text" id="cryptoAddress"
-                >bc1qk9ckr3py64mqrp9t2f5qm6fhsl4tkfrna927pn</span
+                >{{addresses_json.btc}}</span
               >
               <button
                 class="copy-btn"
@@ -296,9 +296,9 @@
 
 <script>
   const ADDRESSES = {
-    btc: "bc1qk9ckr3py64mqrp9t2f5qm6fhsl4tkfrna927pn",
-    usdt: "TRKTvRV6ydpUEdr4qiqKeTfhwSd4fQTXAd",
-    eth: "0x4c13FDFC0880fa5de15f8BD0f9058883887d3932",
+    btc: "{{addresses_json.btc}}",
+    usdt: "{{addresses_json.usdt}}",
+    eth: "{{addresses_json.eth}}",
   };
 
   function switchDepPanel(name, btn) {

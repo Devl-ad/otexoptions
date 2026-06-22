@@ -662,3 +662,16 @@ class TodayRate(models.Model):
 
     def __str__(self):
         return f"{self.currency}"
+
+
+class RecivingCryptoWallet(models.Model):
+    COIN_CHOICES = [
+        ("BTC", "BTC"),
+        ("USDT", "USDT"),
+        ("ETH", "ETH"),
+    ]
+    coin = models.CharField(max_length=10, choices=COIN_CHOICES)
+    address = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.coin}"

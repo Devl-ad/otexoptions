@@ -39,6 +39,7 @@ from .models import (
     BotSession,
     BotKey,
     TodayRate,
+    RecivingCryptoWallet,
 )
 from decimal import Decimal
 from apps.account.models import User
@@ -482,6 +483,10 @@ def deposit_page(request):
 
 @login_required
 def deposit_withcrypto_page(request):
+    recieving_wallets = RecivingCryptoWallet.objects.all()
+
+    addresses = {wallet.coin.lower(): wallet.address for wallet in recieving_wallets}
+    print(addresses)
 
     if request.method == "POST":
         coin = request.POST.get("coin")
@@ -521,7 +526,11 @@ def deposit_withcrypto_page(request):
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
-    return render(request, "dashboard/deposit-crypto.html")
+    return render(
+        request,
+        "dashboard/deposit-crypto.html",
+        {"addresses_json": addresses},
+    )
 
 
 @login_required

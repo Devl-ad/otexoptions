@@ -26,6 +26,7 @@ from .models import (
     BotSession,
     BotTemplate,
     TodayRate,
+    RecivingCryptoWallet,
 )
 from django.contrib import admin
 from django.utils.html import format_html
@@ -35,6 +36,7 @@ admin.site.register(PriceTick)
 admin.site.register(BotKey)
 admin.site.register(BotTrade)
 admin.site.register(BotSession)
+admin.site.register(RecivingCryptoWallet)
 
 
 admin.site.register(TodayRate)
