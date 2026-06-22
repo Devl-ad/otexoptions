@@ -504,7 +504,7 @@ def deposit_withcrypto_page(request):
             "eth": Transaction.Method.CRYPTO_ETH,
         }
 
-        Transaction.objects.create(
+        transaction = Transaction.objects.create(
             user=request.user,
             transaction_type=Transaction.TransactionType.DEPOSIT,
             method=method_map.get(
@@ -518,12 +518,9 @@ def deposit_withcrypto_page(request):
             status=Transaction.Status.PENDING,
         )
 
-        messages.success(
-            request,
-            "Deposit request submitted! Your balance will be updated in 2–4 hours after confirmation.",
+        return redirect(
+            f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
-
-        return redirect("deposit_withcrypto_page")
     return render(request, "dashboard/deposit-crypto.html")
 
 

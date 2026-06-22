@@ -358,8 +358,9 @@
         <!--  -->
         {% elif tx.transaction_type == "withdrawal" %} Your withdrawal request
         has been received and is under review. This usually takes a few minutes.
-        {% else %} Your payment is being processed. This usually takes a few
-        minutes. Your balance will be updated automatically once confirmed.
+        {% else %} Your payment is being processed, this usually takes anywhere
+        from a few minutes to an hour. Your balance will be updated
+        automatically once confirmed.
         <!--  -->
         {% endif %}
       </div>
@@ -407,10 +408,7 @@
         <span>
           {% if transaction.agent %} Funds has been debited from your account.
           <!--  -->
-          {% else %} Do not attempt another payment for this deposit. If your
-          balance has not updated within
-          <strong>30 minutes</strong>, contact our support team with your
-          reference number. {% endif %}
+          {% else %} Your balance will be updated. {% endif %}
         </span>
       </div>
 
