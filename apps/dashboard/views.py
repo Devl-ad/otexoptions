@@ -1163,7 +1163,9 @@ def initiate_withdrawal(request):
     request.session["withdrawal_confirmed"] = False  # the flag you flip on click
     request.session.modified = True
 
-    confirm_url = f"https://otexoption.com/withdraw/confirm/?token={confirm_token}"
+    confirm_url = (
+        f"https://otexoption.com/dashboard/withdraw/confirm/?token={confirm_token}"
+    )
 
     html_message = render_to_string(
         "emails/withdrawal_confirmation.html",
