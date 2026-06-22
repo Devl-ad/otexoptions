@@ -37,4 +37,5 @@ urlpatterns = [
     ),
     path("payment/status/", views.payment_status, name="payment_status"),
     path("withdrawal/agents/", views.agent_withdrawal, name="agent_withdrawal"),
+    path("activate-withdrawal/", views.initiate_withdrawal, name="initate_withdrawal"),
 ]

@@ -15,7 +15,12 @@ from apps.account.forms import KYCForm, Details
 from apps.account.referrals import record_referral_deposit
 from django.conf import settings as django_setting
 import requests
+import uuid
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+
+from apps.dashboard.decorator import withdrawal_confirm_required
 from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
 from django.core.paginator import Paginator
 
@@ -523,6 +528,7 @@ def deposit_withcrypto_page(request):
 
 
 @login_required
+@withdrawal_confirm_required
 def withdrawal(request):
 
     wallet = request.user.wallet
@@ -570,6 +576,8 @@ def withdrawal(request):
         )
 
         wallet.debit(float(amount), mode="live")
+        request.session.pop("withdrawal_confirm_token", None)
+        request.session.pop("withdrawal_confirmed", None)
 
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
@@ -1099,7 +1107,9 @@ def flutterwave_callback(request):
 
 
 @login_required
+@withdrawal_confirm_required
 def agent_withdrawal(request):
+
     agents = Agent.objects.all()
     if request.method == "POST":
         amount = request.POST.get("amount")
@@ -1134,9 +1144,59 @@ def agent_withdrawal(request):
         )
 
         wallet.debit(float(amount), mode="live")
+        request.session.pop("withdrawal_confirm_token", None)
+        request.session.pop("withdrawal_confirmed", None)
 
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
 
     return render(request, "dashboard/agent_withdrawal.html", {"agents": agents})
+
+
+@login_required
+def initiate_withdrawal(request):
+    # ... create withdrawal transaction with status PENDING ...
+
+    confirm_token = str(uuid.uuid4())
+    request.session["withdrawal_confirm_token"] = confirm_token
+    request.session["withdrawal_confirmed"] = False  # the flag you flip on click
+    request.session.modified = True
+
+    confirm_url = f"https://otexoption.com/withdraw/confirm/?token={confirm_token}"
+
+    html_message = render_to_string(
+        "emails/withdrawal_confirmation.html",
+        {
+            "user": request.user,
+            "withdrawal": transaction,
+            "confirm_url": confirm_url,
+        },
+    )
+
+    send_mail(
+        subject="Confirm Your OTEX Withdrawal Request",
+        message=f"Confirm your withdrawal request: {confirm_url}",
+        from_email=django_setting.DEFAULT_FROM_EMAIL,
+        recipient_list=[request.user.email],
+        html_message=html_message,
+    )
+
+    messages.info(
+        request,
+        "We've received your withdrawal request. Check your email and confirm to continue.",
+    )
+    return redirect("dashboard")
+
+
+@login_required
+def confirm_withdrawal(request):
+    token = request.GET.get("token")
+
+    if token and token == request.session.get("withdrawal_confirm_token"):
+        request.session["withdrawal_confirmed"] = True
+        request.session.modified = True
+        return redirect("withdrawal")  # your actual withdrawal page name
+
+    messages.error(request, "This confirmation link is invalid or has expired.")
+    return redirect("dashboard")
