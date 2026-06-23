@@ -136,7 +136,9 @@ class Wallet(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wallet"
     )
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    demo_balance = models.DecimalField(max_digits=12, decimal_places=2, default=1000.00)
+    demo_balance = models.DecimalField(
+        max_digits=12, decimal_places=2, default=10000.00
+    )
     is_demo = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
