@@ -1,12 +1,14 @@
 {% extends "layouts/manager.html" %}
 <!--  -->
+{% load humanize %}
+<!--  -->
 {% block titlle %} Admin Dashboard {% endblock titlle %}
 <!--  -->
 {% block content %}
 
 <!-- ══════════════════════════════════════
          MAIN
-    ══════════════════════════════════════ -->
+    ═══════════════════════════ ═══════════ -->
 <main class="main admin">
   <!-- Topbar -->
   <div class="admin-topbar">
@@ -24,7 +26,9 @@
         <span class="topbar-dot"></span>
       </div>
       <div class="topbar-icon-btn"><i class="ti ti-settings"></i></div>
-      <div class="admin-avatar" style="cursor: pointer">SA</div>
+      <div class="admin-avatar" style="cursor: pointer">
+        {{user.get_initials}}
+      </div>
     </div>
   </div>
 
@@ -44,8 +48,8 @@
           </div>
         </div>
         <div class="admin-stat-label">Total Users</div>
-        <div class="admin-stat-val">12,480</div>
-        <div class="admin-stat-sub">348 new this week</div>
+        <div class="admin-stat-val">{{total_users}}</div>
+        <div class="admin-stat-sub">this week</div>
       </div>
 
       <div class="admin-stat-card">
@@ -60,9 +64,11 @@
             <i class="ti ti-arrow-up-right"></i> 8.1%
           </div>
         </div>
-        <div class="admin-stat-label">Total Deposits (30d)</div>
-        <div class="admin-stat-val">$284,920</div>
-        <div class="admin-stat-sub">1,204 transactions</div>
+        <div class="admin-stat-label">Total Deposits</div>
+        <div class="admin-stat-val">
+          ${{total_deposit|floatformat:2|intcomma}}
+        </div>
+        <div class="admin-stat-sub">{{total_deposit_count}} transactions</div>
       </div>
 
       <div class="admin-stat-card">
@@ -77,9 +83,13 @@
             <i class="ti ti-arrow-down-right"></i> 3.2%
           </div>
         </div>
-        <div class="admin-stat-label">Total Withdrawals (30d)</div>
-        <div class="admin-stat-val">$96,310</div>
-        <div class="admin-stat-sub">412 transactions</div>
+        <div class="admin-stat-label">Total Withdrawals</div>
+        <div class="admin-stat-val">
+          ${{total_withdrawal|floatformat:2|intcomma}}
+        </div>
+        <div class="admin-stat-sub">
+          {{total_withdrawal_count}} transactions
+        </div>
       </div>
 
       <div class="admin-stat-card">
@@ -88,15 +98,15 @@
             class="admin-stat-icon"
             style="background: #eff6ff; color: #2563eb"
           >
-            <i class="ti ti-chart-candlestick"></i>
+            <i class="ti ti-key"></i>
           </div>
           <div class="admin-stat-trend up">
             <i class="ti ti-arrow-up-right"></i> 19.8%
           </div>
         </div>
-        <div class="admin-stat-label">Trades Today</div>
-        <div class="admin-stat-val">3,842</div>
-        <div class="admin-stat-sub">62% win rate avg</div>
+        <div class="admin-stat-label">Pending Kyc</div>
+        <div class="admin-stat-val">{{total_pending_kyc}}</div>
+        <div class="admin-stat-sub"></div>
       </div>
     </div>
 
