@@ -554,7 +554,7 @@ def withdrawal(request):
             return redirect("withdrawal")
 
         if amount < Decimal("10"):
-            messages.error(request, "Minimum withdrawal is $10.")
+            messages.error(request, "Minimum withdrawal is $20.")
             return redirect("withdrawal")
 
         if amount > wallet.balance:
