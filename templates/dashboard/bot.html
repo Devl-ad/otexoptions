@@ -552,11 +552,17 @@
 
   // ── Trade open (shows as "Running") ───────────────────────────────────────
   function onTradeOpen(data) {
+    // console.log("TRADE OPEN:", data.trade_number, data.pair, data.direction);
+
     tradesDone = data.trade_number;
 
     const row = document.createElement("div");
     row.className = "trade-row running";
     row.id = `trade-${data.trade_number}`;
+    // check if this ID already exists before inserting
+    if (document.getElementById(row.id)) {
+      console.warn("DUPLICATE TRADE ID DETECTED:", row.id);
+    }
     row.innerHTML = `
       <div class="tr-left">
         <div class="tr-num">#${data.trade_number}</div>

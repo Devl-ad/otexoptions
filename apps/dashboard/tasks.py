@@ -395,23 +395,45 @@ def resolve_bot_trade(
     new_pnl = float(agg["pnl"] or 0)
 
     # notify: trade RESOLVED
-    async_to_sync(channel_layer.group_send)(
-        f"bot_{session.user.id}",
-        {
-            "type": "bot_trade_result",
-            "trade_number": trade_number,
-            "total_trades": total_trades,
-            "direction": direction,
-            "result": result,
-            "entry_price": str(entry_price),
-            "exit_price": str(exit_price),
-            "stake": str(stake),
-            "profit": str(trade_profit),
-            "current_pnl": str(new_pnl),
-            "balance": str(wallet.get_balance(mode=mode)),
-            "pair": session.pair.symbol,
-        },
-    )
+    # async_to_sync(channel_layer.group_send)(
+    #     f"bot_{session.user.id}",
+    #     {
+    #         "type": "bot_trade_result",
+    #         "trade_number": trade_number,
+    #         "total_trades": total_trades,
+    #         "direction": direction,
+    #         "result": result,
+    #         "entry_price": str(entry_price),
+    #         "exit_price": str(exit_price),
+    #         "stake": str(stake),
+    #         "profit": str(trade_profit),
+    #         "current_pnl": str(new_pnl),
+    #         "balance": str(wallet.get_balance(mode=mode)),
+    #         "pair": session.pair.symbol,
+    #     },
+    # )
+    try:
+        async_to_sync(channel_layer.group_send)(
+            f"bot_{session.user.id}",
+            {
+                "type": "bot_trade_result",
+                "trade_number": trade_number,
+                "total_trades": total_trades,
+                "direction": direction,
+                "result": result,
+                "entry_price": str(entry_price),
+                "exit_price": str(exit_price),
+                "stake": str(stake),
+                "profit": str(trade_profit),
+                "current_pnl": str(new_pnl),
+                "balance": str(wallet.get_balance(mode)),
+                "pair": session.pair.symbol,
+            },
+        )
+    except Exception as e:
+        logger.error(
+            f"[BOT] Failed to send trade_result WS for trade {trade_number}: {e}"
+        )
 
     # check if this was the last trade
     if trade_number == total_trades:

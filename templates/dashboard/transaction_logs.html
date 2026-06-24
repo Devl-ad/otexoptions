@@ -284,8 +284,7 @@
       <!--  -->
       {% if num == transactions.number %}
       <span class="txn-page-btn active">{{ num }}</span>
-      {% elif num == 1 or num == transactions.paginator.num_pages or num >=
-      transactions.number|add:"-1" and num <= transactions.number|add:"1" %}
+      {% elif num == 1 or num == transactions.paginator.num_pages or num >= transactions.number|add:"-1" and num <= transactions.number|add:"1" %}
       <a href="?page={{ num }}" class="txn-page-btn">{{ num }}</a>
       {% elif num == 2 and transactions.number > 3 %}
       <span
@@ -392,7 +391,7 @@
 
           <div class="detail-row">
             <span>Amount</span>
-            <span>${{ tx.amount }}</span>
+            <span>${{ tx.amount|floatformat:2|intcomma }}</span>
           </div>
 
           <div class="detail-row">
