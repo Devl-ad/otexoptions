@@ -512,6 +512,8 @@ class BotTemplate(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    users_sets = models.CharField(max_length=20, default="set 1")
+
     # ── Helper — get the right settings based on mode ──────────────────────
     def get_settings(self, is_demo):
         if is_demo:
