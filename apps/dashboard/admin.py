@@ -53,6 +53,7 @@ class BotTemplateAdmin(admin.ModelAdmin):
         "house_outcome",
         "base_win_rate",
         "is_active",
+        "users_sets",
     ]
     list_editable = [
         "demo_house_outcome",
@@ -75,6 +76,7 @@ class BotTemplateAdmin(admin.ModelAdmin):
                     "profit_pct",
                     "description",
                     "is_active",
+                    "users_sets",
                 )
             },
         ),
