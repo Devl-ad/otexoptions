@@ -19,6 +19,7 @@ import uuid
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from baseapp import notify
 
 from apps.dashboard.decorator import withdrawal_confirm_required
 from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
@@ -523,6 +524,16 @@ def deposit_withcrypto_page(request):
             status=Transaction.Status.PENDING,
         )
 
+        notify.notify_admins(
+            f"💰 <b>New Crypto Deposit Detected</b>\n"
+            f"User: {request.user.username}\n"
+            f"Type: {transaction.get_transaction_type_display()}\n"
+            f"Method: {transaction.get_method_display()}\n"
+            f"Amount: ${transaction.amount}\n"
+            f"Reference: <code>{transaction.reference}</code>\n\n"
+            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
+        )
+
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
@@ -585,6 +596,16 @@ def withdrawal(request):
         request.session.pop("withdrawal_confirm_token", None)
         request.session.pop("withdrawal_confirmed", None)
 
+        notify.notify_admins(
+            f"💰 <b>New Transaction</b>\n"
+            f"User: {request.user.username}\n"
+            f"Type: {transaction.get_transaction_type_display()}\n"
+            f"Method: {transaction.get_method_display()}\n"
+            f"Amount: ${transaction.amount}\n"
+            f"Reference: <code>{transaction.reference}</code>\n\n"
+            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
+        )
+
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"
         )
@@ -635,6 +656,14 @@ def kyc_page(request):
             submission.submitted_at = timezone.now()
             submission.admin_note = ""
             submission.save()
+
+            notify.notify_admins(
+                f"🪪 <b>New KYC Submission</b>\n"
+                f"User: {request.user.username}\n"
+                f"Name: {kyc.full_name}\n"
+                f"Document: {kyc.get_document_type_display()}\n\n"
+                f"<a href='https://otexoption.com/admin/kyc/kycsubmission/{kyc.pk}/change/'>Review →</a>"
+            )
 
             messages.success(
                 request,
@@ -985,6 +1014,16 @@ def credit_user(request):
     agent.total_trades += 1
     agent.save(update_fields=["balance", "total_trades"])
 
+    notify.notify_admins(
+        f"💰 <b>New Transaction</b>\n"
+        f"User: {request.user.username}\n"
+        f"Type: {transaction.get_transaction_type_display()}\n"
+        f"Method: {transaction.get_method_display()}\n"
+        f"Amount: ${transaction.amount}\n"
+        f"Reference: <code>{transaction.reference}</code>\n\n"
+        f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
+    )
+
     return JsonResponse(
         {
             "success": True,
@@ -1055,6 +1094,16 @@ def bank_deposit(request):
                 "/dashboard/payment/flutterwave/callback/"
             ),
         }
+
+        notify.notify_admins(
+            f"💰 <b>Bank Transaction Detected</b>\n"
+            f"User: {request.user.username}\n"
+            f"Type: {transaction.get_transaction_type_display()}\n"
+            f"Method: {transaction.get_method_display()}\n"
+            f"Amount: ${transaction.amount}\n"
+            f"Reference: <code>{transaction.reference}</code>\n\n"
+            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
+        )
 
         return JsonResponse(payload)
 
@@ -1152,6 +1201,16 @@ def agent_withdrawal(request):
         wallet.debit(float(amount), mode="live")
         request.session.pop("withdrawal_confirm_token", None)
         request.session.pop("withdrawal_confirmed", None)
+
+        notify.notify_admins(
+            f"💰 <b>New Transaction</b>\n"
+            f"User: {request.user.username}\n"
+            f"Type: {transaction.get_transaction_type_display()}\n"
+            f"Method: {transaction.get_method_display()}\n"
+            f"Amount: ${transaction.amount}\n"
+            f"Reference: <code>{transaction.reference}</code>\n\n"
+            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
+        )
 
         return redirect(
             f"/dashboard/payment/status/?tx_ref={transaction.reference}&status={transaction.status}"

@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <title>Transactions - OTEX Admin</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { overflow-x: hidden; }
+      body {
+        font-family: "Inter", sans-serif;
+        background: #0b0c10;
+        min-height: 100vh;
+        display: flex;
+        color: #e5e7eb;
+        width: 100%;
+      }
+
+      /* ══ SIDEBAR ══ */
+      .admin-sidebar {
+        width: 240px; background: #111318;
+        border-right: 1px solid rgba(255,255,255,.06);
+        display: flex; flex-direction: column; padding: 20px 0;
+        position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+      }
+      .admin-logo { display: flex; align-items: center; gap: 9px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,.06); margin-bottom: 8px; }
+      .admin-logo-name { font-size: 17px; font-weight: 800; letter-spacing: .05em; color: #fff; }
+      .admin-logo-badge { font-size: 9px; font-weight: 700; color: #e85d35; background: rgba(232,93,53,.15); padding: 2px 7px; border-radius: 5px; letter-spacing: .06em; text-transform: uppercase; margin-left: 2px; }
+      .admin-nav { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; }
+      .nav-section-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .08em; padding: 14px 12px 6px; }
+      .admin-nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 9px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55); text-decoration: none; cursor: pointer; transition: all .12s; position: relative; }
+      .admin-nav-item i { font-size: 18px; flex-shrink: 0; color: rgba(255,255,255,.35); }
+      .admin-nav-item:hover { background: rgba(255,255,255,.04); color: rgba(255,255,255,.85); }
+      .admin-nav-item:hover i { color: rgba(255,255,255,.6); }
+      .admin-nav-item.active { background: rgba(232,93,53,.12); color: #fff; }
+      .admin-nav-item.active i { color: #e85d35; }
+      .admin-nav-item.active::before { content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 18px; background: #e85d35; border-radius: 0 3px 3px 0; }
+      .nav-badge { margin-left: auto; font-size: 10px; font-weight: 700; background: #e85d35; color: #fff; padding: 1px 7px; border-radius: 10px; min-width: 18px; text-align: center; }
+      .nav-badge.muted { background: rgba(255,255,255,.1); color: rgba(255,255,255,.5); }
+      .admin-sidebar-bottom { padding: 14px 16px 4px; border-top: 1px solid rgba(255,255,255,.06); margin-top: 8px; }
+      .admin-user-row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; cursor: pointer; }
+      .admin-avatar { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#e85d35,#f59e0b); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+      .admin-user-name { font-size: 12px; font-weight: 700; color: #fff; }
+      .admin-user-role { font-size: 10px; color: rgba(255,255,255,.4); margin-top: 1px; }
+
+      /* ══ MAIN ══ */
+      .main.admin { margin-left: 240px; flex: 1; min-height: 100vh; background: #f4f5f7; box-sizing: border-box; width: 100%; }
+      .admin-topbar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 50; }
+      .admin-topbar-left h1 { font-size: 20px; font-weight: 700; color: #111; }
+      .admin-topbar-left p { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+      .admin-topbar-right { display: flex; align-items: center; gap: 12px; }
+      .topbar-icon-btn { width: 38px; height: 38px; border-radius: 9px; border: 1.5px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #6b7280; cursor: pointer; position: relative; transition: border-color .15s; }
+      .topbar-icon-btn:hover { border-color: #e85d35; color: #e85d35; }
+      .topbar-dot { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: #e85d35; border: 1.5px solid #fff; }
+      .admin-inner { padding: 24px 28px 50px; }
+
+      /* ── Stat cards ── */
+      .tx-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 18px; }
+      .tx-stat { background: #fff; border-radius: 14px; border: 1px solid #f3f4f6; padding: 16px 18px; }
+      .tx-stat-label { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+      .tx-stat-val   { font-size: 22px; font-weight: 800; color: #111; line-height: 1; }
+      .tx-stat-sub   { font-size: 11px; color: #9ca3af; margin-top: 5px; }
+      .tx-stat-sub.green { color: #00a878; font-weight: 600; }
+      .tx-stat-sub.red   { color: #e85d35; font-weight: 600; }
+
+      /* ── Filter bar ── */
+      .filter-bar { background: #fff; border-radius: 14px; border: 1px solid #f3f4f6; padding: 14px 18px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+      .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 280px; }
+      .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #9ca3af; }
+      .search-input { width: 100%; height: 38px; border: 1.5px solid #e5e7eb; border-radius: 9px; background: #f9fafb; padding: 0 12px 0 36px; font-family: inherit; font-size: 13px; color: #111; outline: none; transition: border-color .15s; }
+      .search-input:focus { border-color: #e85d35; background: #fff; }
+      .fchip { padding: 5px 13px; border-radius: 20px; border: 1.5px solid #e5e7eb; background: #fff; font-family: inherit; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; transition: all .15s; white-space: nowrap; }
+      .fchip:hover { border-color: #e85d35; color: #e85d35; }
+      .fchip.active { background: #e85d35; border-color: #e85d35; color: #fff; }
+      .export-btn { margin-left: auto; height: 38px; padding: 0 16px; border-radius: 9px; border: 1.5px solid #e5e7eb; background: #fff; font-family: inherit; font-size: 12px; font-weight: 600; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .15s; }
+      .export-btn:hover { border-color: #e85d35; color: #e85d35; }
+
+      /* ── Table card ── */
+      .admin-card { background: #fff; border-radius: 16px; border: 1px solid #f3f4f6; overflow: hidden; }
+      .admin-card-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid #f3f4f6; }
+      .admin-card-title { font-size: 14px; font-weight: 700; color: #111; display: flex; align-items: center; gap: 8px; }
+      .admin-card-title i { font-size: 18px; color: #e85d35; }
+      .table-count { font-size: 12px; color: #9ca3af; }
+
+      .admin-table-scroll { overflow-x: auto; }
+      .admin-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+      .admin-table thead th { padding: 10px 18px; text-align: left; font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; background: #fafafa; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+      .admin-table thead th.right { text-align: right; }
+      .admin-table tbody tr { border-bottom: 1px solid #f9fafb; transition: background .1s; cursor: pointer; }
+      .admin-table tbody tr:last-child { border-bottom: none; }
+      .admin-table tbody tr:hover { background: #fafafa; }
+      .admin-table tbody td { padding: 12px 18px; font-size: 13px; color: #374151; white-space: nowrap; }
+      .admin-table tbody td.right { text-align: right; }
+
+      .user-cell { display: flex; align-items: center; gap: 10px; }
+      .table-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+      .table-name { font-size: 13px; font-weight: 700; color: #111; }
+      .table-sub  { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+
+      /* type pill */
+      .type-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+      .type-pill.deposit    { background: #e6f8f2; color: #00a878; }
+      .type-pill.withdrawal { background: #fef0ec; color: #e85d35; }
+
+      /* method tag */
+      .method-tag { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; background: #f3f4f6; color: #6b7280; }
+      .method-tag.crypto_btc  { background: #fff7ed; color: #f7931a; }
+      .method-tag.crypto_usdt { background: #e6f8f2; color: #26a17b; }
+      .method-tag.crypto_eth  { background: #eef2ff; color: #6366f1; }
+      .method-tag.bank        { background: #eff6ff; color: #2563eb; }
+      .method-tag.agent       { background: #fef0ec; color: #e85d35; }
+
+      /* status badge */
+      .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+      .status-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+      .status-badge.pending   { background: #fffbeb; color: #d97706; }
+      .status-badge.pending::before   { background: #d97706; animation: pulse 1.5s infinite; }
+      .status-badge.completed { background: #e6f8f2; color: #00a878; }
+      .status-badge.completed::before { background: #00a878; }
+      .status-badge.failed    { background: #fef0ec; color: #e85d35; }
+      .status-badge.failed::before    { background: #e85d35; }
+      .status-badge.confirmed { background: #eff6ff; color: #2563eb; }
+      .status-badge.confirmed::before { background: #2563eb; }
+      .status-badge.cancelled { background: #f3f4f6; color: #6b7280; }
+      .status-badge.cancelled::before { background: #9ca3af; }
+
+      .view-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; border: 1.5px solid #e5e7eb; background: #fff; font-family: inherit; font-size: 12px; font-weight: 700; color: #374151; cursor: pointer; transition: all .15s; }
+      .view-btn:hover { border-color: #e85d35; color: #e85d35; background: #fef9f7; }
+
+      /* pagination */
+      .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; border-top: 1px solid #f3f4f6; flex-wrap: wrap; gap: 8px; }
+      .page-info  { font-size: 12px; color: #9ca3af; }
+      .page-btns  { display: flex; gap: 5px; }
+      .page-btn { width: 32px; height: 32px; border-radius: 7px; border: 1.5px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #374151; cursor: pointer; transition: all .15s; }
+      .page-btn:hover { border-color: #e85d35; color: #e85d35; }
+      .page-btn.active { background: #e85d35; border-color: #e85d35; color: #fff; }
+      .page-btn.disabled { opacity: .35; pointer-events: none; }
+
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+      /* ══════════════════════════════════════
+         TRANSACTION DETAIL MODAL
+      ══════════════════════════════════════ */
+      .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 300; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+      .modal-bg.open { display: flex; }
+
+      .tx-modal { background: #fff; border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: modalIn .2s ease; }
+      @keyframes modalIn { from { opacity:0; transform:translateY(10px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+      /* Modal head */
+      .tm-head { padding: 22px 24px 18px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: flex-start; gap: 14px; position: relative; }
+      .tm-close { position: absolute; top: 18px; right: 18px; width: 32px; height: 32px; border-radius: 9px; border: 1px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6b7280; font-size: 17px; transition: all .15s; }
+      .tm-close:hover { border-color: #e85d35; color: #e85d35; }
+
+      /* Type icon */
+      .tm-type-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+      .tm-type-icon.deposit    { background: #e6f8f2; color: #00a878; }
+      .tm-type-icon.withdrawal { background: #fef0ec; color: #e85d35; }
+
+      .tm-ref   { font-size: 11px; font-weight: 700; color: #9ca3af; font-family: monospace; letter-spacing: .04em; margin-bottom: 4px; }
+      .tm-title { font-size: 18px; font-weight: 800; color: #111; margin-bottom: 8px; }
+      .tm-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+
+      /* Amount hero */
+      .tm-amount-hero { background: #f9fafb; border-radius: 12px; padding: 20px; text-align: center; margin: 16px 24px 0; }
+      .tm-amount-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+      .tm-amount-val { font-size: 36px; font-weight: 800; line-height: 1; }
+      .tm-amount-val.deposit    { color: #00a878; }
+      .tm-amount-val.withdrawal { color: #e85d35; }
+      .tm-amount-sub { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+
+      /* Body */
+      .tm-body { padding: 20px 24px 24px; }
+
+      .tm-section-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .tm-section-title i { font-size: 14px; color: #e85d35; }
+      .tm-section { margin-bottom: 20px; }
+
+      .tm-rows { border-radius: 10px; border: 1px solid #f3f4f6; overflow: hidden; }
+      .tm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f9fafb; font-size: 13px; gap: 12px; }
+      .tm-row:last-child { border-bottom: none; }
+      .tm-key { color: #9ca3af; font-weight: 500; flex-shrink: 0; }
+      .tm-val { font-weight: 700; color: #111; text-align: right; word-break: break-all; }
+      .tm-val.mono { font-family: monospace; font-size: 12px; letter-spacing: .03em; }
+      .tm-val.green { color: #00a878; }
+      .tm-val.red   { color: #e85d35; }
+      .tm-val.amber { color: #d97706; }
+
+      /* Proof image */
+      .tm-proof-img { width: 100%; border-radius: 10px; border: 1px solid #f3f4f6; margin-top: 10px; max-height: 200px; object-fit: cover; cursor: zoom-in; }
+      .tm-no-proof { background: #f9fafb; border-radius: 10px; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px; }
+      .tm-no-proof i { font-size: 28px; display: block; margin-bottom: 6px; color: #e5e7eb; }
+
+      /* Action buttons */
+      .tm-actions { display: flex; gap: 10px; margin-top: 20px; }
+      .tm-btn { flex: 1; height: 46px; border-radius: 11px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: opacity .15s; border: none; }
+      .tm-btn:hover { opacity: .88; }
+      .tm-btn:disabled { opacity: .4; cursor: not-allowed; }
+      .tm-btn i { font-size: 17px; }
+      .tm-btn.approve  { background: #00a878; color: #fff; }
+      .tm-btn.decline  { background: #fef0ec; color: #e85d35; }
+      .tm-btn.verified { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+
+      /* decline note textarea */
+      .tm-note-wrap { margin-top: 14px; display: none; }
+      .tm-note-wrap.show { display: block; }
+      .tm-note-label { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+      .tm-note-input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 9px; background: #f9fafb; padding: 10px 12px; font-family: inherit; font-size: 13px; color: #111; outline: none; resize: none; transition: border-color .15s; }
+      .tm-note-input:focus { border-color: #e85d35; }
+      .tm-confirm-btn { width: 100%; height: 44px; margin-top: 8px; border-radius: 10px; border: none; background: #e85d35; color: #fff; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity .15s; }
+      .tm-confirm-btn:hover { opacity: .88; }
+
+      /* success state */
+      .tm-success { display: none; padding: 40px 24px; text-align: center; }
+      .tm-success-icon { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 16px; }
+      .tm-success-icon.approved { background: #e6f8f2; color: #00a878; }
+      .tm-success-icon.declined { background: #fef0ec; color: #e85d35; }
+      .tm-success h3 { font-size: 18px; font-weight: 800; color: #111; margin-bottom: 6px; }
+      .tm-success p  { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 20px; }
+      .tm-done-btn { width: 100%; height: 46px; border-radius: 11px; border: none; background: #e85d35; color: #fff; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+      /* loading */
+      .tm-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 14px; }
+      .tm-spinner { width: 32px; height: 32px; border: 3px solid #f3f4f6; border-top-color: #e85d35; border-radius: 50%; animation: spin .7s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .tm-loading span { font-size: 13px; color: #9ca3af; font-weight: 500; }
+
+      /* responsive */
+      @media (max-width: 1100px) { .tx-stats { grid-template-columns: repeat(2,1fr); } }
+      @media (max-width: 768px) {
+        .admin-sidebar { display: none; }
+        .main.admin    { margin-left: 0; }
+        .admin-inner   { padding: 16px; }
+        .admin-topbar  { padding: 14px 16px; }
+        .tm-actions    { flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="18" width="6" height="12" rx="2" fill="#E85D35"/>
+          <rect x="11" y="10" width="6" height="20" rx="2" fill="#E85D35" opacity="0.75"/>
+          <rect x="20" y="4" width="6" height="26" rx="2" fill="#E85D35" opacity="0.45"/>
+        </svg>
+        <span class="admin-logo-name">OTEX</span>
+        <span class="admin-logo-badge">Admin</span>
+      </div>
+      <nav class="admin-nav">
+        <div class="nav-section-label">Overview</div>
+        <a class="admin-nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+        <a class="admin-nav-item"><i class="ti ti-chart-line"></i> Analytics</a>
+        <div class="nav-section-label">Management</div>
+        <a class="admin-nav-item"><i class="ti ti-users"></i> Users <span class="nav-badge muted">1.2k</span></a>
+        <a class="admin-nav-item"><i class="ti ti-shield-check"></i> KYC Review <span class="nav-badge">9</span></a>
+        <a class="admin-nav-item active"><i class="ti ti-arrow-left-right"></i> Transactions <span class="nav-badge">14</span></a>
+        <a class="admin-nav-item"><i class="ti ti-chart-candlestick"></i> Trades</a>
+        <a class="admin-nav-item"><i class="ti ti-user-star"></i> Agents</a>
+        <a class="admin-nav-item"><i class="ti ti-gift"></i> Referrals</a>
+        <div class="nav-section-label">Platform</div>
+        <a class="admin-nav-item"><i class="ti ti-coin"></i> Assets & Rates</a>
+        <a class="admin-nav-item"><i class="ti ti-building-bank"></i> Bank Accounts</a>
+        <a class="admin-nav-item"><i class="ti ti-bell-ringing"></i> Notifications</a>
+        <a class="admin-nav-item"><i class="ti ti-settings"></i> Settings</a>
+        <div class="nav-section-label">System</div>
+        <a class="admin-nav-item"><i class="ti ti-shield-lock"></i> Admin Roles</a>
+        <a class="admin-nav-item"><i class="ti ti-file-text"></i> Audit Log</a>
+      </nav>
+      <div class="admin-sidebar-bottom">
+        <div class="admin-user-row">
+          <div class="admin-avatar">SA</div>
+          <div><p class="admin-user-name">Samuel Addo</p><p class="admin-user-role">Super Admin</p></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main admin">
+
+      <div class="admin-topbar">
+        <div class="admin-topbar-left">
+          <h1>Transactions</h1>
+          <p>Review, approve and decline deposits & withdrawals</p>
+        </div>
+        <div class="admin-topbar-right">
+          <div class="topbar-icon-btn"><i class="ti ti-bell"></i><span class="topbar-dot"></span></div>
+          <div class="topbar-icon-btn"><i class="ti ti-settings"></i></div>
+          <div class="admin-avatar" style="cursor:pointer">SA</div>
+        </div>
+      </div>
+
+      <div class="admin-inner">
+
+        <!-- Stat strip -->
+        <div class="tx-stats">
+          <div class="tx-stat">
+            <div class="tx-stat-label">Pending Review</div>
+            <div class="tx-stat-val" style="color:#d97706">14</div>
+            <div class="tx-stat-sub red">Needs action</div>
+          </div>
+          <div class="tx-stat">
+            <div class="tx-stat-label">Deposits (30d)</div>
+            <div class="tx-stat-val">$284,920</div>
+            <div class="tx-stat-sub green">1,204 transactions</div>
+          </div>
+          <div class="tx-stat">
+            <div class="tx-stat-label">Withdrawals (30d)</div>
+            <div class="tx-stat-val">$96,310</div>
+            <div class="tx-stat-sub">412 transactions</div>
+          </div>
+          <div class="tx-stat">
+            <div class="tx-stat-label">Total Volume (30d)</div>
+            <div class="tx-stat-val">$381,230</div>
+            <div class="tx-stat-sub green">↑ 8.4% vs last month</div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i class="ti ti-search"></i>
+            <input class="search-input" type="text" id="searchInput" placeholder="Reference, username, email…" oninput="render()" />
+          </div>
+          <span class="fchip active" onclick="setFilter('all',this)">All</span>
+          <span class="fchip" onclick="setFilter('pending',this)">Pending</span>
+          <span class="fchip" onclick="setFilter('completed',this)">Completed</span>
+          <span class="fchip" onclick="setFilter('failed',this)">Failed</span>
+          <span class="fchip" onclick="setFilter('deposit',this)">Deposits only</span>
+          <span class="fchip" onclick="setFilter('withdrawal',this)">Withdrawals only</span>
+          <button class="export-btn"><i class="ti ti-download"></i> Export CSV</button>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <div class="admin-card-title"><i class="ti ti-arrow-left-right"></i> All Transactions</div>
+            <span class="table-count" id="txCount">—</span>
+          </div>
+          <div class="admin-table-scroll">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Type</th>
+                  <th>Method</th>
+                  <th>Reference</th>
+                  <th class="right">Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th class="right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="txBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span class="page-info" id="pageInfo"></span>
+            <div class="page-btns" id="pageBtns"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ══════════════════════════════════════
+         TRANSACTION DETAIL MODAL
+    ══════════════════════════════════════ -->
+    <div class="modal-bg" id="modalBg" onclick="handleBgClick(event)">
+      <div class="tx-modal" id="txModal">
+
+        <!-- Loading -->
+        <div class="tm-loading" id="tmLoading">
+          <div class="tm-spinner"></div>
+          <span>Loading transaction…</span>
+        </div>
+
+        <!-- Detail content -->
+        <div id="tmContent" style="display:none">
+          <div class="tm-head">
+            <div class="tm-close" onclick="closeModal()"><i class="ti ti-x"></i></div>
+            <div class="tm-type-icon" id="tmTypeIcon"><i class="ti ti-arrow-down" id="tmTypeIconI"></i></div>
+            <div>
+              <div class="tm-ref" id="tmRef">—</div>
+              <div class="tm-title" id="tmTitle">—</div>
+              <div class="tm-pills" id="tmPills"></div>
+            </div>
+          </div>
+
+          <div class="tm-amount-hero">
+            <div class="tm-amount-label">Transaction Amount</div>
+            <div class="tm-amount-val" id="tmAmountVal">$0.00</div>
+            <div class="tm-amount-sub" id="tmAmountSub">—</div>
+          </div>
+
+          <div class="tm-body">
+
+            <!-- User info -->
+            <div class="tm-section">
+              <div class="tm-section-title"><i class="ti ti-user-circle"></i> User</div>
+              <div class="tm-rows">
+                <div class="tm-row"><span class="tm-key">Name</span><span class="tm-val" id="tmUserName">—</span></div>
+                <div class="tm-row"><span class="tm-key">Username</span><span class="tm-val" id="tmUsername">—</span></div>
+                <div class="tm-row"><span class="tm-key">Email</span><span class="tm-val" id="tmEmail">—</span></div>
+              </div>
+            </div>
+
+            <!-- Transaction details -->
+            <div class="tm-section">
+              <div class="tm-section-title"><i class="ti ti-receipt"></i> Transaction Details</div>
+              <div class="tm-rows">
+                <div class="tm-row"><span class="tm-key">Type</span><span class="tm-val" id="tmType">—</span></div>
+                <div class="tm-row"><span class="tm-key">Method</span><span class="tm-val" id="tmMethod">—</span></div>
+                <div class="tm-row"><span class="tm-key">Amount</span><span class="tm-val" id="tmAmount">—</span></div>
+                <div class="tm-row"><span class="tm-key">Fee</span><span class="tm-val" id="tmFee">—</span></div>
+                <div class="tm-row"><span class="tm-key">Net Amount</span><span class="tm-val green" id="tmNet">—</span></div>
+                <div class="tm-row"><span class="tm-key">Status</span><span class="tm-val" id="tmStatus">—</span></div>
+                <div class="tm-row"><span class="tm-key">Created</span><span class="tm-val" id="tmCreated">—</span></div>
+                <div class="tm-row" id="tmConfirmedRow" style="display:none"><span class="tm-key">Confirmed</span><span class="tm-val" id="tmConfirmed">—</span></div>
+              </div>
+            </div>
+
+            <!-- Crypto-specific -->
+            <div class="tm-section" id="tmCryptoSection" style="display:none">
+              <div class="tm-section-title"><i class="ti ti-currency-bitcoin"></i> Crypto Details</div>
+              <div class="tm-rows">
+                <div class="tm-row" id="tmHashRow" style="display:none"><span class="tm-key">TX Hash</span><span class="tm-val mono" id="tmHash">—</span></div>
+                <div class="tm-row" id="tmAddressRow" style="display:none"><span class="tm-key">Wallet Address</span><span class="tm-val mono" id="tmAddress">—</span></div>
+              </div>
+            </div>
+
+            <!-- Agent-specific -->
+            <div class="tm-section" id="tmAgentSection" style="display:none">
+              <div class="tm-section-title"><i class="ti ti-users"></i> Agent Details</div>
+              <div class="tm-rows">
+                <div class="tm-row"><span class="tm-key">Agent</span><span class="tm-val" id="tmAgent">—</span></div>
+              </div>
+            </div>
+
+            <!-- Proof of payment -->
+            <div class="tm-section" id="tmProofSection">
+              <div class="tm-section-title"><i class="ti ti-photo"></i> Proof of Payment</div>
+              <div id="tmProofContent"></div>
+            </div>
+
+            <!-- Actions -->
+            <div id="tmActionArea">
+              <div class="tm-actions">
+                <button class="tm-btn approve" id="tmApproveBtn" onclick="handleApprove()">
+                  <i class="ti ti-circle-check"></i> Approve
+                </button>
+                <button class="tm-btn decline" id="tmDeclineBtn" onclick="showDeclineNote()">
+                  <i class="ti ti-circle-x"></i> Decline
+                </button>
+              </div>
+
+              <!-- Decline note -->
+              <div class="tm-note-wrap" id="tmNoteWrap">
+                <div class="tm-note-label">Reason for declining (optional — sent to user)</div>
+                <textarea class="tm-note-input" id="tmNoteInput" rows="2" placeholder="e.g. Payment not received, incorrect amount sent…"></textarea>
+                <button class="tm-confirm-btn" onclick="handleDecline()">
+                  <i class="ti ti-send" style="font-size:15px"></i> Confirm Decline
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Success state -->
+        <div class="tm-success" id="tmSuccess">
+          <div class="tm-success-icon" id="tmSuccessIcon">
+            <i class="ti ti-check" id="tmSuccessIconI"></i>
+          </div>
+          <h3 id="tmSuccessTitle">Done!</h3>
+          <p id="tmSuccessMsg">The transaction has been updated.</p>
+          <button class="tm-done-btn" onclick="closeModal()">Close</button>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      /* ═══════════════════════════════════════
+         Sample data — replace with:
+         const TRANSACTIONS = {{ transactions_json|safe }};
+      ═══════════════════════════════════════ */
+      const TRANSACTIONS = [
+        { id:"OTX-001", user:"Kwame Asante",    initials:"KA", username:"kwame23",      email:"kwame23@gmail.com",    type:"deposit",    method:"bank",        amount:300,   fee:0,     net:300,   status:"pending",   created:"13 Jun 2026, 10:42",  confirmed:null,              tx_hash:null,                    wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-002", user:"Fatou Diallo",    initials:"FD", username:"fatou_trades", email:"fatou.d@gmail.com",    type:"withdrawal", method:"crypto_btc",  amount:150,   fee:2.25,  net:147.75, status:"pending",   created:"13 Jun 2026, 10:31",  confirmed:null,              tx_hash:null,                    wallet:"bc1qxy2kgdy…x0wlh", agent:null,           proof:false },
+        { id:"OTX-003", user:"Moses Kamau",     initials:"MK", username:"moses_k",      email:"moses@gmail.com",      type:"deposit",    method:"crypto_usdt", amount:500,   fee:0,     net:500,   status:"completed", created:"13 Jun 2026, 09:58",  confirmed:"13 Jun 2026, 11:02", tx_hash:"TRx9kTbMxHsFvQ8K…567890", wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-004", user:"Aisha Bello",     initials:"AB", username:"aisha_b",      email:"aisha@gmail.com",      type:"deposit",    method:"agent",       amount:200,   fee:3,     net:197,   status:"completed", created:"13 Jun 2026, 09:44",  confirmed:"13 Jun 2026, 10:20", tx_hash:null,                    wallet:null,         agent:"Agent Kwame (Accra, Ghana)", proof:false },
+        { id:"OTX-005", user:"Samuel Osei",     initials:"SO", username:"samuel_ot",    email:"samuel@gmail.com",     type:"withdrawal", method:"bank",        amount:120,   fee:0,     net:120,   status:"pending",   created:"13 Jun 2026, 09:12",  confirmed:null,              tx_hash:null,                    wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-006", user:"Chioma Eze",      initials:"CE", username:"chioma_e",     email:"chioma@gmail.com",     type:"deposit",    method:"crypto_eth",  amount:450,   fee:0,     net:450,   status:"failed",    created:"13 Jun 2026, 08:55",  confirmed:null,              tx_hash:"0x742d35Cc66…abCD",     wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-007", user:"David Mensah",    initials:"DM", username:"david_m",      email:"david@gmail.com",      type:"withdrawal", method:"crypto_usdt", amount:300,   fee:4.5,   net:295.5, status:"pending",   created:"13 Jun 2026, 08:40",  confirmed:null,              tx_hash:null,                    wallet:"TRx9kTbMxH…890", agent:null,           proof:false },
+        { id:"OTX-008", user:"Grace Nkomo",     initials:"GN", username:"grace_nk",     email:"grace@gmail.com",      type:"deposit",    method:"bank",        amount:1000,  fee:0,     net:1000,  status:"completed", created:"13 Jun 2026, 08:22",  confirmed:"13 Jun 2026, 09:30", tx_hash:null,                    wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-009", user:"Emmanuel Tetteh", initials:"ET", username:"emman_t",      email:"emman@gmail.com",      type:"deposit",    method:"agent",       amount:80,    fee:1.2,   net:78.8,  status:"pending",   created:"12 Jun 2026, 04:10",  confirmed:null,              tx_hash:null,                    wallet:null,         agent:"Agent Fatoumata (Lagos, Nigeria)", proof:false },
+        { id:"OTX-010", user:"Nkechi Okafor",   initials:"NO", username:"nkechi_o",     email:"nkechi@gmail.com",     type:"withdrawal", method:"crypto_btc",  amount:700,   fee:10.5,  net:689.5, status:"completed", created:"12 Jun 2026, 03:22",  confirmed:"12 Jun 2026, 06:14", tx_hash:"0x7a2b…d41e",           wallet:"bc1q…3h2k",  agent:null,           proof:false },
+        { id:"OTX-011", user:"Ibrahim Diop",    initials:"ID", username:"ibrahim_d",    email:"ibrahim@gmail.com",    type:"deposit",    method:"bank",        amount:250,   fee:0,     net:250,   status:"pending",   created:"12 Jun 2026, 02:55",  confirmed:null,              tx_hash:null,                    wallet:null,         agent:null,           proof:true  },
+        { id:"OTX-012", user:"Zara Musa",       initials:"ZM", username:"zara_m",       email:"zara@gmail.com",       type:"withdrawal", method:"bank",        amount:90,    fee:0,     net:90,    status:"cancelled", created:"11 Jun 2026, 17:33",  confirmed:null,              tx_hash:null,                    wallet:null,         agent:null,           proof:false },
+      ];
+
+      const METHOD_LABELS = {
+        bank:"Bank Transfer", crypto_btc:"Bitcoin (BTC)", crypto_usdt:"USDT TRC20", crypto_eth:"Ethereum (ETH)", agent:"Agent (P2P)"
+      };
+      const COLORS = [
+        ["#fef0ec","#e85d35"],["#e6f8f2","#00a878"],
+        ["#eff6ff","#2563eb"],["#f5f3ff","#7c3aed"],
+        ["#fffbeb","#d97706"],["#fce7f3","#db2777"],
+      ];
+
+      const PER_PAGE = 8;
+      let activeFilter = "all";
+      let page = 1;
+      let currentTxId = null;
+
+      function setFilter(f, el) {
+        activeFilter = f; page = 1;
+        document.querySelectorAll(".fchip").forEach(c => c.classList.remove("active"));
+        el.classList.add("active");
+        render();
+      }
+
+      function filtered() {
+        const q = document.getElementById("searchInput").value.trim().toLowerCase();
+        return TRANSACTIONS.filter(t => {
+          if (activeFilter === "pending" && t.status !== "pending") return false;
+          if (activeFilter === "completed" && t.status !== "completed") return false;
+          if (activeFilter === "failed" && t.status !== "failed") return false;
+          if (activeFilter === "deposit" && t.type !== "deposit") return false;
+          if (activeFilter === "withdrawal" && t.type !== "withdrawal") return false;
+          if (q && !t.id.toLowerCase().includes(q) && !t.username.toLowerCase().includes(q) && !t.user.toLowerCase().includes(q)) return false;
+          return true;
+        });
+      }
+
+      function render() {
+        const data  = filtered();
+        const total = data.length;
+        const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+        page = Math.min(page, pages);
+        const slice = data.slice((page-1)*PER_PAGE, page*PER_PAGE);
+
+        document.getElementById("txCount").textContent = `Showing ${slice.length} of ${total}`;
+
+        document.getElementById("txBody").innerHTML = slice.map(t => {
+          const [bg, fg] = COLORS[TRANSACTIONS.indexOf(t) % COLORS.length];
+          const typeHtml = t.type === "deposit"
+            ? `<span class="type-pill deposit"><i class="ti ti-arrow-down" style="font-size:12px"></i> Deposit</span>`
+            : `<span class="type-pill withdrawal"><i class="ti ti-arrow-up" style="font-size:12px"></i> Withdrawal</span>`;
+          const amtColor = t.type === "deposit" ? "#00a878" : "#e85d35";
+          const amtSign  = t.type === "deposit" ? "+" : "-";
+
+          return `<tr onclick="openTx('${t.id}')">
+            <td>
+              <div class="user-cell">
+                <div class="table-avatar" style="background:${bg};color:${fg}">${t.initials}</div>
+                <div>
+                  <div class="table-name">${t.user}</div>
+                  <div class="table-sub">@${t.username}</div>
+                </div>
+              </div>
+            </td>
+            <td>${typeHtml}</td>
+            <td><span class="method-tag ${t.method}">${METHOD_LABELS[t.method]}</span></td>
+            <td style="font-family:monospace;font-size:12px;color:#9ca3af">${t.id}</td>
+            <td class="right" style="font-weight:700;color:${amtColor}">${amtSign}$${t.amount.toFixed(2)}</td>
+            <td><span class="status-badge ${t.status}">${t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span></td>
+            <td style="font-size:12px;color:#9ca3af">${t.created}</td>
+            <td class="right">
+              <button class="view-btn" onclick="event.stopPropagation();openTx('${t.id}')">
+                <i class="ti ti-eye"></i> Review
+              </button>
+            </td>
+          </tr>`;
+        }).join("");
+
+        document.getElementById("pageInfo").textContent = `Page ${page} of ${pages}`;
+        let btns = `<button class="page-btn ${page===1?"disabled":""}" onclick="goPage(${page-1})"><i class="ti ti-chevron-left"></i></button>`;
+        const range = new Set([1,pages,page-1,page,page+1].filter(n=>n>=1&&n<=pages));
+        const sorted = [...range].sort((a,b)=>a-b); let prev=0;
+        sorted.forEach(n => {
+          if (prev && n-prev>1) btns += `<button class="page-btn" disabled>…</button>`;
+          btns += `<button class="page-btn ${n===page?"active":""}" onclick="goPage(${n})">${n}</button>`;
+          prev=n;
+        });
+        btns += `<button class="page-btn ${page===pages?"disabled":""}" onclick="goPage(${page+1})"><i class="ti ti-chevron-right"></i></button>`;
+        document.getElementById("pageBtns").innerHTML = btns;
+      }
+
+      function goPage(n) { page = n; render(); }
+
+      /* ════════════════════════════════
+         MODAL
+      ════════════════════════════════ */
+      function openTx(id) {
+        currentTxId = id;
+        document.getElementById("modalBg").classList.add("open");
+        document.getElementById("tmLoading").style.display = "flex";
+        document.getElementById("tmContent").style.display = "none";
+        document.getElementById("tmSuccess").style.display = "none";
+        document.getElementById("tmNoteWrap").classList.remove("show");
+        document.body.style.overflow = "hidden";
+
+        /* ── Replace with real fetch ──
+        fetch(`/admin/transactions/${id}/detail/`)
+          .then(r => r.json())
+          .then(data => populateModal(data))
+          .catch(() => {
+            document.getElementById("tmLoading").innerHTML =
+              '<span style="color:#e85d35">Failed to load transaction.</span>';
+          });
+        ─────────────────────────────── */
+
+        setTimeout(() => {
+          const t = TRANSACTIONS.find(x => x.id === id);
+          populateModal(t);
+        }, 500);
+      }
+
+      function populateModal(t) {
+        const isDeposit = t.type === "deposit";
+
+        /* Head */
+        const typeIcon = document.getElementById("tmTypeIcon");
+        typeIcon.className = `tm-type-icon ${t.type}`;
+        document.getElementById("tmTypeIconI").className = isDeposit ? "ti ti-arrow-down" : "ti ti-arrow-up";
+        document.getElementById("tmRef").textContent   = t.id;
+        document.getElementById("tmTitle").textContent = isDeposit ? "Deposit" : "Withdrawal";
+        document.getElementById("tmPills").innerHTML   = `
+          <span class="status-badge ${t.status}">${t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span>
+          <span class="method-tag ${t.method}">${METHOD_LABELS[t.method]}</span>
+        `;
+
+        /* Amount hero */
+        const amountEl = document.getElementById("tmAmountVal");
+        amountEl.className = `tm-amount-val ${t.type}`;
+        amountEl.textContent = `${isDeposit ? "+" : "-"}$${t.amount.toFixed(2)}`;
+        document.getElementById("tmAmountSub").textContent = `Fee: $${t.fee.toFixed(2)} · Net: $${t.net.toFixed(2)}`;
+
+        /* User */
+        document.getElementById("tmUserName").textContent = t.user;
+        document.getElementById("tmUsername").textContent = "@" + t.username;
+        document.getElementById("tmEmail").textContent    = t.email;
+
+        /* Transaction details */
+        document.getElementById("tmType").textContent    = isDeposit ? "Deposit" : "Withdrawal";
+        document.getElementById("tmMethod").textContent  = METHOD_LABELS[t.method];
+        document.getElementById("tmAmount").textContent  = "$" + t.amount.toFixed(2);
+        document.getElementById("tmFee").textContent     = "$" + t.fee.toFixed(2);
+        document.getElementById("tmNet").textContent     = "$" + t.net.toFixed(2);
+        document.getElementById("tmStatus").innerHTML    = `<span class="status-badge ${t.status}">${t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span>`;
+        document.getElementById("tmCreated").textContent = t.created;
+
+        if (t.confirmed) {
+          document.getElementById("tmConfirmedRow").style.display = "flex";
+          document.getElementById("tmConfirmed").textContent = t.confirmed;
+        } else {
+          document.getElementById("tmConfirmedRow").style.display = "none";
+        }
+
+        /* Crypto section */
+        const cryptoMethods = ["crypto_btc","crypto_usdt","crypto_eth"];
+        const isCrypto = cryptoMethods.includes(t.method);
+        document.getElementById("tmCryptoSection").style.display = isCrypto ? "block" : "none";
+        if (isCrypto) {
+          const hashRow    = document.getElementById("tmHashRow");
+          const addressRow = document.getElementById("tmAddressRow");
+          if (t.tx_hash) {
+            hashRow.style.display = "flex";
+            document.getElementById("tmHash").textContent = t.tx_hash;
+          } else { hashRow.style.display = "none"; }
+          if (t.wallet) {
+            addressRow.style.display = "flex";
+            document.getElementById("tmAddress").textContent = t.wallet;
+          } else { addressRow.style.display = "none"; }
+        }
+
+        /* Agent section */
+        document.getElementById("tmAgentSection").style.display = t.agent ? "block" : "none";
+        if (t.agent) document.getElementById("tmAgent").textContent = t.agent;
+
+        /* Proof */
+        document.getElementById("tmProofContent").innerHTML = t.proof
+          ? `<img src="https://placehold.co/460x180/f3f4f6/9ca3af?text=Proof+Screenshot" class="tm-proof-img" alt="proof" />`
+          : `<div class="tm-no-proof"><i class="ti ti-photo-off"></i>No proof uploaded</div>`;
+
+        /* Action buttons — disable if already settled */
+        const settled = t.status === "completed" || t.status === "failed" || t.status === "cancelled";
+        const approveBtn = document.getElementById("tmApproveBtn");
+        const declineBtn = document.getElementById("tmDeclineBtn");
+        if (settled) {
+          approveBtn.className = "tm-btn verified";
+          approveBtn.innerHTML = `<i class="ti ti-lock"></i> ${t.status.charAt(0).toUpperCase()+t.status.slice(1)}`;
+          approveBtn.disabled  = true;
+          declineBtn.style.display = "none";
+        } else {
+          approveBtn.className = "tm-btn approve";
+          approveBtn.innerHTML = `<i class="ti ti-circle-check"></i> Approve`;
+          approveBtn.disabled  = false;
+          declineBtn.style.display = "flex";
+        }
+        document.getElementById("tmNoteWrap").classList.remove("show");
+        document.getElementById("tmNoteInput").value = "";
+
+        document.getElementById("tmLoading").style.display = "none";
+        document.getElementById("tmContent").style.display = "block";
+      }
+
+      /* ── Approve ── */
+      function handleApprove() {
+        if (!confirm("Approve this transaction?")) return;
+
+        /* ── Replace with real fetch ──
+        fetch(`/admin/transactions/${currentTxId}/approve/`, {
+          method: "POST",
+          headers: { "X-CSRFToken": getCookie("csrftoken") },
+        }).then(r => r.json()).then(data => {
+          if (data.success) showSuccess("approved");
+          else alert(data.error);
+        });
+        ─────────────────────────────── */
+
+        // Demo
+        const t = TRANSACTIONS.find(x => x.id === currentTxId);
+        if (t) t.status = "completed";
+        showSuccess("approved");
+        render();
+      }
+
+      /* ── Decline ── */
+      function showDeclineNote() {
+        document.getElementById("tmNoteWrap").classList.add("show");
+        document.getElementById("tmDeclineBtn").style.display = "none";
+      }
+
+      function handleDecline() {
+        const note = document.getElementById("tmNoteInput").value.trim();
+
+        /* ── Replace with real fetch ──
+        fetch(`/admin/transactions/${currentTxId}/decline/`, {
+          method: "POST",
+          headers: { "Content-Type":"application/x-www-form-urlencoded", "X-CSRFToken": getCookie("csrftoken") },
+          body: `note=${encodeURIComponent(note)}`,
+        }).then(r => r.json()).then(data => {
+          if (data.success) showSuccess("declined");
+          else alert(data.error);
+        });
+        ─────────────────────────────── */
+
+        const t = TRANSACTIONS.find(x => x.id === currentTxId);
+        if (t) t.status = "failed";
+        showSuccess("declined");
+        render();
+      }
+
+      function showSuccess(outcome) {
+        document.getElementById("tmContent").style.display  = "none";
+        document.getElementById("tmSuccess").style.display  = "block";
+        const icon = document.getElementById("tmSuccessIcon");
+        icon.className = `tm-success-icon ${outcome}`;
+        if (outcome === "approved") {
+          document.getElementById("tmSuccessIconI").className = "ti ti-circle-check";
+          document.getElementById("tmSuccessTitle").textContent = "Transaction Approved";
+          document.getElementById("tmSuccessMsg").textContent   = "The transaction has been approved and the user's balance has been updated.";
+        } else {
+          document.getElementById("tmSuccessIconI").className = "ti ti-circle-x";
+          document.getElementById("tmSuccessTitle").textContent = "Transaction Declined";
+          document.getElementById("tmSuccessMsg").textContent   = "The transaction has been declined. The user will be notified.";
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("modalBg").classList.remove("open");
+        document.body.style.overflow = "";
+        currentTxId = null;
+      }
+
+      function handleBgClick(e) {
+        if (e.target === document.getElementById("modalBg")) closeModal();
+      }
+
+      function getCookie(name) {
+        const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
+        return v ? v.pop() : "";
+      }
+
+      render();
+    </script>
+
+  </body>
+</html>
