@@ -526,12 +526,11 @@ def deposit_withcrypto_page(request):
 
         notify.notify_admins(
             f"💰 <b>New Crypto Deposit Detected</b>\n"
-            f"User: {request.user.username}\n"
+            f"User: {request.user.get_full_name()}\n"
             f"Type: {transaction.get_transaction_type_display()}\n"
             f"Method: {transaction.get_method_display()}\n"
             f"Amount: ${transaction.amount}\n"
             f"Reference: <code>{transaction.reference}</code>\n\n"
-            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
         )
 
         return redirect(
@@ -598,12 +597,11 @@ def withdrawal(request):
 
         notify.notify_admins(
             f"💰 <b>New Transaction</b>\n"
-            f"User: {request.user.username}\n"
+            f"User: {request.user.get_full_name()}\n"
             f"Type: {transaction.get_transaction_type_display()}\n"
             f"Method: {transaction.get_method_display()}\n"
             f"Amount: ${transaction.amount}\n"
             f"Reference: <code>{transaction.reference}</code>\n\n"
-            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
         )
 
         return redirect(
@@ -660,7 +658,6 @@ def kyc_page(request):
             notify.notify_admins(
                 f"🪪 <b>New KYC Submission</b>\n"
                 f"User: {request.user.get_full_name()}\n"
-                f"<a href='https://otexoption.com/admin/kyc/kycsubmission/{kyc.pk}/change/'>Review →</a>"
             )
 
             messages.success(
@@ -1014,7 +1011,7 @@ def credit_user(request):
 
     notify.notify_admins(
         f"💰 <b>New Transaction</b>\n"
-        f"User: {request.user.username}\n"
+        f"User: {request.user.get_full_name()}\n"
         f"Type: {transaction.get_transaction_type_display()}\n"
         f"Method: {transaction.get_method_display()}\n"
         f"Amount: ${transaction.amount}\n"
@@ -1095,12 +1092,11 @@ def bank_deposit(request):
 
         notify.notify_admins(
             f"💰 <b>Bank Transaction Detected</b>\n"
-            f"User: {request.user.username}\n"
+            f"User: {request.user.get_full_name()}\n"
             f"Type: {transaction.get_transaction_type_display()}\n"
             f"Method: {transaction.get_method_display()}\n"
             f"Amount: ${transaction.amount}\n"
             f"Reference: <code>{transaction.reference}</code>\n\n"
-            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
         )
 
         return JsonResponse(payload)
@@ -1202,12 +1198,11 @@ def agent_withdrawal(request):
 
         notify.notify_admins(
             f"💰 <b>New Transaction</b>\n"
-            f"User: {request.user.username}\n"
+            f"User: {request.user.get_full_name()}\n"
             f"Type: {transaction.get_transaction_type_display()}\n"
             f"Method: {transaction.get_method_display()}\n"
             f"Amount: ${transaction.amount}\n"
             f"Reference: <code>{transaction.reference}</code>\n\n"
-            f"<a href='https://otexoption.com/admin/dashboard/transaction/{transaction.pk}/change/'>Review →</a>"
         )
 
         return redirect(
