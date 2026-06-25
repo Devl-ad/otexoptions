@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # "crispy_forms",
     "channels",
     "django_celery_beat",
+    "django.contrib.sitemaps",
     "apps.home",
     "apps.account",
     "apps.dashboard",
