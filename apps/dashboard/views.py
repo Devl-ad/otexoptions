@@ -659,9 +659,7 @@ def kyc_page(request):
 
             notify.notify_admins(
                 f"🪪 <b>New KYC Submission</b>\n"
-                f"User: {request.user.username}\n"
-                f"Name: {kyc.full_name}\n"
-                f"Document: {kyc.get_document_type_display()}\n\n"
+                f"User: {request.user.get_full_name()}\n"
                 f"<a href='https://otexoption.com/admin/kyc/kycsubmission/{kyc.pk}/change/'>Review →</a>"
             )
 
