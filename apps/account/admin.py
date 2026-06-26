@@ -27,7 +27,7 @@ def _send(subject, to_email, text_template, html_template, context):
 @admin.register(User)
 class UserAdmin(ModelAdmin):
     list_display = (
-        "email",
+        "get_full_name",
         "username",
         "is_active",
         "email_verified",
@@ -37,6 +37,8 @@ class UserAdmin(ModelAdmin):
     list_filter = ("is_active", "is_staff", "email_verified", "totp_enabled")
     search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("-date_joined",)
+    list_per_page = 25
+    list_max_show_all = 200
 
     fieldsets = (
         (None, {"fields": ("email", "username", "password")}),
@@ -72,6 +74,8 @@ class UserAdmin(ModelAdmin):
 @admin.register(Details)
 class DetailsAdmin(ModelAdmin):
     list_display = ["user", "local_currency"]
+    list_per_page = 25
+    list_max_show_all = 200
 
 
 class ReferralDepositInline(admin.TabularInline):
@@ -101,6 +105,8 @@ class ReferralAdmin(ModelAdmin):
     ]
     inlines = [ReferralDepositInline]
     search_fields = ["referrer__username", "referred__username"]
+    list_per_page = 25
+    list_max_show_all = 200
 
 
 # ── Actions (bulk — list page dropdown) ───────────────────────────────────────
@@ -288,14 +294,12 @@ def _rejection_email(user, admin_note=""):
 @admin.register(KYCSubmission)
 class KYCSubmissionAdmin(ModelAdmin):
     list_display = (
-        "user",
         "full_name",
         "nationality",
         "document_type_display",
         "status_badge",
         "submitted_at",
         "reviewed_at",
-        "reviewed_by",
     )
     list_filter = ("status", "document_type", "nationality")
     search_fields = (
@@ -318,6 +322,8 @@ class KYCSubmissionAdmin(ModelAdmin):
     )
     actions = [approve_kyc, reject_kyc]
     ordering = ["-submitted_at"]
+    list_per_page = 25
+    list_max_show_all = 200
 
     fieldsets = (
         (

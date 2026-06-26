@@ -37,6 +37,8 @@ from django.utils import timezone
 @admin.register(PriceTick)
 class PriceTickAdmin(ModelAdmin):
     list_display = ["pair"]
+    list_per_page = 25
+    list_max_show_all = 200  # cap for "show all" link
 
 
 @admin.register(BotKey)
@@ -44,17 +46,23 @@ class BotKeyAdmin(ModelAdmin):
     list_display = ["key", "template", "label"]
     list_editable = ["label"]
     search_fields = ("key", "label", "template__name")
+    list_per_page = 25
+    list_max_show_all = 200  # cap for "show all" link
 
 
 @admin.register(BotTrade)
 class BotTradeAdmin(ModelAdmin):
     list_display = ["session", "result"]
+    list_per_page = 25
+    list_max_show_all = 200  # cap for "show all" link
 
 
 @admin.register(BotSession)
 class BotSessionAdmin(ModelAdmin):
     list_display = ["id", "user", "pair"]
     search_fields = ("user__username", "bot_key__key", "pair__symbol")
+    list_per_page = 25
+    list_max_show_all = 200  # cap for "show all" link
 
 
 @admin.register(RecivingCryptoWallet)
@@ -77,7 +85,6 @@ class BotTemplateAdmin(ModelAdmin):
         "demo_base_win_rate",
         "house_outcome",
         "base_win_rate",
-        "is_active",
         "users_sets",
     ]
     list_editable = [
@@ -85,9 +92,10 @@ class BotTemplateAdmin(ModelAdmin):
         "demo_base_win_rate",
         "house_outcome",
         "base_win_rate",
-        "is_active",
     ]
     list_filter = ["bot_type", "risk_level"]
+    list_per_page = 25
+    list_max_show_all = 200
 
     fieldsets = (
         (
@@ -161,13 +169,19 @@ class TradeAdmin(ModelAdmin):
     ]
     list_filter = ["status", "trade_type", "pair"]
     search_fields = ["user__username"]
+    list_per_page = 25
+    list_max_show_all = 200
 
 
 @admin.register(Wallet)
 class WalletAdmin(ModelAdmin):
-    list_display = ["user", "balance", "demo_balance", "is_demo", "updated_at"]
-    list_editable = ["demo_balance", "is_demo"]
+    list_display = ["user_full_name", "balance", "demo_balance", "updated_at"]
+    list_editable = ["demo_balance"]
     search_fields = ("user__username", "balance")
+
+    @admin.display(description="User")
+    def user_full_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
 
 
 @admin.register(TradingPair)
@@ -418,6 +432,8 @@ class TransactionAdmin(ModelAdmin):
         "whatsapp_link",
         "action_buttons",
     )
+    list_per_page = 25
+    list_max_show_all = 200
     actions = [mark_completed, mark_failed, mark_pending]
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
