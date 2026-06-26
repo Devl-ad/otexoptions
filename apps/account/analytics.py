@@ -17,7 +17,7 @@ def get_platform_analytics():
     target_cap = settings_obj.target_market_cap
 
     # ── User-side liquidity (LIVE only — demo never counts) ──────────────
-    user_agg = Wallet.objects.aggregate(
+    user_agg = Wallet.objects.exclude(user__is_affiliate=True).aggregate(
         total_live_balance=Sum("balance"),
         total_demo_balance=Sum("demo_balance"),
         active_live_users=Count("id", filter=Q(balance__gt=0)),
@@ -36,6 +36,7 @@ def get_platform_analytics():
 
     top_holders = (
         Wallet.objects.filter(balance__gt=0)
+        .exclude(user__is_affiliate=True)
         .select_related("user")
         .order_by("-balance")[:10]
     )
