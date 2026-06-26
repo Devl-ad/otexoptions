@@ -1,6 +1,7 @@
 # dashboard/admin.py
 from django.db import models
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 
 
 from django.utils import timezone
@@ -32,22 +33,46 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 
-admin.site.register(PriceTick)
-admin.site.register(BotKey)
-admin.site.register(BotTrade)
-admin.site.register(BotSession)
-admin.site.register(RecivingCryptoWallet)
+
+@admin.register(PriceTick)
+class PriceTickAdmin(ModelAdmin):
+    list_display = ["pair"]
 
 
-admin.site.register(TodayRate)
+@admin.register(BotKey)
+class BotKeyAdmin(ModelAdmin):
+    list_display = ["key", "template", "label"]
+    list_editable = ["label"]
+    search_fields = ("key", "label", "template__name")
+
+
+@admin.register(BotTrade)
+class BotTradeAdmin(ModelAdmin):
+    list_display = ["session", "result"]
+
+
+@admin.register(BotSession)
+class BotSessionAdmin(ModelAdmin):
+    list_display = ["id", "user", "pair"]
+    search_fields = ("user__username", "bot_key__key", "pair__symbol")
+
+
+@admin.register(RecivingCryptoWallet)
+class RecivingCryptoWalletAdmin(ModelAdmin):
+    list_display = ["coin"]
+
+
+@admin.register(TodayRate)
+class TodayRateAdmin(ModelAdmin):
+    list_display = ["currency", "rate"]
+    list_editable = ["rate"]
 
 
 @admin.register(BotTemplate)
-class BotTemplateAdmin(admin.ModelAdmin):
+class BotTemplateAdmin(ModelAdmin):
     list_display = [
         "name",
         "bot_type",
-        "risk_level",
         "demo_house_outcome",
         "demo_base_win_rate",
         "house_outcome",
@@ -108,7 +133,7 @@ class BotTemplateAdmin(admin.ModelAdmin):
 
 
 @admin.register(HouseSettings)
-class HouseSettingsAdmin(admin.ModelAdmin):
+class HouseSettingsAdmin(ModelAdmin):
     list_display = [
         "pair",
         "payout_pct",
@@ -122,7 +147,7 @@ class HouseSettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(Trade)
-class TradeAdmin(admin.ModelAdmin):
+class TradeAdmin(ModelAdmin):
     list_display = [
         "user",
         "pair",
@@ -139,13 +164,14 @@ class TradeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Wallet)
-class WalletAdmin(admin.ModelAdmin):
+class WalletAdmin(ModelAdmin):
     list_display = ["user", "balance", "demo_balance", "is_demo", "updated_at"]
     list_editable = ["demo_balance", "is_demo"]
+    search_fields = ("user__username", "balance")
 
 
 @admin.register(TradingPair)
-class TradingPairAdmin(admin.ModelAdmin):
+class TradingPairAdmin(ModelAdmin):
     list_display = ["symbol", "name", "volatility", "is_active"]
     list_editable = ["is_active"]
 
@@ -156,17 +182,12 @@ class TradingPairAdmin(admin.ModelAdmin):
 
 
 @admin.register(Agent)
-class AgentAdmin(admin.ModelAdmin):
+class AgentAdmin(ModelAdmin):
     list_display = (
         "avatar_preview",
         "name",
         "location",
         "status_badge",
-        "total_trades",
-        "rating_display",
-        "speed_display",
-        "fee_percent",
-        "deposit_range",
         "is_active",
     )
     list_display_links = ("name",)
@@ -372,17 +393,13 @@ def mark_pending(modeladmin, request, queryset):
 
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(ModelAdmin):
     list_display = (
         "reference",
         "user_link",
         "method_badge",
         "amount_display",
-        "fee",
-        "net_display",
         "status_badge",
-        "agent",
-        "tx_hash_short",
         "created_at",
     )
     list_display_links = ("reference",)

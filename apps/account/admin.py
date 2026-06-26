@@ -11,6 +11,7 @@ from .models import User, Details, KYCSubmission, Referral, ReferralDeposit
 from django.utils.safestring import mark_safe
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from unfold.admin import ModelAdmin, TabularInline
 
 # ── Actions ───────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ def _send(subject, to_email, text_template, html_template, context):
 
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(ModelAdmin):
     list_display = (
         "email",
         "username",
@@ -68,7 +69,9 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-admin.site.register(Details)
+@admin.register(Details)
+class DetailsAdmin(ModelAdmin):
+    list_display = ["user", "local_currency"]
 
 
 class ReferralDepositInline(admin.TabularInline):
@@ -78,7 +81,7 @@ class ReferralDepositInline(admin.TabularInline):
 
 
 @admin.register(Referral)
-class ReferralAdmin(admin.ModelAdmin):
+class ReferralAdmin(ModelAdmin):
     list_display = [
         "referrer",
         "referred",
@@ -283,7 +286,7 @@ def _rejection_email(user, admin_note=""):
 
 
 @admin.register(KYCSubmission)
-class KYCSubmissionAdmin(admin.ModelAdmin):
+class KYCSubmissionAdmin(ModelAdmin):
     list_display = (
         "user",
         "full_name",

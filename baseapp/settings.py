@@ -12,8 +12,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from django.urls import reverse_lazy
 import environ
 from celery.schedules import schedule
+from django.templatetags.static import static
+
+from django.utils.translation import gettext_lazy as _
 
 env = environ.Env()
 
@@ -35,6 +39,9 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -49,7 +56,6 @@ INSTALLED_APPS = [
     "apps.home",
     "apps.account",
     "apps.dashboard",
-    "apps.manager",
 ]
 
 MIDDLEWARE = [
@@ -236,18 +242,147 @@ KORAPAY_SECRET_KEY = env("KORAPAY_SECRET_KEY")
 
 
 # tell Django it's behind a  proxy
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# security headers
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# # security headers
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 FLW_PUBLIC_KEY = env("FLW_PUBLIC_KEY")
 FLW_SECRET_KEY = env("FLW_SECRET_KEY")
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_ADMIN_CHAT_IDS = os.environ.get("TELEGRAM_ADMIN_CHAT_IDS", "").split(",")
+
+
+UNFOLD = {
+    "SITE_TITLE": "OTEX Admin",
+    "SITE_HEADER": "OTEX",
+    "SITE_URL": "/",
+    "SITE_ICON": lambda request: static("/images/logo_pt.png"),
+    "SITE_SYMBOL": "candlestick_chart",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "COLORS": {
+        "primary": {
+            "50": "254 246 242",
+            "100": "253 232 220",
+            "200": "251 195 168",
+            "300": "248 149 105",
+            "400": "244 113 64",
+            "500": "232 93 53",
+            "600": "210 72 36",
+            "700": "175 54 24",
+            "800": "140 42 18",
+            "900": "112 34 15",
+            "950": "60 18 8",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": _("Overview"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Dashboard"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": _("Users & KYC"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Users"),
+                        "icon": "people",
+                        "link": reverse_lazy("admin:account_user_changelist"),
+                    },
+                    {
+                        "title": _("KYC Submissions"),
+                        "icon": "verified_user",
+                        "link": reverse_lazy("admin:account_kycsubmission_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Finance"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Transactions"),
+                        "icon": "swap_horiz",
+                        "link": reverse_lazy("admin:dashboard_transaction_changelist"),
+                    },
+                    {
+                        "title": _("Agents"),
+                        "icon": "support_agent",
+                        "link": reverse_lazy("admin:dashboard_agent_changelist"),
+                    },
+                    {
+                        "title": _("Wallets"),
+                        "icon": "account_balance_wallet",
+                        "link": reverse_lazy("admin:dashboard_wallet_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Trading"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Trading Pairs"),
+                        "icon": "candlestick_chart",
+                        "link": reverse_lazy("admin:dashboard_tradingpair_changelist"),
+                    },
+                    {
+                        "title": _("Trades"),
+                        "icon": "monitoring",
+                        "link": reverse_lazy("admin:dashboard_trade_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("AI Bots"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Bot Templates"),
+                        "icon": "smart_toy",
+                        "link": reverse_lazy("admin:dashboard_bottemplate_changelist"),
+                    },
+                    {
+                        "title": _("Bot Keys"),
+                        "icon": "key",
+                        "link": reverse_lazy("admin:dashboard_botkey_changelist"),
+                    },
+                    {
+                        "title": _("Bot Sessions"),
+                        "icon": "play_circle",
+                        "link": reverse_lazy("admin:dashboard_botsession_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Affiliates"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Referrals"),
+                        "icon": "diversity_3",
+                        "link": reverse_lazy("admin:account_referral_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+    "TABS": [],
+}
