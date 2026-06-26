@@ -644,7 +644,7 @@ class TransactionAdmin(ModelAdmin):
         from django.urls import reverse
 
         url = reverse("admin:account_user_change", args=[obj.user.pk])
-        return format_html('<a href="{}">{}</a>', url, obj.user.username)
+        return format_html('<a href="{}">{}</a>', url, obj.user.get_full_name())
 
     @admin.display(description="Method")
     def method_badge(self, obj):

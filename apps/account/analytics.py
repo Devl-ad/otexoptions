@@ -85,9 +85,13 @@ def get_platform_analytics():
         health_status = "critical"
 
     # ── All-time platform flow ──────────────────────────────────────────────
-    flow_agg = Transaction.objects.filter(status="completed").aggregate(
-        total_deposits=Sum("amount", filter=Q(transaction_type="deposit")),
-        total_withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+    flow_agg = (
+        Transaction.objects.filter(status="completed")
+        .exclude(user__is_affiliate=True)
+        .aggregate(
+            total_deposits=Sum("amount", filter=Q(transaction_type="deposit")),
+            total_withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+        )
     )
     total_deposits = flow_agg["total_deposits"] or Decimal("0.00")
     total_withdrawals = flow_agg["total_withdrawals"] or Decimal("0.00")
@@ -100,11 +104,13 @@ def get_platform_analytics():
     month_start = today_start.replace(day=1)
 
     def flow_since(start_time):
-        agg = Transaction.objects.filter(
-            status="completed", created_at__gte=start_time
-        ).aggregate(
-            deposits=Sum("amount", filter=Q(transaction_type="deposit")),
-            withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+        agg = (
+            Transaction.objects.filter(status="completed", created_at__gte=start_time)
+            .exclude(user__is_affiliate=True)
+            .aggregate(
+                deposits=Sum("amount", filter=Q(transaction_type="deposit")),
+                withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+            )
         )
         deposits = agg["deposits"] or Decimal("0.00")
         withdrawals = agg["withdrawals"] or Decimal("0.00")
@@ -119,9 +125,13 @@ def get_platform_analytics():
     flow_month = flow_since(month_start)
 
     # ── Pending liability — money claimed but not yet confirmed ────────────
-    pending_agg = Transaction.objects.filter(status="pending").aggregate(
-        pending_deposits=Sum("amount", filter=Q(transaction_type="deposit")),
-        pending_withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+    pending_agg = (
+        Transaction.objects.filter(status="pending")
+        .exclude(user__is_affiliate=True)
+        .aggregate(
+            pending_deposits=Sum("amount", filter=Q(transaction_type="deposit")),
+            pending_withdrawals=Sum("amount", filter=Q(transaction_type="withdrawal")),
+        )
     )
     pending_deposits = pending_agg["pending_deposits"] or Decimal("0.00")
     pending_withdrawals = pending_agg["pending_withdrawals"] or Decimal("0.00")
