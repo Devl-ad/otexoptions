@@ -8,6 +8,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 from django.utils.translation import gettext_lazy as _
 
@@ -317,3 +319,47 @@ class ReferralDeposit(models.Model):
 
     def __str__(self):
         return f"${self.amount} deposit → ${self.commission_earned} commission"
+
+
+class PlatformSettings(models.Model):
+    """
+    Singleton model — only one row should ever exist.
+    Holds platform-wide configuration like the target market cap.
+    """
+
+    target_market_cap = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("10000.00"),
+        help_text="The liquidity target you're aiming to maintain across the platform.",
+    )
+
+    safety_threshold_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("20.00"),
+        help_text="Flag agents whose float drops below this % of their average float.",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Platform Settings"
+        verbose_name_plural = "Platform Settings"
+
+    def save(self, *args, **kwargs):
+        # enforce singleton — always overwrite the same row (pk=1)
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass  # prevent deletion — there should always be exactly one row
+
+    @classmethod
+    def load(cls):
+        """Always returns the single settings row, creating it if missing."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return f"Platform Settings (Target: ${self.target_market_cap})"

@@ -7,11 +7,24 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
-from .models import User, Details, KYCSubmission, Referral, ReferralDeposit
+from .models import (
+    User,
+    Details,
+    KYCSubmission,
+    Referral,
+    ReferralDeposit,
+    PlatformSettings,
+)
 from django.utils.safestring import mark_safe
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from unfold.admin import ModelAdmin, TabularInline
+from django.urls import path
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+
+from .analytics import get_platform_analytics
 
 # ── Actions ───────────────────────────────────────────────────────────────────
 
@@ -22,6 +35,75 @@ def _send(subject, to_email, text_template, html_template, context):
     email = EmailMultiAlternatives(subject=subject, body=text_body, to=[to_email])
     email.attach_alternative(html_body, "text/html")
     email.send()
+
+
+original_get_urls = admin.site.get_urls
+
+
+def get_urls():
+    custom_urls = [
+        path(
+            "analytics/",
+            admin.site.admin_view(platform_analytics_view),
+            name="platform_analytics",
+        ),
+    ]
+    return custom_urls + original_get_urls()
+
+
+admin.site.get_urls = get_urls
+
+
+def platform_analytics_view(request):
+    if request.method == "POST":
+        new_target = request.POST.get("target_market_cap")
+        new_threshold = request.POST.get("safety_threshold_pct")
+
+        settings_obj = PlatformSettings.load()
+        try:
+            if new_target:
+                settings_obj.target_market_cap = new_target
+            if new_threshold:
+                settings_obj.safety_threshold_pct = new_threshold
+            settings_obj.save()
+            messages.success(request, "Platform settings updated.")
+        except Exception as e:
+            messages.error(request, f"Failed to update settings: {e}")
+
+        return redirect("admin:platform_analytics")
+
+    data = get_platform_analytics()
+
+    context = {
+        **admin.site.each_context(request),
+        "title": "Platform Analytics",
+        "data": data,
+    }
+    return render(request, "admin/platform_analytics.html", context)
+
+
+@admin.register(PlatformSettings)
+class PlatformSettingsAdmin(ModelAdmin):
+    list_display = ("target_market_cap", "safety_threshold_pct", "updated_at")
+
+    def has_add_permission(self, request):
+        # block adding more than one row — singleton enforcement
+        return not PlatformSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # never allow deletion
+
+    def changelist_view(self, request, extra_context=None):
+        # skip the list page entirely — go straight to the single settings row
+        obj = PlatformSettings.load()
+        from django.shortcuts import redirect
+
+        return redirect(f"../platformsettings/{obj.pk}/change/")
+
+
+"""
+Close
+"""
 
 
 @admin.register(User)

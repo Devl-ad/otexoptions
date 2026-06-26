@@ -295,6 +295,11 @@ UNFOLD = {
                         "icon": "dashboard",
                         "link": reverse_lazy("admin:index"),
                     },
+                    {
+                        "title": _("Platform Analytics"),
+                        "icon": "monitoring",
+                        "link": reverse_lazy("admin:platform_analytics"),
+                    },
                 ],
             },
             {
@@ -335,22 +340,6 @@ UNFOLD = {
                 ],
             },
             {
-                "title": _("Trading"),
-                "separator": True,
-                "items": [
-                    {
-                        "title": _("Trading Pairs"),
-                        "icon": "candlestick_chart",
-                        "link": reverse_lazy("admin:dashboard_tradingpair_changelist"),
-                    },
-                    {
-                        "title": _("Trades"),
-                        "icon": "monitoring",
-                        "link": reverse_lazy("admin:dashboard_trade_changelist"),
-                    },
-                ],
-            },
-            {
                 "title": _("AI Bots"),
                 "separator": True,
                 "items": [
@@ -368,6 +357,22 @@ UNFOLD = {
                         "title": _("Bot Sessions"),
                         "icon": "play_circle",
                         "link": reverse_lazy("admin:dashboard_botsession_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Trading"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Trading Pairs"),
+                        "icon": "candlestick_chart",
+                        "link": reverse_lazy("admin:dashboard_tradingpair_changelist"),
+                    },
+                    {
+                        "title": _("Trades"),
+                        "icon": "monitoring",
+                        "link": reverse_lazy("admin:dashboard_trade_changelist"),
                     },
                 ],
             },
