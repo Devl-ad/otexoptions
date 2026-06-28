@@ -19,12 +19,6 @@ urlpatterns = [
     path("withdraw-funds/", views.withdrawal, name="withdrawal"),
     path("profile/", views.settings, name="settings"),
     path("notifications/", views.notification_page, name="notification_page"),
-    path("ai-trading/", views.bot_page, name="ai_trading"),
-    path("bot/validate-key/", views.validate_bot_key, name="validate_key"),
-    path("bot/start/", views.start_bot, name="start_bot"),
-    path(
-        "bot/summary/<uuid:session_id>/", views.session_summary, name="session_summary"
-    ),
     path("agent-panel/", views.agent_dashboard, name="dashboard_agent"),
     path("agent/lookup-user/", views.lookup_user, name="lookup_user"),
     path("agent/credit-user/", views.credit_user, name="credit_user"),

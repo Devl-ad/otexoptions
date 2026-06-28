@@ -6,7 +6,8 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from datetime import timedelta
 from decimal import Decimal
-from .models import TradingPair, PriceTick, Wallet, Trade, BotSession, BotTrade
+from .models import TradingPair, PriceTick, Wallet, Trade
+from apps.bot.models import BotSession, BotTrade
 
 logger = logging.getLogger(__name__)
 
