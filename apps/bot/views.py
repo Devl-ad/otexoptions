@@ -23,20 +23,13 @@ from apps.dashboard.decorator import withdrawal_confirm_required
 from django.core.paginator import Paginator
 
 
-from dashboard.tasks import run_bot_session
+from apps.dashboard.tasks import run_bot_session
 
-from dashboard.models import (
-    Trade,
+from apps.dashboard.models import (
     Wallet,
-    HouseSettings,
     TradingPair,
-    PriceTick,
-    Transaction,
-    Agent,
-    TodayRate,
-    RecivingCryptoWallet,
 )
-from bot.models import BotTrade, BotSession, BotKey
+from .models import BotTrade, BotSession, BotKey
 from decimal import Decimal
 from apps.account.models import User
 

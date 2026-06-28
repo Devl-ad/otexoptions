@@ -85,7 +85,7 @@ def dashboard(request):
 
     bot_trades = (
         BotTrade.objects.filter(session__user=user, session__is_demo=is_demo)
-        .select_related("session__pair", "session__bot_key__template")
+        .select_related("session__pair", "session__bot_template")
         .order_by("-executed_at")[:10]
     )
 
@@ -95,7 +95,7 @@ def dashboard(request):
                 "kind": "bot",
                 "pair_symbol": bt.session.pair.symbol,
                 "direction_display": bt.direction,
-                "meta": f"{bt.session.bot_key.template.name} · Bot",
+                "meta": f"{bt.session.bot_template.name} · Bot",
                 "status": (
                     "WON"
                     if bt.result == "WON"

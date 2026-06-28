@@ -347,17 +347,17 @@ UNFOLD = {
                     {
                         "title": _("Bot Templates"),
                         "icon": "smart_toy",
-                        "link": reverse_lazy("admin:dashboard_bottemplate_changelist"),
+                        "link": reverse_lazy("admin:bot_bottemplate_changelist"),
                     },
                     {
                         "title": _("Bot Keys"),
                         "icon": "key",
-                        "link": reverse_lazy("admin:dashboard_botkey_changelist"),
+                        "link": reverse_lazy("admin:bot_botkey_changelist"),
                     },
                     {
                         "title": _("Bot Sessions"),
                         "icon": "play_circle",
-                        "link": reverse_lazy("admin:dashboard_botsession_changelist"),
+                        "link": reverse_lazy("admin:bot_botsession_changelist"),
                     },
                 ],
             },

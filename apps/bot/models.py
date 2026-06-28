@@ -8,6 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from apps.account.forms import User
+from apps.dashboard.models import TradingPair
 
 
 def generate_bot_key():
@@ -153,7 +154,7 @@ class BotSession(models.Model):
         BotTemplate, on_delete=models.CASCADE, related_name="bot_template"
     )
     pair = models.ForeignKey(
-        "dashboard.TradingPair", on_delete=models.CASCADE, related_name="bot_sessions"
+        TradingPair, on_delete=models.CASCADE, related_name="bot_pair"
     )
 
     stake_per_trade = models.DecimalField(max_digits=10, decimal_places=2)
