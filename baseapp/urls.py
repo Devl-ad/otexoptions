@@ -14,6 +14,7 @@ urlpatterns = [
     path("", include("apps.home.urls")),
     path("auth/", include("apps.account.urls"), name="auth"),
     path("dashboard/", include("apps.dashboard.urls")),
+    path("bot/", include("apps.bot.urls")),
     path(
         "sitemap.xml",
         sitemap,

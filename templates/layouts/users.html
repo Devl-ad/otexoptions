@@ -32,6 +32,11 @@
     {% block style %} {% endblock style %}
     <!--  -->
     {% include "partials/pwa_head.html" %}
+    <style>
+      .mobile-nav.hide {
+        display: none !important;
+      }
+    </style>
   </head>
   <body>
     {% if messages %} {% for msg in messages %}
@@ -74,7 +79,7 @@
           ><i class="ti ti-home" aria-hidden="true"></i>Dashboard</a
         >
         <a
-          class="nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if '/dashboard/ai-trading/' in request.path %}active{% endif %}"
+          class="nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if '/bot/' in request.path %}active{% endif %}"
           href="/dashboard/trade/"
           ><i class="ti ti-filter" aria-hidden="true"></i>Markets</a
         >
@@ -160,7 +165,7 @@
 
     {% block content %} {% endblock content %}
 
-    <nav class="mobile-nav">
+    <nav class="mobile-nav" id="mobile-nav">
       <div class="mob-nav-inner">
         <div
           class="mob-nav-item {% if request.path == '/dashboard/' %}active{% endif %}"
@@ -170,7 +175,7 @@
           Portfolio
         </div>
         <div
-          class="mob-nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if ' /dashboard/bank-deposit/' in request.path %}active{% endif %}"
+          class="mob-nav-item {% if '/dashboard/trade/' in request.path %}active{% endif %} {% if '/bot/' in request.path %}active{% endif %}"
           onclick="window.location.href = '/dashboard/trade/'"
         >
           <i class="fa-solid fa-chart-line"></i>Markets

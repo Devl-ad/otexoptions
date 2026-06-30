@@ -3,7 +3,8 @@ from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
 
-from apps.dashboard.models import Wallet, Agent, Transaction, BotSession
+from apps.dashboard.models import Wallet, Agent, Transaction
+from apps.bot.models import BotSession
 from .models import PlatformSettings
 
 

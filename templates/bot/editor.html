@@ -1,0 +1,2568 @@
+{% extends "layouts/users.html" %} {% load static %}
+<!--  -->
+{% block title %}Bot Editor — OTEX{% endblock %} {% block style %}
+<style>
+  /* Ticker */
+  .bot-ticker {
+    background: #0d0d0d;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .ticker-pair-name {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .ticker-price {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    transition: color 0.2s;
+  }
+  .ticker-price.tick-up {
+    color: #22c55e;
+  }
+  .ticker-price.tick-dn {
+    color: #ef4444;
+  }
+  .ticker-change {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 4px 0 14px;
+  }
+  .ticker-row {
+    display: flex;
+    gap: 16px;
+  }
+  .ticker-stat span {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ticker-stat strong {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 3px;
+    display: block;
+  }
+</style>
+<style>
+  /* ════════════════════════════════════════
+     BOT PAGE SHELL
+  ════════════════════════════════════════ */
+  .bot-page {
+    margin-left: 220px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f0f2f8;
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 1 — KEY ENTRY
+  ════════════════════════════════════════ */
+  #screenKey {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px 80px;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Saved templates strip */
+  .templates-strip {
+    width: 100%;
+    max-width: 540px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    padding: 16px 20px;
+  }
+  .templates-strip-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .templates-strip-label i {
+    font-size: 14px;
+    color: #e85d35;
+  }
+  .template-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tpl-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .tpl-chip:hover {
+    border-color: #e85d35;
+    background: #fef9f7;
+  }
+  .tpl-chip-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  }
+  .tpl-chip-meta {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .tpl-chip-badge {
+    font-size: 9px;
+    font-weight: 700;
+    background: #fef0ec;
+    color: #e85d35;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .tpl-chip-del {
+    font-size: 14px;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.12s;
+    margin-left: 4px;
+    padding: 2px;
+  }
+  .tpl-chip-del:hover {
+    color: #e85d35;
+  }
+  .no-templates {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  /* Key card */
+  .key-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    padding: 44px 40px;
+    text-align: center;
+    max-width: 540px;
+    width: 100%;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.07);
+  }
+  .key-card-icon {
+    width: 64px;
+    height: 64px;
+    background: #fef0ec;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: #e85d35;
+  }
+  .key-card h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 6px;
+  }
+  .key-card-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* Bot type selector — 3 options matching your actual bot_type choices */
+  .bot-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .bot-type-option {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    background: #fff;
+  }
+  .bot-type-option:hover {
+    border-color: #e85d35;
+  }
+  .bot-type-option.selected {
+    border-color: #e85d35;
+    background: #fef0ec;
+  }
+  .bot-type-option i {
+    font-size: 22px;
+    color: #9ca3af;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .bot-type-option.selected i {
+    color: #e85d35;
+  }
+  .bot-type-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 3px;
+  }
+  .bot-type-desc {
+    font-size: 10px;
+    color: #9ca3af;
+    line-height: 1.5;
+  }
+
+  /* Key input */
+  .key-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .key-input {
+    flex: 1;
+    height: 50px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 11px;
+    background: #f9fafb;
+    padding: 0 16px;
+    font-family: monospace;
+    font-size: 16px;
+    letter-spacing: 0.14em;
+    color: #111;
+    outline: none;
+    transition: border-color 0.15s;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .key-input:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+  .key-go-btn {
+    height: 50px;
+    width: 50px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .key-go-btn:hover {
+    opacity: 0.88;
+  }
+  .key-go-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .key-error {
+    font-size: 12px;
+    color: #e85d35;
+    font-weight: 600;
+    margin-top: 6px;
+    display: none;
+  }
+  .key-help {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 8px;
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 2 — IDE EDITOR
+  ════════════════════════════════════════ */
+  #screenEditor {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── Toolbar ── */
+  .editor-toolbar {
+    background: #0f1117;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+  @media (max-width: 767px) {
+    .editor-toolbar {
+      overflow-x: scroll;
+    }
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toolbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+    padding-right: 14px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    margin-right: 4px;
+  }
+  .toolbar-logo i {
+    color: #e85d35;
+    font-size: 16px;
+  }
+  .tpl-name-input {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    outline: none;
+    width: 190px;
+    transition: border-color 0.15s;
+  }
+  .tpl-name-input:focus {
+    border-color: #e85d35;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .tpl-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .toolbar-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.07);
+    padding: 3px 9px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .toolbar-tag.acc-demo {
+    color: #9ca3af;
+  }
+  .toolbar-tag.acc-live {
+    color: #00a878;
+    background: rgba(0, 168, 120, 0.12);
+  }
+
+  .toolbar-mid {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .tb-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .tb-btn i {
+    font-size: 16px;
+  }
+  .tb-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .tb-btn.danger:hover {
+    background: rgba(232, 93, 53, 0.15);
+    color: #e85d35;
+  }
+  .tb-sep {
+    width: 1px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .tb-save-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 18px;
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tb-save-btn:hover {
+    opacity: 0.88;
+  }
+  .tb-save-btn.saved {
+    background: #00a878;
+  }
+  .tb-save-btn i {
+    font-size: 15px;
+  }
+  .tb-run-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tb-run-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .tb-run-btn.running {
+    background: rgba(232, 93, 53, 0.15);
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .tb-run-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .tb-run-btn i {
+    font-size: 15px;
+  }
+  .toolbar-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e85d35, #f59e0b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* ── Workspace ── */
+  .editor-workspace {
+    display: grid;
+    grid-template-columns: 300px 1fr 340px;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Shared panel styles */
+  .editor-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid #e5e7eb;
+    background: #fff;
+  }
+  .editor-panel:last-child {
+    border-right: none;
+  }
+  .panel-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+  }
+  .panel-header i {
+    font-size: 14px;
+    color: #e85d35;
+  }
+  .panel-body {
+    padding: 16px;
+    flex: 1;
+  }
+
+  /* ── Left panel ── */
+  .key-info-card {
+    background: #0f1117;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .ki-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .ki-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .ki-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #e85d35;
+    background: rgba(232, 93, 53, 0.15);
+    padding: 3px 9px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ki-key {
+    font-family: monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.25);
+    margin-top: 8px;
+    letter-spacing: 0.06em;
+  }
+  .locked-field {
+    margin-bottom: 12px;
+  }
+  .locked-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .locked-label i {
+    font-size: 12px;
+    color: #d1d5db;
+  }
+  .locked-val {
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lock-icon {
+    font-size: 13px;
+    color: #d1d5db;
+  }
+  .divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 16px 0;
+  }
+
+  /* ── Centre panel ── */
+  .centre-panel {
+    background: #f8f9fb;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .config-block {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  .config-block-head {
+    padding: 13px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .config-block-head i {
+    font-size: 16px;
+    color: #e85d35;
+  }
+  .config-block-body {
+    padding: 18px;
+  }
+  .cfield {
+    margin-bottom: 16px;
+  }
+  .cfield:last-child {
+    margin-bottom: 0;
+  }
+  .cfield-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cfield-label .hint {
+    font-size: 10px;
+    font-weight: 500;
+    color: #9ca3af;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .cfield-input {
+    width: 100%;
+    height: 42px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 9px;
+    background: #f9fafb;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .cfield-input:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+  select.cfield-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+  .chip-row {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .chip-option {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip-option:hover {
+    border-color: #e85d35;
+    color: #e85d35;
+  }
+  .chip-option.sel {
+    border-color: #e85d35;
+    background: #fef0ec;
+    color: #e85d35;
+  }
+
+  /* Range slider */
+  .range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .range-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #e5e7eb;
+    outline: none;
+    cursor: pointer;
+  }
+  .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #e85d35;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+  .range-val {
+    font-size: 13px;
+    font-weight: 800;
+    color: #e85d35;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Amount input */
+  .amt-wrap {
+    position: relative;
+  }
+  .amt-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+  .amt-wrap .cfield-input {
+    padding-left: 26px;
+  }
+
+  /* ── Right panel ── */
+  .preview-header {
+    padding: 13px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .preview-live-dot {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+  }
+  .preview-live-dot .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d1d5db;
+  }
+  .preview-live-dot.active .dot {
+    background: #00a878;
+    animation: blink 1.5s infinite;
+  }
+  .preview-live-dot.active {
+    color: #00a878;
+  }
+
+  .summary-card {
+    margin: 14px;
+    background: #0f1117;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .sc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+  .sc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sc-item-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 3px;
+  }
+  .sc-item-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .sc-item-val.orange {
+    color: #e85d35;
+  }
+  .sc-item-val.green {
+    color: #00a878;
+  }
+
+  .feed-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .feed-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .feed-empty i {
+    font-size: 40px;
+    color: #d1d5db;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .feed-empty p {
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  /* Trade rows */
+  .trade-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    border-left: 3px solid #e5e7eb;
+    animation: rowIn 0.25s ease;
+    margin-top: 10px;
+  }
+  .trade-row.win {
+    border-left-color: #00a878;
+  }
+  .trade-row.loss {
+    border-left-color: #e85d35;
+  }
+  .trade-row.open {
+    border-left-color: #f59e0b;
+    background: #fffdf0;
+  }
+  .tr-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .tr-icon.win {
+    background: #e6f8f2;
+    color: #00a878;
+  }
+  .tr-icon.loss {
+    background: #fef0ec;
+    color: #e85d35;
+  }
+  .tr-icon.open {
+    background: #fffbeb;
+    color: #f59e0b;
+  }
+  .tr-pair {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+  }
+  .tr-dir {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 1px;
+  }
+  .tr-amount {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .tr-amount.win {
+    color: #00a878;
+  }
+  .tr-amount.loss {
+    color: #e85d35;
+  }
+  .tr-amount.open {
+    color: #f59e0b;
+  }
+
+  /* Status bar */
+  .editor-statusbar {
+    background: #0f1117;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    height: 26px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 18px;
+    flex-shrink: 0;
+  }
+  .sb-item {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sb-item i {
+    font-size: 11px;
+  }
+  .sb-item.green {
+    color: #00a878;
+  }
+  .sb-item.orange {
+    color: #e85d35;
+  }
+
+  /* Modals */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-bg.open {
+    display: flex;
+  }
+  .save-modal {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.2s ease;
+  }
+  .save-modal h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 6px;
+  }
+  .save-modal p {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .save-modal-input {
+    width: 100%;
+    height: 46px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    padding: 0 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 14px;
+  }
+  .save-modal-input:focus {
+    border-color: #e85d35;
+    background: #fff;
+  }
+  .save-modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .save-cancel {
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+  }
+  .save-confirm {
+    flex: 2;
+    height: 44px;
+    border-radius: 10px;
+    border: none;
+    background: #e85d35;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .save-confirm:hover {
+    opacity: 0.88;
+  }
+
+  .load-modal {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.2s ease;
+  }
+  .load-modal h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 16px;
+  }
+  .load-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .load-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    border: 1.5px solid #f3f4f6;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .load-item:hover {
+    border-color: #e85d35;
+    background: #fef9f7;
+  }
+  .load-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: #fef0ec;
+    color: #e85d35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .load-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  }
+  .load-item-meta {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+  .load-item-arrow {
+    margin-left: auto;
+    font-size: 16px;
+    color: #d1d5db;
+  }
+  .load-empty {
+    text-align: center;
+    padding: 32px 20px;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+  .load-cancel-btn {
+    width: 100%;
+    height: 44px;
+    margin-top: 14px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+  }
+
+  @keyframes rowIn {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 960px) {
+    .feed-area {
+      margin-bottom: 50px;
+    }
+    .bot-page {
+      margin-left: 0 !important;
+      /* padding-bottom: 80px; */
+    }
+    .editor-workspace {
+      grid-template-columns: 1fr;
+    }
+    .editor-panel:first-child,
+    .editor-panel:last-child {
+      /* display: none; */
+    }
+    .toolbar-mid {
+      /* display: none; */
+    }
+    .tpl-name-input {
+      width: 130px;
+    }
+    #screenKey {
+      padding: 20px 14px 100px;
+    }
+    .key-card {
+      padding: 28px 20px;
+    }
+    .bot-type-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+<style>
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+  }
+  .summary-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+    animation: modalPop 0.3s ease;
+  }
+  @keyframes modalPop {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .summary-outcome {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .summary-outcome h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .sg-item {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .sg-item span {
+    display: block;
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .sg-item strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+  }
+  .summary-close-btn {
+    width: 100%;
+    padding: 13px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .summary-close-btn:hover {
+    background: #333;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="bot-page" id="botPage">
+  <!-- ══════════════════════════════════════════
+       SCREEN 1 — KEY ENTRY
+  ══════════════════════════════════════════ -->
+  <div id="screenKey">
+    <!-- Saved templates strip -->
+    <div class="templates-strip" id="savedStrip">
+      <div class="templates-strip-label">
+        <i class="ti ti-bookmark"></i> Your Saved Bots
+      </div>
+      <div class="template-chips" id="templateChips">
+        <span class="no-templates">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Key card -->
+    <div class="key-card">
+      <div class="key-card-icon"><i class="ti ti-robot"></i></div>
+      <h2>Open a Bot</h2>
+      <p class="key-card-sub">
+        Select the bot type your key unlocks, then enter<br />
+        your 16-character key. Both must match.
+      </p>
+
+      <!-- Bot type selector — matches your BotKey.BOT_TYPES exactly -->
+      <div class="bot-type-grid">
+        <div
+          class="bot-type-option"
+          data-type="RISE_FALL"
+          onclick="selectType('RISE_FALL', this)"
+        >
+          <i class="ti ti-trending-up"></i>
+          <div class="bot-type-name">Rise / Fall</div>
+          <div class="bot-type-desc">
+            Predict whether price will rise or fall from entry
+          </div>
+        </div>
+        <div
+          class="bot-type-option"
+          data-type="OVER_UNDER"
+          onclick="selectType('OVER_UNDER', this)"
+        >
+          <i class="ti ti-arrows-vertical"></i>
+          <div class="bot-type-name">Over / Under</div>
+          <div class="bot-type-desc">
+            Predict if price will stay above or below a barrier
+          </div>
+        </div>
+        <div
+          class="bot-type-option"
+          data-type="ACCUMULATOR"
+          onclick="selectType('ACCUMULATOR', this)"
+        >
+          <i class="ti ti-stack-2"></i>
+          <div class="bot-type-name">Accumulator</div>
+          <div class="bot-type-desc">
+            Price must stay within a range for each tick
+          </div>
+        </div>
+      </div>
+
+      <div class="key-input-row">
+        <input
+          class="key-input"
+          id="keyInput"
+          type="text"
+          maxlength="16"
+          placeholder="XXXXXXXXXXXXXXXX"
+          autocomplete="off"
+          spellcheck="false"
+          oninput="
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            updateGoBtn();
+          "
+          onpaste="
+            setTimeout(() => {
+              this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+              updateGoBtn();
+            }, 0)
+          "
+          onkeydown="if (event.key === 'Enter') validateKey();"
+        />
+        <button
+          class="key-go-btn"
+          id="keyGoBtn"
+          onclick="validateKey()"
+          disabled
+        >
+          <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+      <div class="key-error" id="keyError"></div>
+      <div class="key-help">
+        Your key was assigned by your mentor and is specific to a bot type.
+      </div>
+    </div>
+  </div>
+  <!-- /screenKey -->
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 2 — IDE EDITOR
+  ══════════════════════════════════════════ -->
+  <div id="screenEditor">
+    <!-- ── Toolbar ── -->
+    <div class="editor-toolbar">
+      <div class="toolbar-left">
+        <div class="toolbar-logo"><i class="ti ti-robot"></i> Bot Editor</div>
+        <input
+          class="tpl-name-input"
+          id="tplNameInput"
+          type="text"
+          placeholder="Untitled Bot"
+          maxlength="50"
+        />
+        <div class="toolbar-tag" id="tbBotTypeTag">—</div>
+        <div class="toolbar-tag acc-demo" id="tbAccTag">DEMO</div>
+      </div>
+
+      <div class="toolbar-mid">
+        <button class="tb-btn" onclick="openLoadModal()">
+          <i class="ti ti-folder-open"></i> Load
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="duplicateTemplate()">
+          <i class="ti ti-copy"></i> Duplicate
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn danger" onclick="resetConfig()">
+          <i class="ti ti-refresh"></i> Reset
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn danger" onclick="exitEditor()">
+          <i class="ti ti-x"></i> Exit
+        </button>
+      </div>
+
+      <div class="toolbar-right">
+        <button class="tb-run-btn" id="tbRunBtn" onclick="toggleRun()">
+          <i class="ti ti-player-play" id="tbRunIcon"></i>
+          <span id="tbRunLabel">Run</span>
+        </button>
+        <button class="tb-save-btn" id="tbSaveBtn" onclick="openSaveModal()">
+          <i class="ti ti-device-floppy"></i> Save
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Workspace ── -->
+    <div class="editor-workspace">
+      <!-- LEFT: Key info + locked house settings -->
+      <div class="editor-panel">
+        <div class="panel-header"><i class="ti ti-lock"></i> Bot Key Info</div>
+        <div class="panel-body">
+          <div class="key-info-card">
+            <div class="ki-label">Active Key</div>
+            <div class="ki-name" id="kiName">—</div>
+            <div style="margin-top: 6px">
+              <span class="ki-type" id="kiType">—</span>
+            </div>
+            <div class="ki-key" id="kiKey">—</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="locked-field">
+            <div class="locked-label">
+              <i class="ti ti-lock"></i> Take Profit per Trade
+            </div>
+            <div class="locked-val">
+              <span id="lkPayout">—</span>
+              <i class="ti ti-lock lock-icon"></i>
+            </div>
+          </div>
+
+          <div class="locked-field">
+            <div class="locked-label"><i class="ti ti-lock"></i> Bot Type</div>
+            <div class="locked-val">
+              <span id="lkBotType">—</span>
+              <i class="ti ti-lock lock-icon"></i>
+            </div>
+          </div>
+
+          <div class="locked-field">
+            <div class="locked-label">
+              <i class="ti ti-lock"></i> Max Frequency
+            </div>
+            <div class="locked-val">
+              <span>4 trades / 5 min</span>
+              <i class="ti ti-lock lock-icon"></i>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <p style="font-size: 11px; color: #9ca3af; line-height: 1.6">
+            Bot Default Settings.
+          </p>
+        </div>
+      </div>
+
+      <!-- CENTRE: User-editable configuration -->
+      <div class="centre-panel" id="centrePanel">
+        <!-- Asset -->
+        <div class="config-block">
+          <div class="config-block-head">
+            <i class="ti ti-chart-candlestick"></i> Asset
+          </div>
+          <div class="config-block-body">
+            <div class="cfield">
+              <div class="cfield-label">
+                Trading Pair
+                <span class="hint">— which synthetic the bot trades</span>
+              </div>
+              <div class="chip-row" id="pairChips">
+                {% for pair in pairs %}
+                <div
+                  class="chip-option {% if forloop.first %}sel{% endif %}"
+                  data-pair="{{ pair.symbol }}"
+                  onclick="selChip(this, 'pairChips','{{pair.symbol}}')"
+                >
+                  {{ pair.symbol }}
+                </div>
+                {% endfor %}
+              </div>
+              <div class="bot-ticker">
+                <div class="ticker-pair-name" id="tickerPairName">—</div>
+                <div class="ticker-price" id="tickerPrice">—</div>
+                <div class="ticker-change" id="tickerChange">—</div>
+                <div class="ticker-row">
+                  <div class="ticker-stat">
+                    <span>Bid</span>
+                    <strong id="tickerBid">—</strong>
+                  </div>
+                  <div class="ticker-stat">
+                    <span>Ask</span>
+                    <strong id="tickerAsk">—</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pacing -->
+        <div class="config-block">
+          <div class="config-block-head">
+            <i class="ti ti-settings-automation"></i> Pacing
+          </div>
+          <div class="config-block-body">
+            <div class="cfield">
+              <div class="cfield-label">
+                Trades per 5 minutes
+                <span class="hint">— 1 (slow) to 4 (fast)</span>
+              </div>
+              <div class="range-wrap">
+                <input
+                  type="range"
+                  class="range-slider"
+                  id="freqSlider"
+                  min="1"
+                  max="4"
+                  value="2"
+                  oninput="
+                    document.getElementById('freqVal').textContent = this.value;
+                    updatePreview();
+                  "
+                />
+                <div class="range-val" id="freqVal">2</div>
+              </div>
+            </div>
+
+            <div class="cfield">
+              <div class="cfield-label">Session Duration</div>
+              <div class="chip-row" id="sessionChips">
+                <!-- <div
+                  class="chip-option sel"
+                  data-tf="5"
+                  onclick="selChip(this, 'sessionChips')"
+                >
+                  5 min
+                </div> -->
+                <div
+                  class="chip-option"
+                  data-tf="10"
+                  onclick="selChip(this, 'sessionChips')"
+                >
+                  10 min
+                </div>
+                <div
+                  class="chip-option"
+                  data-tf="20"
+                  onclick="selChip(this, 'sessionChips')"
+                >
+                  20 min
+                </div>
+                <div
+                  class="chip-option"
+                  data-tf="30"
+                  onclick="selChip(this, 'sessionChips')"
+                >
+                  30 min
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Money management -->
+        <div class="config-block">
+          <div class="config-block-head">
+            <i class="ti ti-currency-dollar"></i> Money Management
+          </div>
+          <div class="config-block-body">
+            <div class="cfield">
+              <div class="cfield-label">Stake per Trade</div>
+              <div class="amt-wrap">
+                <span class="amt-prefix">$</span>
+                <input
+                  class="cfield-input"
+                  type="number"
+                  id="stakeInput"
+                  value="10"
+                  min="1"
+                  step="1"
+                  oninput="updatePreview()"
+                />
+              </div>
+              <div class="chip-row" style="margin-top: 8px">
+                <div class="chip-option" onclick="setStake(5)">$5</div>
+                <div class="chip-option" onclick="setStake(10)">$10</div>
+                <div class="chip-option" onclick="setStake(25)">$25</div>
+                <div class="chip-option" onclick="setStake(50)">$50</div>
+                <div class="chip-option" onclick="setStake(100)">$100</div>
+              </div>
+            </div>
+
+            <div class="cfield">
+              <div class="cfield-label">Account</div>
+              <div class="chip-row" id="accChips">
+                <div
+                  class="chip-option sel"
+                  data-acc="demo"
+                  onclick="
+                    selChip(this, 'accChips');
+                    setAcc('demo');
+                  "
+                >
+                  <i class="ti ti-device-desktop" style="font-size: 13px"></i>
+                  Demo
+                </div>
+                <div
+                  class="chip-option"
+                  data-acc="live"
+                  onclick="
+                    selChip(this, 'accChips');
+                    setAcc('live');
+                  "
+                >
+                  <i class="ti ti-live-view" style="font-size: 13px"></i> Live
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /centre panel -->
+
+      <!-- RIGHT: Live output -->
+      <div class="editor-panel" style="border-right: none">
+        <div class="preview-header">
+          <span
+            ><i
+              class="ti ti-activity"
+              style="font-size: 13px; color: #e85d35; margin-right: 5px"
+            ></i>
+            Live Output</span
+          >
+          <div class="preview-live-dot" id="liveDot">
+            <span class="dot"></span> Idle
+          </div>
+        </div>
+
+        <!-- Session preview -->
+        <div class="summary-card">
+          <div class="sc-label">Session Preview</div>
+          <div class="sc-grid">
+            <div class="sc-item">
+              <div class="sc-item-label">Total Trades</div>
+              <div class="sc-item-val" id="pvTrades">—</div>
+            </div>
+            <div class="sc-item">
+              <div class="sc-item-label">Stake at Risk</div>
+              <div class="sc-item-val orange" id="pvRisk">—</div>
+            </div>
+            <div class="sc-item">
+              <div class="sc-item-label">Max Profit</div>
+              <div class="sc-item-val green" id="pvProfit">—</div>
+            </div>
+            <div class="sc-item">
+              <div class="sc-item-label">Payout Rate</div>
+              <div class="sc-item-val" id="pvPayout">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Running stats -->
+        <div
+          id="runStats"
+          style="display: none; padding: 0 14px; margin-bottom: 8px"
+        >
+          <div
+            style="
+              background: #fff;
+              border-radius: 10px;
+              border: 1px solid #f3f4f6;
+              padding: 12px 14px;
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 8px;
+            "
+          >
+            <div>
+              <div style="font-size: 10px; color: #9ca3af; margin-bottom: 3px">
+                Net P&L
+              </div>
+              <div
+                style="font-size: 15px; font-weight: 800; color: #111"
+                id="runPnl"
+              >
+                $0.00
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; color: #9ca3af; margin-bottom: 3px">
+                Won / Lost
+              </div>
+              <div
+                style="font-size: 15px; font-weight: 800; color: #111"
+                id="runWL"
+              >
+                0 / 0
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; color: #9ca3af; margin-bottom: 3px">
+                Progress
+              </div>
+              <div
+                style="font-size: 15px; font-weight: 800; color: #111"
+                id="runProgress"
+              >
+                0 / 0
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trade feed -->
+        <div class="feed-area" id="feedArea">
+          <div class="feed-empty" id="feedEmpty">
+            <i class="ti ti-robot"></i>
+            <p>
+              Configure your bot and hit <strong>Run</strong>.<br />Live trades
+              will appear here.
+            </p>
+          </div>
+          <div id="tradeList"></div>
+        </div>
+      </div>
+      <!-- /right panel -->
+    </div>
+    <!-- /workspace -->
+
+    <!-- ── Status bar ── -->
+    <div class="editor-statusbar">
+      <div class="sb-item" id="sbStatus">
+        <i class="ti ti-circle"></i> Ready
+      </div>
+      <div class="sb-item">
+        <i class="ti ti-key"></i> <span id="sbKeyText">—</span>
+      </div>
+
+      <div class="sb-item" style="margin-left: auto" id="sbSaved">
+        <span id="currentDateTime"></span>
+      </div>
+    </div>
+  </div>
+  <!-- /screenEditor -->
+</div>
+<!-- /botPage -->
+
+<!-- SAVE MODAL -->
+<div
+  class="modal-bg"
+  id="saveModalBg"
+  onclick="if (event.target === this) closeSaveModal();"
+>
+  <div class="save-modal">
+    <h3>Save Bot</h3>
+    <p>Give this configuration a name so you can load it next time.</p>
+    <input
+      class="save-modal-input"
+      id="saveNameInput"
+      type="text"
+      placeholder="e.g. My OTV19 Scalper $10"
+      maxlength="50"
+    />
+    <div class="save-modal-actions">
+      <button class="save-cancel" onclick="closeSaveModal()">Cancel</button>
+      <button class="save-confirm" onclick="confirmSave()">
+        <i class="ti ti-device-floppy" style="font-size: 15px"></i> Save Bot
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAD MODAL -->
+<div
+  class="modal-bg"
+  id="loadModalBg"
+  onclick="if (event.target === this) closeLoadModal();"
+>
+  <div class="load-modal">
+    <h3>Load Saved Bot</h3>
+    <div class="load-list" id="loadList"></div>
+    <button class="load-cancel-btn" onclick="closeLoadModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Summary Modal -->
+<div class="modal-overlay" id="summaryOverlay" style="display: none">
+  <div class="summary-modal">
+    <div class="summary-outcome" id="summaryOutcome">
+      <div id="outcomeIcon" style="font-size: 52px; margin-bottom: 12px"></div>
+      <h2 id="outcomeTitle">SESSION ENDED</h2>
+      <p
+        id="outcomeSubtitle"
+        style="color: #666; font-size: 13px; margin-top: 6px"
+      >
+        —
+      </p>
+    </div>
+    <div class="summary-grid">
+      <div class="sg-item">
+        <span>Total Trades</span><strong id="smTrades">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Won</span><strong class="up" id="smWon">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Lost</span><strong class="dn" id="smLost">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Win Rate</span><strong id="smWinRate">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Total Staked</span><strong id="smStaked">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Profit</span><strong class="up" id="smGProfit">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Loss</span><strong class="dn" id="smGLoss">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Net P&L</span><strong id="smNetPnl">—</strong>
+      </div>
+    </div>
+    <button class="summary-close-btn" onclick="closeModal()">Done</button>
+  </div>
+</div>
+{% endblock %} {% block script %}
+
+<script>
+  function getCurrentDateTime() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    const offset = -new Date().getTimezoneOffset() / 60;
+    const timezone = `UTC${offset >= 0 ? "+" : ""}${offset}`;
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timezone}`;
+  }
+
+  function updateDateTime() {
+    document.getElementById("currentDateTime").textContent =
+      getCurrentDateTime();
+  }
+
+  updateDateTime(); // Initial render
+  setInterval(updateDateTime, 1000); // Update every second
+</script>
+<script>
+  /* ══════════════════════════════════════════
+     STATE
+  ══════════════════════════════════════════ */
+  let selectedBotType = null;
+  let activeBotData = null; // returned by /bot/validate-key/
+  let activeKey = null; // the raw 16-char key string
+  let loadedTemplateId = null; // null = new/unsaved
+  let savedTemplates = []; // loaded from backend after key validates
+  let botRunning = false;
+  let sessionId = null;
+  let runWon = 0,
+    runLost = 0,
+    runPnl = 0,
+    runDone = 0,
+    runTotal = 0;
+  let botWs = null;
+  let priceWs = null;
+  let currentPair = "{{ pairs.0.symbol }}";
+  let lastPrice = null;
+  const CSRF = "{{ csrf_token }}";
+
+  /* ══════════════════════════════════════════
+     BOT WEBSOCKET
+  ══════════════════════════════════════════ */
+  function connectBotWs() {
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    botWs = new WebSocket(`${proto}://${location.host}/ws/bot/`);
+    botWs.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      if (d.type === "bot_trade_open") onTradeOpen(d);
+      if (d.type === "bot_trade_result") onTradeResult(d);
+      if (d.type === "bot_session_complete") onSessionComplete(d);
+    };
+    botWs.onclose = () => setTimeout(connectBotWs, 2000);
+  }
+  connectBotWs();
+
+  /* ══════════════════════════════════════════
+     SCREEN 1 — KEY ENTRY
+  ══════════════════════════════════════════ */
+
+  // ── Price WebSocket ────────────────────────────────────────────────────────
+  function connectPriceWs(symbol) {
+    if (priceWs) priceWs.close();
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    priceWs = new WebSocket(
+      `${proto}://${window.location.host}/ws/price/${symbol}/`,
+    );
+
+    priceWs.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+
+      if (data.type === "price_update") updateTicker(data);
+    };
+
+    priceWs.onclose = function () {
+      if (currentPair) setTimeout(() => connectPriceWs(currentPair), 2000);
+    };
+  }
+
+  function updateTicker(data) {
+    const price = parseFloat(data.price);
+    const priceEl = document.getElementById("tickerPrice");
+    const changeEl = document.getElementById("tickerChange");
+
+    // price direction flash
+    if (lastPrice !== null) {
+      priceEl.className =
+        "ticker-price " + (price >= lastPrice ? "tick-up" : "tick-dn");
+      const diff = (price - lastPrice).toFixed(4);
+      const pct = (((price - lastPrice) / lastPrice) * 100).toFixed(2);
+      changeEl.textContent = `${diff >= 0 ? "+" : ""}${diff} (${pct}%)`;
+      changeEl.className = "ticker-change " + (diff >= 0 ? "up" : "dn");
+    }
+
+    priceEl.textContent = price.toFixed(4);
+    document.getElementById("tickerBid").textContent = (price - 0.0002).toFixed(
+      4,
+    );
+    document.getElementById("tickerAsk").textContent = (price + 0.0002).toFixed(
+      4,
+    );
+    lastPrice = price;
+
+    // if bot running, update the active trade row price
+    const activeRow = document.querySelector(".trade-row.running");
+    if (activeRow) {
+      const livePrice = activeRow.querySelector(".tr-live-price");
+      if (livePrice) livePrice.textContent = "@ " + price.toFixed(4);
+    }
+  }
+
+  function selectType(type, el) {
+    selectedBotType = type;
+    document
+      .querySelectorAll(".bot-type-option")
+      .forEach((o) => o.classList.remove("selected"));
+    el.classList.add("selected");
+    updateGoBtn();
+  }
+
+  function updateGoBtn() {
+    const key = document.getElementById("keyInput").value.trim();
+    document.getElementById("keyGoBtn").disabled = !(
+      key.length === 16 && selectedBotType
+    );
+  }
+
+  document.getElementById("keyInput").addEventListener("input", updateGoBtn);
+
+  function validateKey() {
+    const key = document.getElementById("keyInput").value.trim();
+    const type = selectedBotType;
+    if (!type) {
+      showKeyErr("Please select a bot type.");
+      return;
+    }
+    if (key.length !== 16) {
+      showKeyErr("Key must be exactly 16 characters.");
+      return;
+    }
+
+    fetch(`/bot/validate-key/?key=${key}&type=${type}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.valid) {
+          showKeyErr(data.error || "Invalid key or type.");
+          return;
+        }
+        document.getElementById("keyError").style.display = "none";
+        activeKey = key;
+        activeBotData = data;
+        openEditor(data, key);
+      });
+  }
+
+  function showKeyErr(msg) {
+    const el = document.getElementById("keyError");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  /* ══════════════════════════════════════════
+     SAVED TEMPLATES STRIP (screen 1)
+  ══════════════════════════════════════════ */
+  function fetchAllTemplates() {
+    // On the key screen we show ALL the user's templates
+    // grouped by key — fetch without a key filter
+    fetch("/bot/templates/")
+      .then((r) => r.json())
+      .then((data) => {
+        savedTemplates = data.templates || [];
+        renderTemplateChips();
+      });
+  }
+  fetchAllTemplates();
+
+  function renderTemplateChips() {
+    const wrap = document.getElementById("templateChips");
+    if (!savedTemplates.length) {
+      wrap.innerHTML = `<span class="no-templates">No saved bots yet. Open a key and save a configuration.</span>`;
+      return;
+    }
+    wrap.innerHTML = savedTemplates
+      .map(
+        (t, i) => `
+      <div class="tpl-chip" onclick="loadTemplateFromStrip(${t.id})">
+        <div>
+          <div class="tpl-chip-name">${t.name}</div>
+          <div class="tpl-chip-meta"> ${t.trades_per_5min}/5min · ${t.session_duration}min</div>
+        </div>
+        <span class="tpl-chip-badge">${t.bot_type}</span>
+        <span class="tpl-chip-del" onclick="event.stopPropagation();deleteTemplate(${t.id})">
+          <i class="ti ti-x"></i>
+        </span>
+      </div>
+    `,
+      )
+      .join("");
+  }
+
+  function loadTemplateFromStrip(id) {
+    const t = savedTemplates.find((x) => x.id === id);
+    if (!t) return;
+    // validate the stored key first then open the editor with saved settings
+
+    fetch(`/bot/load-botemplate/?key=${t.bot_key}&type=${t.bot_type}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.valid) {
+          alert("This template's bot key is no longer active.");
+          return;
+        }
+        activeKey = t.bot_key;
+        activeBotData = data;
+        openEditor(data, t.bot_key, t);
+      });
+  }
+
+  function deleteTemplate(id) {
+    if (!confirm("Delete this saved bot?")) return;
+    fetch(`/bot/templates/${id}/delete/`, {
+      method: "DELETE",
+      headers: { "X-CSRFToken": CSRF },
+    }).then(() => {
+      savedTemplates = savedTemplates.filter((t) => t.id !== id);
+      renderTemplateChips();
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     OPEN EDITOR
+  ══════════════════════════════════════════ */
+  function openEditor(botData, key, template = null) {
+    connectPriceWs(currentPair);
+    // Left panel
+    document.getElementById("kiName").textContent = botData.bot_type_display;
+    document.getElementById("kiType").textContent = botData.bot_type_display;
+    document.getElementById("kiKey").textContent = key.slice(0, 8) + "········";
+    document.getElementById("lkPayout").textContent = botData.profit_pct + "%";
+    document.getElementById("lkBotType").textContent = botData.bot_type_display;
+
+    document.getElementById("mobile-nav").classList.add("hide");
+
+    // Toolbar
+    document.getElementById("tbBotTypeTag").textContent =
+      botData.bot_type_display;
+    document.getElementById("pvPayout").textContent = botData.profit_pct + "%";
+
+    // Status bar
+    document.getElementById("sbKeyText").textContent = key.slice(0, 6) + "…";
+    // document.getElementById("sbTypeText").textContent =
+    //   botData.bot_type_display;
+
+    // Load saved settings if a template was passed
+    if (template) applyTemplate(template);
+
+    // Fetch this key's saved templates for the Load modal
+    fetch(`/bot/templates/?bot_key=${key}`)
+      .then((r) => r.json())
+      .then((data) => {
+        savedTemplates = data.templates || [];
+      });
+
+    updatePreview();
+
+    document.getElementById("screenKey").style.display = "none";
+    document.getElementById("screenEditor").style.display = "flex";
+  }
+
+  function applyTemplate(t) {
+    loadedTemplateId = t.id;
+    document.getElementById("tplNameInput").value = t.name;
+
+    // frequency slider
+    document.getElementById("freqSlider").value = t.trades_per_5min;
+    document.getElementById("freqVal").textContent = t.trades_per_5min;
+
+    // session duration chips
+    document.querySelectorAll("#sessionChips .chip-option").forEach((c) => {
+      c.classList.toggle("sel", parseInt(c.dataset.tf) === t.session_duration);
+    });
+
+    // document.getElementById("sbSavedText").textContent = `"${t.name}" loaded`;
+    document.getElementById("sbSaved").className = "sb-item green";
+    updatePreview();
+  }
+
+  /* ══════════════════════════════════════════
+     CONFIG HELPERS
+  ══════════════════════════════════════════ */
+  function selChip(el, groupId, symbol = null) {
+    document
+      .querySelectorAll(`#${groupId} .chip-option`)
+      .forEach((c) => c.classList.remove("sel"));
+    el.classList.add("sel");
+    updatePreview();
+
+    if (symbol) {
+      currentPair = symbol;
+      lastPrice = null;
+      connectPriceWs(symbol);
+    }
+  }
+
+  function setAcc(type) {
+    const tag = document.getElementById("tbAccTag");
+    tag.textContent = type.toUpperCase();
+    tag.className =
+      type === "live" ? "toolbar-tag acc-live" : "toolbar-tag acc-demo";
+    updatePreview();
+  }
+
+  function setStake(val) {
+    document.getElementById("stakeInput").value = val;
+    updatePreview();
+  }
+
+  function updatePreview() {
+    if (!activeBotData) return;
+    const freq = parseInt(document.getElementById("freqSlider").value);
+    const tfChip = document.querySelector("#sessionChips .sel");
+    const mins = tfChip ? parseInt(tfChip.dataset.tf) : 5;
+    const stake = parseFloat(document.getElementById("stakeInput").value) || 0;
+    const trades = Math.round((mins / 5) * freq);
+    const risk = stake * trades;
+    const profit = (risk * parseFloat(activeBotData.profit_pct)) / 100;
+
+    document.getElementById("pvTrades").textContent = trades;
+    document.getElementById("pvRisk").textContent = "$" + risk.toFixed(2);
+    document.getElementById("pvProfit").textContent = "+$" + profit.toFixed(2);
+  }
+
+  /* ══════════════════════════════════════════
+     RUN / STOP
+  ══════════════════════════════════════════ */
+  function toggleRun() {
+    if (botRunning) stopBot();
+    else startBot();
+  }
+
+  function startBot() {
+    const stake = parseFloat(document.getElementById("stakeInput").value);
+    const pair =
+      document.querySelector("#pairChips .sel")?.dataset.pair || "OTV19";
+    const freq = parseInt(document.getElementById("freqSlider").value);
+    const tfChip = document.querySelector("#sessionChips .sel");
+    const tf = tfChip ? parseInt(tfChip.dataset.tf) : 5;
+    const isDemo =
+      document.querySelector("#accChips .sel")?.dataset.acc === "demo";
+
+    if (!stake || stake < 1) {
+      alert("Enter a valid stake amount.");
+      return;
+    }
+
+    fetch("/bot/start/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+      body: JSON.stringify({
+        key: activeKey,
+        pair,
+        stake,
+        timeframe: tf,
+        trades_per_5min: freq,
+        template_id: loadedTemplateId,
+        is_demo: isDemo,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        sessionId = data.session_id;
+        runTotal = data.total_trades;
+        botRunning = true;
+        runWon = 0;
+        runLost = 0;
+        runPnl = 0;
+        runDone = 0;
+
+        document.getElementById("tbRunBtn").classList.add("running");
+        document.getElementById("tbRunIcon").className = "ti ti-loader ti-spin";
+        document.getElementById("tbRunLabel").textContent = "Running...";
+        document.getElementById("tbRunBtn").setAttribute("disabled", "true");
+        document.getElementById("liveDot").className =
+          "preview-live-dot active";
+        document.getElementById("liveDot").innerHTML =
+          '<span class="dot"></span> Running';
+        document.getElementById("sbStatus").innerHTML =
+          '<i class="ti ti-player-play"></i> Running';
+        document.getElementById("sbStatus").className = "sb-item orange";
+        document.getElementById("feedEmpty").style.display = "none";
+        document.getElementById("runStats").style.display = "block";
+        document.getElementById("tradeList").innerHTML = "";
+        document.getElementById("runProgress").textContent = `0 / ${runTotal}`;
+      });
+  }
+
+  function stopBot() {
+    // just reset the UI — the Celery session will complete naturally
+    // (we don't cancel sessions mid-run in this design)
+    botRunning = false;
+    document.getElementById("tbRunBtn").classList.remove("running");
+    document.getElementById("tbRunIcon").className = "ti ti-player-play";
+    document.getElementById("tbRunLabel").textContent = "Run";
+    document.getElementById("tbRunBtn").removeAttribute("disabled");
+    document.getElementById("liveDot").className = "preview-live-dot";
+    document.getElementById("liveDot").innerHTML =
+      '<span class="dot"></span> Idle';
+    document.getElementById("sbStatus").innerHTML =
+      '<i class="ti ti-circle"></i> Ready';
+    document.getElementById("sbStatus").className = "sb-item";
+  }
+
+  /* ══════════════════════════════════════════
+     LIVE TRADE FEED
+  ══════════════════════════════════════════ */
+  function onTradeOpen(d) {
+    runDone = d.trade_number;
+    document.getElementById("runProgress").textContent =
+      `${runDone} / ${runTotal}`;
+
+    const row = document.createElement("div");
+    row.className = "trade-row open";
+    row.id = `tr-${d.trade_number}`;
+    row.innerHTML = `
+      <div class="tr-icon open"><i class="ti ti-loader ti-spin"></i></div>
+      <div>
+        <div class="tr-pair">#${d.trade_number} ${d.pair} · ${d.direction}</div>
+        <div class="tr-dir">@ ${parseFloat(d.entry_price).toFixed(4)} · Running...</div>
+      </div>
+      <div class="tr-amount open">—</div>`;
+    document.getElementById("tradeList").prepend(row);
+  }
+
+  function onTradeResult(d) {
+    const won = d.result === "WON";
+    if (won) runWon++;
+    else runLost++;
+    runPnl = parseFloat(d.current_pnl);
+
+    document.getElementById("runPnl").textContent =
+      `${runPnl >= 0 ? "+" : ""}$${runPnl.toFixed(2)}`;
+    document.getElementById("runPnl").style.color =
+      runPnl >= 0 ? "#00a878" : "#e85d35";
+    document.getElementById("runWL").textContent = `${runWon} / ${runLost}`;
+
+    const row = document.getElementById(`tr-${d.trade_number}`);
+    if (row) {
+      row.className = `trade-row ${won ? "win" : "loss"}`;
+      row.innerHTML = `
+        <div class="tr-icon ${won ? "win" : "loss"}">
+          <i class="ti ${won ? "ti-trending-up" : "ti-trending-down"}"></i>
+        </div>
+        <div>
+          <div class="tr-pair">#${d.trade_number} ${d.pair} · ${d.direction}</div>
+          <div class="tr-dir">${parseFloat(d.entry_price).toFixed(4)} → ${parseFloat(d.exit_price).toFixed(4)}</div>
+        </div>
+        <div class="tr-amount ${won ? "win" : "loss"}">
+          ${won ? "+" : ""}$${parseFloat(d.profit).toFixed(2)}
+        </div>`;
+    }
+  }
+
+  function onSessionComplete(d) {
+    botRunning = false;
+    stopBot();
+
+    const pnl = parseFloat(d.net_pnl);
+    const msg =
+      d.outcome === "PROFIT"
+        ? `✅ Session complete — +$${Math.abs(pnl).toFixed(2)} profit`
+        : d.outcome === "LOSS"
+          ? `❌ Session complete — -$${Math.abs(pnl).toFixed(2)} loss`
+          : `➖ Session complete — breakeven`;
+
+    document.getElementById("sbStatus").innerHTML =
+      `<i class="ti ti-circle-check"></i> ${msg}`;
+    document.getElementById("sbStatus").className =
+      pnl >= 0 ? "sb-item green" : "sb-item orange";
+
+    fetch(`/bot/summary/${sessionId}/`)
+      .then((r) => r.json())
+      .then((summary) => showModal(summary));
+  }
+
+  /* ══════════════════════════════════════════
+     SAVE TEMPLATE
+  ══════════════════════════════════════════ */
+  function openSaveModal() {
+    document.getElementById("saveNameInput").value =
+      document.getElementById("tplNameInput").value || "";
+    document.getElementById("saveModalBg").classList.add("open");
+    setTimeout(() => document.getElementById("saveNameInput").focus(), 100);
+  }
+  function closeSaveModal() {
+    document.getElementById("saveModalBg").classList.remove("open");
+  }
+
+  function confirmSave() {
+    const name = document.getElementById("saveNameInput").value.trim();
+    const freq = parseInt(document.getElementById("freqSlider").value);
+    const tfChip = document.querySelector("#sessionChips .sel");
+    const tf = tfChip ? parseInt(tfChip.dataset.tf) : 5;
+
+    if (!name) {
+      alert("Please enter a name.");
+      return;
+    }
+
+    fetch("/bot/templates/save/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+      body: JSON.stringify({
+        template_id: loadedTemplateId,
+        bot_key: activeKey,
+        name,
+        trades_per_5min: freq,
+        session_duration: tf,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        loadedTemplateId = data.template_id;
+        document.getElementById("tplNameInput").value = name;
+        // document.getElementById("sbSavedText").textContent = "Saved";
+        document.getElementById("sbSaved").className = "sb-item green";
+
+        const btn = document.getElementById("tbSaveBtn");
+        btn.classList.add("saved");
+        btn.innerHTML = '<i class="ti ti-circle-check"></i> Saved!';
+        setTimeout(() => {
+          btn.classList.remove("saved");
+          btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save';
+        }, 2000);
+
+        closeSaveModal();
+        fetchAllTemplates();
+      });
+  }
+
+  /* ══════════════════════════════════════════
+     LOAD TEMPLATE
+  ══════════════════════════════════════════ */
+  function openLoadModal() {
+    const list = document.getElementById("loadList");
+    if (!savedTemplates.length) {
+      list.innerHTML = `<div class="load-empty">No saved bots for this key yet.</div>`;
+    } else {
+      list.innerHTML = savedTemplates
+        .map(
+          (t) => `
+        <div class="load-item" onclick="applyTemplate(${JSON.stringify(t).replace(/"/g, "&quot;")});closeLoadModal()">
+          <div class="load-item-icon"><i class="ti ti-robot"></i></div>
+          <div>
+            <div class="load-item-name">${t.name}</div>
+            <div class="load-item-meta">${t.trades_per_5min} trades/5min · ${t.session_duration}min sessions</div>
+          </div>
+          <i class="ti ti-arrow-right load-item-arrow"></i>
+        </div>
+      `,
+        )
+        .join("");
+    }
+    document.getElementById("loadModalBg").classList.add("open");
+  }
+  function closeLoadModal() {
+    document.getElementById("loadModalBg").classList.remove("open");
+  }
+
+  /* ══════════════════════════════════════════
+     TOOLBAR ACTIONS
+  ══════════════════════════════════════════ */
+  function resetConfig() {
+    if (!confirm("Reset all settings to default?")) return;
+    document.getElementById("stakeInput").value = "10";
+    document.getElementById("freqSlider").value = "2";
+    document.getElementById("freqVal").textContent = "2";
+    document.getElementById("tplNameInput").value = "";
+    loadedTemplateId = null;
+
+    document
+      .querySelectorAll("#sessionChips .chip-option")
+      .forEach((c, i) => c.classList.toggle("sel", i === 0));
+    document
+      .querySelectorAll("#pairChips .chip-option")
+      .forEach((c, i) => c.classList.toggle("sel", i === 0));
+    document.querySelectorAll("#accChips .chip-option").forEach((c, i) => {
+      c.classList.toggle("sel", i === 0);
+    });
+    setAcc("demo");
+    // document.getElementById("sbSavedText").textContent = "Unsaved";
+    document.getElementById("sbSaved").className = "sb-item";
+    updatePreview();
+  }
+
+  function duplicateTemplate() {
+    const name = document.getElementById("tplNameInput").value || "Unnamed";
+    document.getElementById("tplNameInput").value = name + " (copy)";
+    document.getElementById("saveNameInput").value = name + " (copy)";
+    loadedTemplateId = null;
+    openSaveModal();
+  }
+
+  function exitEditor() {
+    if (botRunning && !confirm("Bot is running. Exit anyway?")) return;
+    document.getElementById("screenEditor").style.display = "none";
+    document.getElementById("screenKey").style.display = "flex";
+    activeBotData = null;
+    activeKey = null;
+    selectedBotType = null;
+    loadedTemplateId = null;
+    document
+      .querySelectorAll(".bot-type-option")
+      .forEach((o) => o.classList.remove("selected"));
+    document.getElementById("keyInput").value = "";
+    document.getElementById("keyGoBtn").disabled = true;
+    document.getElementById("tplNameInput").value = "";
+    document.getElementById("mobile-nav").classList.remove("hide");
+    fetchAllTemplates();
+  }
+
+  function showModal(s) {
+    const pnl = parseFloat(s.net_pnl);
+    const icons = { PROFIT: "🏆", LOSS: "", BREAKEVEN: "➖" };
+    const titles = {
+      PROFIT: "Profitable Run!",
+      LOSS: "",
+      BREAKEVEN: "Breakeven",
+    };
+    const colors = { PROFIT: "#22c55e", LOSS: "#ef4444", BREAKEVEN: "#f59e0b" };
+
+    document.getElementById("outcomeTitle").style.color = colors[s.outcome];
+    document.getElementById("outcomeSubtitle").textContent =
+      pnl >= 0
+        ? `+$${Math.abs(pnl).toFixed(2)} this session`
+        : `-$${Math.abs(pnl).toFixed(2)} this session`;
+
+    document.getElementById("smTrades").textContent = s.total_trades;
+    document.getElementById("smWon").textContent = s.trades_won;
+    document.getElementById("smLost").textContent = s.trades_lost;
+    document.getElementById("smWinRate").textContent = s.win_rate + "%";
+    document.getElementById("smStaked").textContent =
+      "$" + parseFloat(s.total_staked).toFixed(2);
+    document.getElementById("smGProfit").textContent =
+      "+$" + parseFloat(s.gross_profit).toFixed(2);
+    document.getElementById("smGLoss").textContent =
+      "-$" + parseFloat(s.gross_loss).toFixed(2);
+    const pnlEl = document.getElementById("smNetPnl");
+    pnlEl.textContent = `${pnl >= 0 ? "+" : ""}$${pnl.toFixed(2)}`;
+    pnlEl.className = pnl >= 0 ? "up" : "dn";
+
+    document.getElementById("summaryOverlay").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("summaryOverlay").style.display = "none";
+  }
+
+  window.addEventListener("beforeunload", (e) => {
+    if (botRunning) {
+      e.preventDefault();
+      e.returnValue = "Bot is running. Leave?";
+    }
+  });
+</script>
+{% endblock %}
