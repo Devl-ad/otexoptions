@@ -94,7 +94,7 @@ def dashboard(request):
                 "kind": "bot",
                 "pair_symbol": bt.session.pair.symbol,
                 "direction_display": bt.direction,
-                "meta": f"{bt.session.bot_template.name} · Bot",
+                "meta": f"{bt.get_template_name()} · Bot",
                 "status": (
                     "WON"
                     if bt.result == "WON"

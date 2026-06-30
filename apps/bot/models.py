@@ -249,6 +249,13 @@ class BotTrade(models.Model):
     result = models.CharField(max_length=10, choices=RESULT_CHOICES, default="PENDING")
     executed_at = models.DateTimeField(auto_now_add=True)
 
+    def get_template_name(self):
+        template_name = "#####"
+        if self.session.bot_template:
+            template_name = self.session.bot_template.name
+
+        return template_name
+
     def __str__(self):
         return f"Trade #{self.trade_number} — {self.result}"
 
