@@ -1205,7 +1205,7 @@
     }
     .bot-page {
       margin-left: 0 !important;
-      padding-bottom: 80px;
+      /* padding-bottom: 80px; */
     }
     .editor-workspace {
       grid-template-columns: 1fr;
@@ -1215,7 +1215,7 @@
       /* display: none; */
     }
     .toolbar-mid {
-      display: none;
+      /* display: none; */
     }
     .tpl-name-input {
       width: 130px;
@@ -1229,6 +1229,87 @@
     .bot-type-grid {
       grid-template-columns: 1fr;
     }
+  }
+</style>
+<style>
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+  }
+  .summary-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+    animation: modalPop 0.3s ease;
+  }
+  @keyframes modalPop {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .summary-outcome {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .summary-outcome h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .sg-item {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .sg-item span {
+    display: block;
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .sg-item strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+  }
+  .summary-close-btn {
+    width: 100%;
+    padding: 13px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .summary-close-btn:hover {
+    background: #333;
   }
 </style>
 {% endblock %} {% block content %}
@@ -1370,7 +1451,6 @@
         <button class="tb-save-btn" id="tbSaveBtn" onclick="openSaveModal()">
           <i class="ti ti-device-floppy"></i> Save
         </button>
-        <div class="toolbar-avatar">{{ request.user.get_initials }}</div>
       </div>
     </div>
 
@@ -1393,7 +1473,7 @@
 
           <div class="locked-field">
             <div class="locked-label">
-              <i class="ti ti-lock"></i> Profit per Trade
+              <i class="ti ti-lock"></i> Take Profit per Trade
             </div>
             <div class="locked-val">
               <span id="lkPayout">—</span>
@@ -1421,8 +1501,7 @@
 
           <div class="divider"></div>
           <p style="font-size: 11px; color: #9ca3af; line-height: 1.6">
-            Locked settings are controlled by your bot key and cannot be
-            changed. Contact your mentor to upgrade or change key type.
+            Bot Default Settings.
           </p>
         </div>
       </div>
@@ -1501,13 +1580,13 @@
             <div class="cfield">
               <div class="cfield-label">Session Duration</div>
               <div class="chip-row" id="sessionChips">
-                <div
+                <!-- <div
                   class="chip-option sel"
                   data-tf="5"
                   onclick="selChip(this, 'sessionChips')"
                 >
                   5 min
-                </div>
+                </div> -->
                 <div
                   class="chip-option"
                   data-tf="10"
@@ -1708,11 +1787,9 @@
       <div class="sb-item">
         <i class="ti ti-key"></i> <span id="sbKeyText">—</span>
       </div>
-      <div class="sb-item">
-        <i class="ti ti-robot"></i> <span id="sbTypeText">—</span>
-      </div>
+
       <div class="sb-item" style="margin-left: auto" id="sbSaved">
-        <i class="ti ti-circle-check"></i> <span id="sbSavedText">Unsaved</span>
+        <span id="currentDateTime"></span>
       </div>
     </div>
   </div>
@@ -1758,7 +1835,76 @@
   </div>
 </div>
 
+<!-- Summary Modal -->
+<div class="modal-overlay" id="summaryOverlay" style="display: none">
+  <div class="summary-modal">
+    <div class="summary-outcome" id="summaryOutcome">
+      <div id="outcomeIcon" style="font-size: 52px; margin-bottom: 12px"></div>
+      <h2 id="outcomeTitle">SESSION ENDED</h2>
+      <p
+        id="outcomeSubtitle"
+        style="color: #666; font-size: 13px; margin-top: 6px"
+      >
+        —
+      </p>
+    </div>
+    <div class="summary-grid">
+      <div class="sg-item">
+        <span>Total Trades</span><strong id="smTrades">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Won</span><strong class="up" id="smWon">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Lost</span><strong class="dn" id="smLost">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Win Rate</span><strong id="smWinRate">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Total Staked</span><strong id="smStaked">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Profit</span><strong class="up" id="smGProfit">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Gross Loss</span><strong class="dn" id="smGLoss">—</strong>
+      </div>
+      <div class="sg-item">
+        <span>Net P&L</span><strong id="smNetPnl">—</strong>
+      </div>
+    </div>
+    <button class="summary-close-btn" onclick="closeModal()">Done</button>
+  </div>
+</div>
 {% endblock %} {% block script %}
+
+<script>
+  function getCurrentDateTime() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    const offset = -new Date().getTimezoneOffset() / 60;
+    const timezone = `UTC${offset >= 0 ? "+" : ""}${offset}`;
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timezone}`;
+  }
+
+  function updateDateTime() {
+    document.getElementById("currentDateTime").textContent =
+      getCurrentDateTime();
+  }
+
+  updateDateTime(); // Initial render
+  setInterval(updateDateTime, 1000); // Update every second
+</script>
 <script>
   /* ══════════════════════════════════════════
      STATE
@@ -1982,6 +2128,8 @@
     document.getElementById("lkPayout").textContent = botData.profit_pct + "%";
     document.getElementById("lkBotType").textContent = botData.bot_type_display;
 
+    document.getElementById("mobile-nav").classList.add("hide");
+
     // Toolbar
     document.getElementById("tbBotTypeTag").textContent =
       botData.bot_type_display;
@@ -1989,8 +2137,8 @@
 
     // Status bar
     document.getElementById("sbKeyText").textContent = key.slice(0, 6) + "…";
-    document.getElementById("sbTypeText").textContent =
-      botData.bot_type_display;
+    // document.getElementById("sbTypeText").textContent =
+    //   botData.bot_type_display;
 
     // Load saved settings if a template was passed
     if (template) applyTemplate(template);
@@ -2021,7 +2169,7 @@
       c.classList.toggle("sel", parseInt(c.dataset.tf) === t.session_duration);
     });
 
-    document.getElementById("sbSavedText").textContent = `"${t.name}" loaded`;
+    // document.getElementById("sbSavedText").textContent = `"${t.name}" loaded`;
     document.getElementById("sbSaved").className = "sb-item green";
     updatePreview();
   }
@@ -2122,12 +2270,13 @@
         runDone = 0;
 
         document.getElementById("tbRunBtn").classList.add("running");
-        document.getElementById("tbRunIcon").className = "ti ti-player-stop";
-        document.getElementById("tbRunLabel").textContent = "Stop";
+        document.getElementById("tbRunIcon").className = "ti ti-loader ti-spin";
+        document.getElementById("tbRunLabel").textContent = "Running...";
+        document.getElementById("tbRunBtn").setAttribute("disabled", "true");
         document.getElementById("liveDot").className =
           "preview-live-dot active";
         document.getElementById("liveDot").innerHTML =
-          '<span class="dot"></span> Live';
+          '<span class="dot"></span> Running';
         document.getElementById("sbStatus").innerHTML =
           '<i class="ti ti-player-play"></i> Running';
         document.getElementById("sbStatus").className = "sb-item orange";
@@ -2145,6 +2294,7 @@
     document.getElementById("tbRunBtn").classList.remove("running");
     document.getElementById("tbRunIcon").className = "ti ti-player-play";
     document.getElementById("tbRunLabel").textContent = "Run";
+    document.getElementById("tbRunBtn").removeAttribute("disabled");
     document.getElementById("liveDot").className = "preview-live-dot";
     document.getElementById("liveDot").innerHTML =
       '<span class="dot"></span> Idle';
@@ -2219,6 +2369,10 @@
       `<i class="ti ti-circle-check"></i> ${msg}`;
     document.getElementById("sbStatus").className =
       pnl >= 0 ? "sb-item green" : "sb-item orange";
+
+    fetch(`/bot/summary/${sessionId}/`)
+      .then((r) => r.json())
+      .then((summary) => showModal(summary));
   }
 
   /* ══════════════════════════════════════════
@@ -2264,7 +2418,7 @@
         }
         loadedTemplateId = data.template_id;
         document.getElementById("tplNameInput").value = name;
-        document.getElementById("sbSavedText").textContent = "Saved";
+        // document.getElementById("sbSavedText").textContent = "Saved";
         document.getElementById("sbSaved").className = "sb-item green";
 
         const btn = document.getElementById("tbSaveBtn");
@@ -2330,7 +2484,7 @@
       c.classList.toggle("sel", i === 0);
     });
     setAcc("demo");
-    document.getElementById("sbSavedText").textContent = "Unsaved";
+    // document.getElementById("sbSavedText").textContent = "Unsaved";
     document.getElementById("sbSaved").className = "sb-item";
     updatePreview();
   }
@@ -2357,7 +2511,45 @@
     document.getElementById("keyInput").value = "";
     document.getElementById("keyGoBtn").disabled = true;
     document.getElementById("tplNameInput").value = "";
+    document.getElementById("mobile-nav").classList.remove("hide");
     fetchAllTemplates();
+  }
+
+  function showModal(s) {
+    const pnl = parseFloat(s.net_pnl);
+    const icons = { PROFIT: "🏆", LOSS: "", BREAKEVEN: "➖" };
+    const titles = {
+      PROFIT: "Profitable Run!",
+      LOSS: "",
+      BREAKEVEN: "Breakeven",
+    };
+    const colors = { PROFIT: "#22c55e", LOSS: "#ef4444", BREAKEVEN: "#f59e0b" };
+
+    document.getElementById("outcomeTitle").style.color = colors[s.outcome];
+    document.getElementById("outcomeSubtitle").textContent =
+      pnl >= 0
+        ? `+$${Math.abs(pnl).toFixed(2)} this session`
+        : `-$${Math.abs(pnl).toFixed(2)} this session`;
+
+    document.getElementById("smTrades").textContent = s.total_trades;
+    document.getElementById("smWon").textContent = s.trades_won;
+    document.getElementById("smLost").textContent = s.trades_lost;
+    document.getElementById("smWinRate").textContent = s.win_rate + "%";
+    document.getElementById("smStaked").textContent =
+      "$" + parseFloat(s.total_staked).toFixed(2);
+    document.getElementById("smGProfit").textContent =
+      "+$" + parseFloat(s.gross_profit).toFixed(2);
+    document.getElementById("smGLoss").textContent =
+      "-$" + parseFloat(s.gross_loss).toFixed(2);
+    const pnlEl = document.getElementById("smNetPnl");
+    pnlEl.textContent = `${pnl >= 0 ? "+" : ""}$${pnl.toFixed(2)}`;
+    pnlEl.className = pnl >= 0 ? "up" : "dn";
+
+    document.getElementById("summaryOverlay").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("summaryOverlay").style.display = "none";
   }
 
   window.addEventListener("beforeunload", (e) => {
