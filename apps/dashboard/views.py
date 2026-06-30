@@ -26,8 +26,7 @@ from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
 from django.core.paginator import Paginator
 
 
-from .tasks import run_bot_session
-from apps.dashboard.utils import get_account_mode, verify_korapay_transaction
+from apps.dashboard.utils import get_account_mode
 from .models import (
     Trade,
     Wallet,

@@ -6,7 +6,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
-
+from django.core.exceptions import ValidationError
 from apps.account.forms import User
 from apps.dashboard.models import TradingPair
 
@@ -73,6 +73,16 @@ class BotKey(models.Model):
 
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        if self.demo_breakeven_min_pct >= self.demo_breakeven_max_pct:
+            raise ValidationError(
+                "Demo breakeven min must be less than demo breakeven max."
+            )
+        if self.breakeven_min_pct >= self.breakeven_max_pct:
+            raise ValidationError(
+                "Live breakeven min must be less than live breakeven max."
+            )
 
     # ── Helper — get the right settings based on mode ──────────────────────
     def get_settings(self, is_demo):
@@ -142,6 +152,11 @@ class BotSession(models.Model):
         ("LOSS", "Loss"),
         ("PENDING", "Pending"),
     ]
+    TIMEFRAME_CHOICES = [
+        (10, "10 Minutes"),
+        (20, "20 Minutes"),
+        (30, "30 Minutes"),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -168,6 +183,16 @@ class BotSession(models.Model):
 
     # house decision made at session start
     house_outcome = models.CharField(max_length=10, default="PROFIT")
+    base_win_rate = models.PositiveIntegerField(default=50)
+    breakeven_min_pct = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("-2.00")
+    )
+    breakeven_max_pct = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("5.00")
+    )
+    profit_pct = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("15.63")
+    )
 
     total_trades = models.PositiveIntegerField(default=0)
     trades_won = models.PositiveIntegerField(default=0)
@@ -179,6 +204,9 @@ class BotSession(models.Model):
 
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+
+    timeframe = models.PositiveIntegerField(choices=TIMEFRAME_CHOICES, default=5)
+    trade_per_5min = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return f"{self.user} — {self.bot_key} — {self.status}"
