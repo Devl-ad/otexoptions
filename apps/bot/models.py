@@ -166,7 +166,11 @@ class BotSession(models.Model):
         BotKey, on_delete=models.CASCADE, related_name="sessions"
     )
     bot_template = models.ForeignKey(
-        BotTemplate, on_delete=models.CASCADE, related_name="bot_template"
+        BotTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sessions",
     )
     pair = models.ForeignKey(
         TradingPair, on_delete=models.CASCADE, related_name="bot_pair"

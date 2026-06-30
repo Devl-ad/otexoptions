@@ -1387,6 +1387,12 @@
             this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             updateGoBtn();
           "
+          onpaste="
+            setTimeout(() => {
+              this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+              updateGoBtn();
+            }, 0)
+          "
           onkeydown="if (event.key === 'Enter') validateKey();"
         />
         <button
@@ -2091,7 +2097,7 @@
     const t = savedTemplates.find((x) => x.id === id);
     if (!t) return;
     // validate the stored key first then open the editor with saved settings
-    console.log(`/bot/load-botemplate/?key=${t.bot_key}&type=${t.bot_type}`);
+
     fetch(`/bot/load-botemplate/?key=${t.bot_key}&type=${t.bot_type}`)
       .then((r) => r.json())
       .then((data) => {
