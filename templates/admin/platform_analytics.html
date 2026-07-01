@@ -1,8 +1,297 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/base_site.html" %} {% load humanize %}
 <!--  -->
-{% load static %} {% block extrahead %} {{ block.super }}
+{% block title %}Platform Analytics{% endblock %}
+<!--  -->
+{% block content %}
+<div class="pa-wrap">
+  <!-- ── Liquidity overview hero ─────────────────────────────────────── -->
+  <div class="pa-hero pa-{{ data.health_status }}">
+    <div class="pa-hero-left">
+      <p class="pa-eyebrow">Platform Liquidity</p>
+      <h1 class="pa-hero-num">
+        ${{ data.current_liquidity|floatformat:2|intcomma }}
+      </h1>
+      <p class="pa-hero-sub">
+        of <strong>${{ data.target_cap|floatformat:2|intcomma }}</strong> target
+        market cap {% if data.gap_to_target > 0 %} ·
+        <span class="pa-gap-under"
+          >${{ data.gap_to_target|floatformat:2|intcomma }} below target</span
+        >
+        {% else %} ·
+        <span class="pa-gap-over"
+          >${{ data.gap_to_target|floatformat:2|intcomma|cut:"-" }} above
+          target</span
+        >
+        {% endif %}
+      </p>
+    </div>
+    <div class="pa-hero-right">
+      <div class="pa-gauge">
+        <svg viewBox="0 0 120 120" class="pa-gauge-svg">
+          <circle cx="60" cy="60" r="52" class="pa-gauge-bg" />
+          <circle
+            cx="60"
+            cy="60"
+            r="52"
+            class="pa-gauge-fill"
+            style="stroke-dasharray: {{ data.health_pct|floatformat:0 }} 100;"
+          />
+        </svg>
+        <div class="pa-gauge-label">
+          <span class="pa-gauge-pct">{{ data.health_pct }}%</span>
+          <span class="pa-gauge-text">of target</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Side-by-side: Users vs Agents ───────────────────────────────── -->
+  <div class="pa-split">
+    <div class="pa-panel">
+      <div class="pa-panel-head">
+        <span class="pa-panel-icon">👤</span>
+        <h2>User Liquidity</h2>
+      </div>
+      <div class="pa-stat-grid">
+        <div class="pa-stat">
+          <span class="pa-stat-label">Total Live Balance</span>
+          <span class="pa-stat-val"
+            >${{ data.users.total_live_balance|floatformat:2|intcomma }}</span
+          >
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">Active Live Users</span>
+          <span class="pa-stat-val"
+            >{{ data.users.active_live_users|intcomma }}</span
+          >
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">Avg. Balance / User</span>
+          <span class="pa-stat-val"
+            >${{ data.users.avg_live_balance|floatformat:2|intcomma }}</span
+          >
+        </div>
+        <div class="pa-stat pa-stat-muted">
+          <span class="pa-stat-label">Total Demo Balance</span>
+          <span class="pa-stat-val"
+            >${{ data.users.total_demo_balance|floatformat:2|intcomma }}</span
+          >
+        </div>
+      </div>
+
+      <p class="pa-subhead">Top Holders</p>
+      <table class="pa-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th class="right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for wallet in data.users.top_holders %}
+          <tr>
+            <td>{{ wallet.user.username }}</td>
+            <td class="right">${{ wallet.balance|floatformat:2|intcomma }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="pa-empty">No live balances yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pa-panel">
+      <div class="pa-panel-head">
+        <span class="pa-panel-icon">🏦</span>
+        <h2>Agent Float</h2>
+      </div>
+      <div class="pa-stat-grid">
+        <div class="pa-stat">
+          <span class="pa-stat-label">Total Agent Float</span>
+          <span class="pa-stat-val"
+            >${{ data.agents.total_float|floatformat:2|intcomma }}</span
+          >
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">Active Agents</span>
+          <span class="pa-stat-val"
+            >{{ data.agents.agent_count|intcomma }}</span
+          >
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">Avg. Float / Agent</span>
+          <span class="pa-stat-val"
+            >${{ data.agents.avg_float|floatformat:2|intcomma }}</span
+          >
+        </div>
+        <div
+          class="pa-stat {% if data.agents.low_float_agents %}pa-stat-warn{% endif %}"
+        >
+          <span class="pa-stat-label">Low-Float Alerts</span>
+          <span class="pa-stat-val"
+            >{{ data.agents.low_float_agents|length }}</span
+          >
+        </div>
+      </div>
+
+      <p class="pa-subhead">Agent Breakdown</p>
+      <table class="pa-table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th class="right">Float</th>
+            <th class="right">Trades</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for agent in data.agents.breakdown %}
+          <tr
+            class="{% if agent in data.agents.low_float_agents %}pa-row-warn{% endif %}"
+          >
+            <td>{{ agent.name }}</td>
+            <td class="right">${{ agent.balance|floatformat:2|intcomma }}</td>
+            <td class="right">
+              {{ agent.completed_count }}/{{ agent.tx_count }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="pa-empty">No agents yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Flow metrics ─────────────────────────────────────────────────── -->
+  <div class="pa-panel pa-flow-panel">
+    <div class="pa-panel-head">
+      <span class="pa-panel-icon">📊</span>
+      <h2>Platform Flow</h2>
+    </div>
+    <div class="pa-flow-grid">
+      <div class="pa-flow-col">
+        <p class="pa-flow-label">Today</p>
+        <p class="pa-flow-in">
+          +${{ data.flow.today.deposits|floatformat:2|intcomma }}
+        </p>
+        <p class="pa-flow-out">
+          -${{ data.flow.today.withdrawals|floatformat:2|intcomma }}
+        </p>
+        <p
+          class="pa-flow-net {% if data.flow.today.net >= 0 %}up{% else %}down{% endif %}"
+        >
+          Net: {% if data.flow.today.net >= 0 %}+{% endif %}
+          <!--  -->
+          ${{data.flow.today.net|floatformat:2|intcomma }}
+        </p>
+      </div>
+      <div class="pa-flow-col">
+        <p class="pa-flow-label">This Week</p>
+        <p class="pa-flow-in">
+          +${{ data.flow.week.deposits|floatformat:2|intcomma }}
+        </p>
+        <p class="pa-flow-out">
+          -${{ data.flow.week.withdrawals|floatformat:2|intcomma }}
+        </p>
+        <p
+          class="pa-flow-net {% if data.flow.week.net >= 0 %}up{% else %}down{% endif %}"
+        >
+          Net: {% if data.flow.week.net >= 0 %}+{% endif %}
+          <!--  -->
+          ${{ data.flow.week.net|floatformat:2|intcomma }}
+        </p>
+      </div>
+      <div class="pa-flow-col">
+        <p class="pa-flow-label">This Month</p>
+        <p class="pa-flow-in">
+          +${{ data.flow.month.deposits|floatformat:2|intcomma }}
+        </p>
+        <p class="pa-flow-out">
+          -${{ data.flow.month.withdrawals|floatformat:2|intcomma }}
+        </p>
+        <p
+          class="pa-flow-net {% if data.flow.month.net >= 0 %}up{% else %}down{% endif %}"
+        >
+          Net: {% if data.flow.month.net >= 0 %}+{% endif %}
+          <!--  -->
+          ${{ data.flow.month.net|floatformat:2|intcomma }}
+        </p>
+      </div>
+      <div class="pa-flow-col pa-flow-alltime">
+        <p class="pa-flow-label">All Time</p>
+        <p class="pa-flow-in">
+          +${{ data.flow.all_time_deposits|floatformat:2|intcomma }}
+        </p>
+        <p class="pa-flow-out">
+          -${{ data.flow.all_time_withdrawals|floatformat:2|intcomma }}
+        </p>
+        <p
+          class="pa-flow-net {% if data.flow.net_all_time >= 0 %}up{% else %}down{% endif %}"
+        >
+          Net: {% if data.flow.net_all_time >= 0 %}+{% endif %}
+          <!--  -->
+          ${{ data.flow.net_all_time|floatformat:2|intcomma }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Risk indicators ──────────────────────────────────────────────── -->
+  <div class="pa-panel">
+    <div class="pa-panel-head">
+      <span class="pa-panel-icon">⚠️</span>
+      <h2>Risk Indicators</h2>
+    </div>
+    <div class="pa-stat-grid">
+      <div class="pa-stat">
+        <span class="pa-stat-label">Pending Deposits</span>
+        <span class="pa-stat-val"
+          >${{ data.pending.deposits|floatformat:2|intcomma }}</span
+        >
+      </div>
+      <div class="pa-stat">
+        <span class="pa-stat-label">Pending Withdrawals</span>
+        <span class="pa-stat-val"
+          >${{ data.pending.withdrawals|floatformat:2|intcomma }}</span
+        >
+      </div>
+      <div
+        class="pa-stat {% if data.risk.coverage_ratio and data.risk.coverage_ratio < 1 %}pa-stat-danger{% endif %}"
+      >
+        <span class="pa-stat-label">Withdrawal Coverage</span>
+        <span class="pa-stat-val">
+          {% if data.risk.coverage_ratio %}
+          <!--  -->
+          {{ data.risk.coverage_ratio }}x
+          <!--  -->
+          {% else %}—{% endif %}
+        </span>
+      </div>
+      <div class="pa-stat">
+        <span class="pa-stat-label">Bot Exposure (Running)</span>
+        <span class="pa-stat-val"
+          >${{ data.risk.bot_exposure|floatformat:2|intcomma }}</span
+        >
+        <span class="pa-stat-sub"
+          >{{ data.risk.running_bot_sessions }} active sessions</span
+        >
+      </div>
+    </div>
+    {% if data.risk.coverage_ratio and data.risk.coverage_ratio < 1 %}
+    <div class="pa-alert">
+      ⚠️ Agent float cannot currently cover all pending withdrawals. Consider
+      topping up agent balances.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 <style>
-  .me-wrap {
+  .pa-wrap {
     padding: 24px;
     max-width: 1200px;
     margin: 0 auto;
@@ -10,7 +299,7 @@
   }
 
   /* Hero */
-  .me-hero {
+  .pa-hero {
     border-radius: 16px;
     padding: 32px;
     display: flex;
@@ -20,158 +309,174 @@
     background: #111;
     color: #fff;
   }
-  .me-eyebrow {
+  .pa-eyebrow {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.5);
     margin-bottom: 8px;
   }
-  .me-hero-title {
-    font-size: 28px;
+  .pa-hero-num {
+    font-size: 42px;
     font-weight: 800;
     margin: 0;
-    line-height: 1.15;
+    line-height: 1;
   }
-  .me-hero-sub {
+  .pa-hero-sub {
     font-size: 13px;
     color: rgba(255, 255, 255, 0.6);
     margin-top: 8px;
-    max-width: 480px;
   }
-  .me-hero-count {
-    text-align: center;
+  .pa-gap-under {
+    color: #f59e0b;
+    font-weight: 700;
   }
-  .me-hero-count-num {
-    font-size: 42px;
-    font-weight: 800;
-    line-height: 1;
-    color: #e85d35;
-  }
-  .me-hero-count-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 6px;
+  .pa-gap-over {
+    color: #22c55e;
+    font-weight: 700;
   }
 
-  /* Panels */
-  .me-panel {
+  .pa-gauge {
+    position: relative;
+    width: 120px;
+    height: 120px;
+  }
+  .pa-gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .pa-gauge-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 10;
+  }
+  .pa-gauge-fill {
+    fill: none;
+    stroke: #e85d35;
+    stroke-width: 10;
+    stroke-linecap: round;
+    pathlength: 100;
+    transition: stroke-dasharray 0.6s ease;
+  }
+  .pa-hero.pa-healthy .pa-gauge-fill {
+    stroke: #22c55e;
+  }
+  .pa-hero.pa-warning .pa-gauge-fill {
+    stroke: #f59e0b;
+  }
+  .pa-hero.pa-critical .pa-gauge-fill {
+    stroke: #ef4444;
+  }
+  .pa-gauge-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .pa-gauge-pct {
+    display: block;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .pa-gauge-text {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+  }
+
+  /* Settings form */
+  .pa-settings-form {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #f3f4f6;
+  }
+  .pa-settings-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .pa-settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pa-settings-field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pa-settings-field input {
+    padding: 9px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    width: 200px;
+  }
+  .pa-btn-save {
+    background: #e85d35;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .pa-btn-save:hover {
+    background: #d44e28;
+  }
+
+  /* Split panels */
+  .pa-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pa-panel {
     background: #fff;
     border-radius: 14px;
     padding: 20px;
     border: 1px solid #f3f4f6;
     margin-bottom: 16px;
   }
-  .me-panel-head {
+  .pa-panel-head {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 18px;
   }
-  .me-panel-head h2 {
+  .pa-panel-head h2 {
     font-size: 15px;
     font-weight: 700;
     color: #111;
     margin: 0;
   }
-  .me-panel-icon {
+  .pa-panel-icon {
     font-size: 20px;
   }
 
-  /* Template picker */
-  .me-template-grid {
+  .pa-stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
+    margin-bottom: 18px;
   }
-  .me-template-card {
-    position: relative;
-    background: #f8f9fb;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition:
-      border-color 0.15s ease,
-      background 0.15s ease;
-  }
-  .me-template-card:hover {
-    border-color: #e85d35;
-  }
-  .me-template-card input {
-    position: absolute;
-    opacity: 0;
-    inset: 0;
-    cursor: pointer;
-  }
-  .me-template-card.is-checked {
-    border-color: #e85d35;
-    background: #fff4f0;
-  }
-  .me-template-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: #111;
-    display: block;
-    margin-bottom: 4px;
-  }
-  .me-template-subject {
-    font-size: 11px;
-    color: #999;
-    display: block;
-  }
-
-  /* Options row */
-  .me-options-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    background: #f8f9fb;
-    border-radius: 10px;
-    margin-bottom: 4px;
-  }
-  .me-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    cursor: pointer;
-  }
-  .me-option input {
-    width: 16px;
-    height: 16px;
-    accent-color: #e85d35;
-    cursor: pointer;
-  }
-  .me-option-badge {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #fff4f0;
-    color: #e85d35;
-  }
-
-  /* Stat strip above recipient list */
-  .me-stat-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  .me-stat {
+  .pa-stat {
     background: #f8f9fb;
     border-radius: 10px;
     padding: 12px 14px;
   }
-  .me-stat-label {
+  .pa-stat-label {
     display: block;
     font-size: 10px;
     color: #aaa;
@@ -179,312 +484,142 @@
     letter-spacing: 0.04em;
     margin-bottom: 4px;
   }
-  .me-stat-val {
+  .pa-stat-val {
     display: block;
     font-size: 18px;
     font-weight: 700;
     color: #111;
   }
-
-  /* Recipient list */
-  .me-search {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 12px;
-    box-sizing: border-box;
-  }
-  .me-search:focus {
-    outline: none;
-    border-color: #e85d35;
-  }
-  .me-user-list {
-    max-height: 320px;
-    overflow-y: auto;
-    border: 1px solid #f3f4f6;
-    border-radius: 10px;
-  }
-  .me-user-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 14px;
-    font-size: 13px;
-    color: #333;
-    border-bottom: 1px solid #f9fafb;
-    cursor: pointer;
-  }
-  .me-user-row:last-child {
-    border-bottom: none;
-  }
-  .me-user-row:hover {
-    background: #f8f9fb;
-  }
-  .me-user-row input {
-    width: 15px;
-    height: 15px;
-    accent-color: #e85d35;
-    cursor: pointer;
-  }
-  .me-user-email {
-    font-weight: 600;
-    color: #111;
-  }
-  .me-user-name {
+  .pa-stat-sub {
+    display: block;
+    font-size: 10px;
     color: #aaa;
-    font-size: 12px;
+    margin-top: 2px;
   }
-  .me-empty {
+  .pa-stat-muted .pa-stat-val {
+    color: #aaa;
+  }
+  .pa-stat-warn {
+    background: #fff7ed;
+  }
+  .pa-stat-warn .pa-stat-val {
+    color: #d97706;
+  }
+  .pa-stat-danger {
+    background: #fef2f2;
+  }
+  .pa-stat-danger .pa-stat-val {
+    color: #dc2626;
+  }
+
+  .pa-subhead {
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .pa-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .pa-table th {
+    text-align: left;
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    padding: 6px 8px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .pa-table th.right,
+  .pa-table td.right {
+    text-align: right;
+  }
+  .pa-table td {
+    font-size: 13px;
+    padding: 8px 8px;
+    border-bottom: 1px solid #f9fafb;
+    color: #333;
+  }
+  .pa-row-warn td {
+    background: #fff7ed;
+  }
+  .pa-empty {
     text-align: center;
     color: #ccc;
-    padding: 24px;
-    font-size: 13px;
+    padding: 16px;
   }
 
-  /* Footer / submit bar */
-  .me-submit-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff;
-    border-radius: 14px;
-    padding: 18px 20px;
-    border: 1px solid #f3f4f6;
-    position: sticky;
-    bottom: 0;
+  /* Flow panel */
+  .pa-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
   }
-  .me-submit-note {
-    font-size: 12px;
+  .pa-flow-col {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .pa-flow-alltime {
+    background: #fff4f0;
+  }
+  .pa-flow-label {
+    font-size: 10px;
     color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
   }
-  .me-btn-send {
-    background: #e85d35;
-    color: #fff;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 8px;
+  .pa-flow-in {
     font-size: 13px;
+    color: #22c55e;
     font-weight: 700;
-    cursor: pointer;
+    margin: 0;
   }
-  .me-btn-send:hover {
-    background: #d44e28;
+  .pa-flow-out {
+    font-size: 13px;
+    color: #ef4444;
+    font-weight: 700;
+    margin: 2px 0;
+  }
+  .pa-flow-net {
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .pa-flow-net.up {
+    color: #22c55e;
+  }
+  .pa-flow-net.down {
+    color: #ef4444;
   }
 
-  .me-alert {
+  .pa-alert {
+    background: #fef2f2;
+    color: #991b1b;
     border-radius: 10px;
     padding: 12px 16px;
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 16px;
-  }
-  .me-alert-success {
-    background: #f0fdf4;
-    color: #166534;
-  }
-  .me-alert-warning {
-    background: #fff7ed;
-    color: #d97706;
-  }
-  .me-alert-error {
-    background: #fef2f2;
-    color: #991b1b;
+    margin-top: 14px;
   }
 
   @media (max-width: 900px) {
-    .me-hero {
+    .pa-split {
+      grid-template-columns: 1fr;
+    }
+    .pa-flow-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pa-hero {
       flex-direction: column;
       gap: 20px;
       text-align: center;
     }
-    .me-stat-strip {
-      grid-template-columns: 1fr;
-    }
   }
 </style>
-{% endblock %} {% block content %}
-<div class="me-wrap">
-  {% if messages %} {% for message in messages %}
-  <div
-    class="me-alert {% if message.tags == 'success' %}me-alert-success{% elif message.tags == 'warning' %}me-alert-warning{% else %}me-alert-error{% endif %}"
-  >
-    {{ message }}
-  </div>
-  {% endfor %} {% endif %}
-
-  <!-- Hero -->
-  <div class="me-hero">
-    <div>
-      <div class="me-eyebrow">OTEX Admin</div>
-      <h1 class="me-hero-title">Mass Email</h1>
-      <p class="me-hero-sub">
-        Send announcements and platform updates to your users, powered by your
-        queued email pipeline.
-      </p>
-    </div>
-    <div class="me-hero-count">
-      <div class="me-hero-count-num">{{ users.count }}</div>
-      <div class="me-hero-count-label">Active Recipients</div>
-    </div>
-  </div>
-
-  <form method="post" id="mass-email-form">
-    {% csrf_token %}
-
-    <!-- Template picker -->
-    <div class="me-panel">
-      <div class="me-panel-head">
-        <span class="me-panel-icon">✉️</span>
-        <h2>Choose Email</h2>
-      </div>
-      <div class="me-template-grid">
-        {% for key, tpl in templates.items %}
-        <label class="me-template-card" data-template-card>
-          <input type="radio" name="template_key" value="{{ key }}" required />
-          <span class="me-template-name">{{ tpl.label }}</span>
-          <span class="me-template-subject">{{ tpl.subject }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Options -->
-    <div class="me-panel">
-      <div class="me-panel-head">
-        <span class="me-panel-icon">⚙️</span>
-        <h2>Send Options</h2>
-      </div>
-      <div class="me-options-row">
-        <label class="me-option">
-          <input type="checkbox" name="test_mode" id="test_mode" />
-          Send test email to myself only
-          <span class="me-option-badge">{{ request.user.email }}</span>
-        </label>
-        <label class="me-option">
-          <input type="checkbox" name="send_to_all" id="send_to_all" />
-          Send to all active users
-        </label>
-      </div>
-    </div>
-
-    <!-- Recipients -->
-    <div class="me-panel" id="recipient_fields">
-      <div class="me-panel-head">
-        <span class="me-panel-icon">👥</span>
-        <h2>Recipients</h2>
-      </div>
-
-      <div class="me-stat-strip">
-        <div class="me-stat">
-          <span class="me-stat-label">Total Active</span>
-          <span class="me-stat-val">{{ users.count }}</span>
-        </div>
-        <div class="me-stat">
-          <span class="me-stat-label">Selected</span>
-          <span class="me-stat-val" id="selected-count">0</span>
-        </div>
-        <div class="me-stat">
-          <span class="me-stat-label">Templates Available</span>
-          <span class="me-stat-val">{{ templates|length }}</span>
-        </div>
-      </div>
-
-      <input
-        type="text"
-        class="me-search"
-        id="user-search"
-        placeholder="Search by email or name…"
-      />
-
-      <div class="me-user-list" id="user_list">
-        {% for user in users %}
-        <label
-          class="me-user-row"
-          data-user-row
-          data-search="{{ user.email|lower }} {{ user.first_name|lower }} {{ user.last_name|lower }}"
-        >
-          <input
-            type="checkbox"
-            name="user_ids"
-            value="{{ user.id }}"
-            class="user-checkbox"
-          />
-          <span class="me-user-email">{{ user.email }}</span>
-          {% if user.first_name %}<span class="me-user-name"
-            >— {{ user.first_name }} {{ user.last_name }}</span
-          >{% endif %}
-        </label>
-        {% empty %}
-        <div class="me-empty">No active users found.</div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Submit bar -->
-    <div class="me-submit-bar">
-      <span class="me-submit-note"
-        >Emails are queued and sent asynchronously — this may take a few minutes
-        for large batches.</span
-      >
-      <button type="submit" class="me-btn-send">Send Email</button>
-    </div>
-  </form>
-</div>
-
-<script>
-  const sendToAll = document.getElementById("send_to_all");
-  const testMode = document.getElementById("test_mode");
-  const recipientFields = document.getElementById("recipient_fields");
-  const userList = document.getElementById("user_list");
-  const checkboxes = document.querySelectorAll(".user-checkbox");
-  const selectedCount = document.getElementById("selected-count");
-  const searchInput = document.getElementById("user-search");
-  const templateCards = document.querySelectorAll("[data-template-card]");
-
-  function updateSelectedCount() {
-    const checked = document.querySelectorAll(".user-checkbox:checked").length;
-    selectedCount.textContent = sendToAll.checked
-      ? "{{ users.count }}"
-      : checked;
-  }
-
-  function toggleRecipientVisibility() {
-    const hide = testMode.checked;
-    recipientFields.style.display = hide ? "none" : "block";
-  }
-
-  sendToAll.addEventListener("change", function () {
-    userList.style.opacity = this.checked ? "0.4" : "1";
-    userList.style.pointerEvents = this.checked ? "none" : "auto";
-    checkboxes.forEach((cb) => (cb.disabled = this.checked));
-    updateSelectedCount();
-  });
-
-  testMode.addEventListener("change", toggleRecipientVisibility);
-
-  checkboxes.forEach((cb) =>
-    cb.addEventListener("change", updateSelectedCount),
-  );
-
-  searchInput.addEventListener("input", function () {
-    const term = this.value.toLowerCase().trim();
-    document.querySelectorAll("[data-user-row]").forEach((row) => {
-      const haystack = row.getAttribute("data-search");
-      row.style.display = haystack.includes(term) ? "flex" : "none";
-    });
-  });
-
-  templateCards.forEach((card) => {
-    const input = card.querySelector("input");
-    input.addEventListener("change", () => {
-      templateCards.forEach((c) => c.classList.remove("is-checked"));
-      card.classList.add("is-checked");
-    });
-  });
-
-  updateSelectedCount();
-  toggleRecipientVisibility();
-</script>
 {% endblock %}
