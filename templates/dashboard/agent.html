@@ -8,9 +8,7 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
     <title>Agent Dashboard - OTEX</title>
-
     <style>
-      /* ── Reset ── */
       *,
       *::before,
       *::after {
@@ -18,7 +16,6 @@
         margin: 0;
         padding: 0;
       }
-
       body {
         font-family:
           "Inter",
@@ -30,8 +27,6 @@
         color: #111;
         min-height: 100vh;
       }
-
-      /* ── Page wrapper (centers on desktop, full on mobile) ── */
       .page {
         max-width: 480px;
         margin: 0 auto;
@@ -41,9 +36,7 @@
         padding-bottom: 40px;
       }
 
-      /* ══════════════════════
-         TOPBAR
-      ══════════════════════ */
+      /* ── Topbar ── */
       .topbar {
         display: flex;
         align-items: center;
@@ -89,7 +82,7 @@
         color: #6b7280;
         cursor: pointer;
         position: relative;
-        transition: border-color 0.15s;
+        transition: all 0.15s;
       }
       .notif-btn:hover {
         border-color: #e85d35;
@@ -103,6 +96,23 @@
         height: 7px;
         border-radius: 50%;
         background: #e85d35;
+        border: 1.5px solid #f4f5f7;
+      }
+      .notif-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #e85d35;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
         border: 1.5px solid #f4f5f7;
       }
       .avatar {
@@ -119,9 +129,7 @@
         cursor: pointer;
       }
 
-      /* ══════════════════════
-         HERO BALANCE CARD
-      ══════════════════════ */
+      /* ── Hero ── */
       .hero {
         margin: 0 16px 16px;
         background: #0f1117;
@@ -159,9 +167,6 @@
         align-items: center;
         gap: 5px;
       }
-      .hero-sub i {
-        font-size: 13px;
-      }
       .hero-badge {
         background: rgba(255, 255, 255, 0.08);
         color: rgba(255, 255, 255, 0.45);
@@ -186,9 +191,7 @@
         pointer-events: none;
       }
 
-      /* ══════════════════════
-         CREDIT BUTTON
-      ══════════════════════ */
+      /* ── Credit button ── */
       .credit-btn {
         display: flex;
         align-items: center;
@@ -219,9 +222,7 @@
         font-size: 20px;
       }
 
-      /* ══════════════════════
-         STAT CARDS
-      ══════════════════════ */
+      /* ── Stats ── */
       .stats-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -268,9 +269,7 @@
         font-weight: 600;
       }
 
-      /* ══════════════════════
-         RECENT ACTIVITY
-      ══════════════════════ */
+      /* ── Recent activity ── */
       .section-head {
         display: flex;
         align-items: center;
@@ -289,7 +288,6 @@
         color: #e85d35;
         text-decoration: none;
       }
-
       .tx-list {
         background: #fff;
         border-radius: 16px;
@@ -325,10 +323,6 @@
         background: #e6f8f2;
         color: #00a878;
       }
-      .tx-icon.topup {
-        background: #eff6ff;
-        color: #2563eb;
-      }
       .tx-name {
         font-size: 13px;
         font-weight: 700;
@@ -350,18 +344,21 @@
       .tx-amount.pos {
         color: #00a878;
       }
-      .tx-amount.neg {
-        color: #e85d35;
-      }
       .tx-time {
         font-size: 11px;
         color: #9ca3af;
         margin-top: 2px;
       }
+      .no-activity {
+        padding: 28px 18px;
+        text-align: center;
+        font-size: 13px;
+        color: #9ca3af;
+      }
 
-      /* ══════════════════════
-         MODAL OVERLAY
-      ══════════════════════ */
+      /* ════════════════════
+         SHARED MODAL BASE
+      ════════════════════ */
       .modal-bg {
         display: none;
         position: fixed;
@@ -376,7 +373,6 @@
       .modal-bg.open {
         display: flex;
       }
-
       .modal {
         background: #fff;
         border-radius: 22px 22px 0 0;
@@ -395,7 +391,6 @@
           opacity: 1;
         }
       }
-
       .modal-handle {
         width: 40px;
         height: 4px;
@@ -421,7 +416,7 @@
         padding: 0 22px;
       }
 
-      /* ── Form fields ── */
+      /* Form fields */
       .field {
         margin-bottom: 18px;
       }
@@ -460,7 +455,6 @@
         border-color: #e85d35;
         background: #fef9f7;
       }
-
       .amount-wrap {
         position: relative;
       }
@@ -479,7 +473,6 @@
         font-size: 15px;
         font-weight: 700;
       }
-
       .err-msg {
         font-size: 12px;
         color: #e85d35;
@@ -495,8 +488,6 @@
       .err-msg i {
         font-size: 13px;
       }
-
-      /* ── User lookup indicator ── */
       .lookup-status {
         font-size: 12px;
         margin-top: 6px;
@@ -513,11 +504,6 @@
         color: #e85d35;
         display: flex;
       }
-      .lookup-status i {
-        font-size: 14px;
-      }
-
-      /* ── Summary box ── */
       .summary-box {
         background: #f9fafb;
         border-radius: 10px;
@@ -550,8 +536,6 @@
       .summary-val.green {
         color: #00a878;
       }
-
-      /* ── Modal actions ── */
       .modal-actions {
         display: flex;
         gap: 10px;
@@ -597,11 +581,6 @@
         opacity: 0.5;
         cursor: not-allowed;
       }
-      .btn-submit i {
-        font-size: 17px;
-      }
-
-      /* ── Success state ── */
       .success-box {
         display: none;
         padding: 10px 22px 0;
@@ -654,8 +633,6 @@
         margin-top: 6px;
         line-height: 1.6;
       }
-
-      /* ── Loading spinner ── */
       @keyframes spin {
         to {
           transform: rotate(360deg);
@@ -670,7 +647,6 @@
         animation: spin 0.7s linear infinite;
         display: none;
       }
-
       @keyframes pulse {
         0%,
         100% {
@@ -689,8 +665,228 @@
         animation: pulse 1.5s infinite;
         margin-right: 4px;
       }
+
+      /* ════════════════════
+         WITHDRAWAL MODAL
+      ════════════════════ */
+      .wd-modal {
+        background: #fff;
+        border-radius: 22px 22px 0 0;
+        padding: 10px 0 0;
+        width: 100%;
+        max-width: 480px;
+        animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* header */
+      .wd-header {
+        padding: 0 22px 16px;
+        flex-shrink: 0;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .wd-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .wd-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #111;
+      }
+      .wd-badge {
+        font-size: 11px;
+        font-weight: 700;
+        background: #fef0ec;
+        color: #e85d35;
+        padding: 4px 10px;
+        border-radius: 20px;
+      }
+      .wd-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 4px;
+      }
+
+      /* scrollable list */
+      .wd-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* single request card */
+      .wd-card {
+        background: #f9fafb;
+        border-radius: 14px;
+        border: 1px solid #f3f4f6;
+        overflow: hidden;
+      }
+      .wd-card-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+      .wd-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #e85d35, #f59e0b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .wd-user-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+      }
+      .wd-user-ref {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 2px;
+        font-family: monospace;
+      }
+      .wd-amount {
+        margin-left: auto;
+        font-size: 18px;
+        font-weight: 800;
+        color: #e85d35;
+      }
+
+      .wd-card-meta {
+        padding: 0 16px 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .wd-meta-pill {
+        font-size: 10px;
+        font-weight: 700;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        color: #6b7280;
+        padding: 3px 9px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .wd-meta-pill i {
+        font-size: 11px;
+      }
+
+      .wd-card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1px solid #f3f4f6;
+      }
+      .wd-action-btn {
+        height: 46px;
+        border: none;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: opacity 0.15s;
+      }
+      .wd-action-btn:hover {
+        opacity: 0.85;
+      }
+      .wd-action-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .wd-action-btn.complete {
+        background: #e6f8f2;
+        color: #00a878;
+        border-right: 1px solid #f3f4f6;
+      }
+      .wd-action-btn.reject {
+        background: #fef0ec;
+        color: #e85d35;
+      }
+      .wd-action-btn.processing {
+        background: #f9fafb;
+        color: #9ca3af;
+      }
+
+      /* status overlay when already actioned */
+      .wd-actioned {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-top: 1px solid #f3f4f6;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .wd-actioned.completed {
+        color: #00a878;
+      }
+      .wd-actioned.failed {
+        color: #e85d35;
+      }
+
+      /* empty state */
+      .wd-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 20px;
+        text-align: center;
+      }
+      .wd-empty i {
+        font-size: 40px;
+        color: #d1d5db;
+        display: block;
+        margin-bottom: 12px;
+      }
+      .wd-empty p {
+        font-size: 13px;
+        color: #9ca3af;
+        line-height: 1.7;
+      }
+
+      .wd-footer {
+        padding: 14px 22px 36px;
+        border-top: 1px solid #f3f4f6;
+        flex-shrink: 0;
+      }
+      .wd-close-btn {
+        width: 100%;
+        height: 48px;
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      .wd-close-btn:hover {
+        border-color: #d1d5db;
+      }
     </style>
-    <!--  -->
     {% include "partials/pwa_head.html" %}
   </head>
 
@@ -708,7 +904,7 @@
               height="20"
               rx="2"
               fill="#E85D35"
-              opacity="0.75"
+              opacity=".75"
             />
             <rect
               x="20"
@@ -717,22 +913,30 @@
               height="26"
               rx="2"
               fill="#E85D35"
-              opacity="0.45"
+              opacity=".45"
             />
           </svg>
-          OTEX
-          <span class="agent-pill">Agent</span>
+          OTEX <span class="agent-pill">Agent</span>
         </div>
         <div class="topbar-right">
-          <div class="notif-btn">
-            <i class="ti ti-bell" aria-hidden="true"></i>
+          <!-- Notification bell — now opens withdrawal requests -->
+          <div
+            class="notif-btn"
+            onclick="openWithdrawals()"
+            title="Withdrawal requests"
+          >
+            <i class="ti ti-bell"></i>
+            {% if pending_withdrawals_count %}
+            <span class="notif-count">{{ pending_withdrawals_count }}</span>
+            {% else %}
             <span class="notif-dot"></span>
+            {% endif %}
           </div>
-          <div class="avatar">AK</div>
+          <div class="avatar">{{ user.get_initials }}</div>
         </div>
       </div>
 
-      <!-- ── Hero balance card ── -->
+      <!-- ── Hero ── -->
       <div class="hero">
         <div class="hero-top">
           <div>
@@ -741,34 +945,32 @@
               ${{ agent.balance|floatformat:2 }}
             </div>
             <div class="hero-sub">
-              <span class="online-dot"></span>
-              Active · Updated just now
+              <span class="online-dot"></span> Active · Updated just now
             </div>
           </div>
-          <div class="hero-badge">AGENT</div>
+          <div class="hero-badge">{{ agent.name }}</div>
         </div>
         <div class="hero-watermark">AGENT</div>
       </div>
 
-      <!-- ── Credit user button ── -->
+      <!-- ── Credit button ── -->
       <button class="credit-btn" onclick="openModal()">
-        <i class="ti ti-user-plus" aria-hidden="true"></i>
-        Credit a User
+        <i class="ti ti-user-plus"></i> Credit a User
       </button>
 
-      <!-- ── Stat cards ── -->
+      <!-- ── Stats ── -->
       <div class="stats-row">
         <div class="stat-card">
           <div
             class="stat-icon-wrap"
             style="background: #fef0ec; color: #e85d35"
           >
-            <i class="ti ti-credit-card" aria-hidden="true"></i>
+            <i class="ti ti-credit-card"></i>
           </div>
           <div class="stat-label">Credits Today</div>
-          <div class="stat-val">{{credits_today_count}}</div>
+          <div class="stat-val">{{ credits_today_count }}</div>
           <div class="stat-sub green">
-            ${{credits_today_amount|floatformat:2}} sent
+            ${{ credits_today_amount|floatformat:2 }} sent
           </div>
         </div>
         <div class="stat-card">
@@ -776,10 +978,10 @@
             class="stat-icon-wrap"
             style="background: #e6f8f2; color: #00a878"
           >
-            <i class="ti ti-chart-bar" aria-hidden="true"></i>
+            <i class="ti ti-chart-bar"></i>
           </div>
           <div class="stat-label">All Time</div>
-          <div class="stat-val">${{all_time_amount}}</div>
+          <div class="stat-val">${{ all_time_amount }}</div>
           <div class="stat-sub">Total credited</div>
         </div>
       </div>
@@ -794,7 +996,7 @@
         {% for transaction in recent_transactions %}
         <div class="tx-item">
           <div class="tx-icon credit">
-            <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
+            <i class="ti ti-arrow-up-right"></i>
           </div>
           <div>
             <div class="tx-name">@{{ transaction.user.username }}</div>
@@ -816,30 +1018,25 @@
     </div>
     <!-- /page -->
 
-    <!-- ════════════════════════════
-         CREDIT USER MODAL
-    ════════════════════════════ -->
+    <!-- ════════════════════════════════
+         CREDIT USER MODAL (unchanged)
+    ════════════════════════════════ -->
     <div class="modal-bg" id="modalBg" onclick="handleBgClick(event)">
       <div class="modal" id="modal">
         <div class="modal-handle"></div>
-
-        <!-- ── Form state ── -->
         <div id="formState">
           <div class="modal-title">Credit a User</div>
           <div class="modal-sub">
-            Enter the user's username and the amount you want to credit to their
-            account.
+            Enter the user's username and the amount to credit to their account.
           </div>
-
           <div class="modal-body">
-            <!-- Username -->
             <div class="field">
               <label class="flabel" for="usernameInput">Username</label>
               <input
                 class="finput"
                 type="text"
                 id="usernameInput"
-                placeholder="e.g. kwame23"
+                placeholder="e.g. CR-A3F9B2"
                 autocomplete="off"
                 autocorrect="off"
                 autocapitalize="none"
@@ -847,20 +1044,17 @@
                 oninput="onUsernameInput()"
               />
               <div class="lookup-status found" id="lookupFound">
-                <i class="ti ti-circle-check" aria-hidden="true"></i>
+                <i class="ti ti-circle-check"></i>
                 <span id="lookupFoundText">User found</span>
               </div>
               <div class="lookup-status notfound" id="lookupNotFound">
-                <i class="ti ti-circle-x" aria-hidden="true"></i>
-                User not found
+                <i class="ti ti-circle-x"></i> User not found
               </div>
               <div class="err-msg" id="userErr">
-                <i class="ti ti-alert-circle" aria-hidden="true"></i>
-                Please enter a username.
+                <i class="ti ti-alert-circle"></i>
+                <span>Please enter a username.</span>
               </div>
             </div>
-
-            <!-- Amount -->
             <div class="field">
               <label class="flabel" for="amountInput">Amount (USD)</label>
               <div class="amount-wrap">
@@ -876,12 +1070,10 @@
                 />
               </div>
               <div class="err-msg" id="amtErr">
-                <i class="ti ti-alert-circle" aria-hidden="true"></i>
-                Please enter a valid amount (minimum $1).
+                <i class="ti ti-alert-circle"></i>
+                <span>Please enter a valid amount (minimum $1).</span>
               </div>
             </div>
-
-            <!-- Summary -->
             <div class="summary-box" id="summaryBox" style="display: none">
               <div class="summary-row">
                 <span class="summary-key">Sending to</span>
@@ -897,216 +1089,318 @@
               </div>
             </div>
           </div>
-
           <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal()">Cancel</button>
             <button class="btn-submit" id="submitBtn" onclick="submitCredit()">
               <span id="submitLabel"
-                ><i class="ti ti-send" aria-hidden="true"></i> Credit Now</span
+                ><i class="ti ti-send"></i> Credit Now</span
               >
               <div class="spinner" id="spinner"></div>
             </button>
           </div>
         </div>
-
-        <!-- ── Success state ── -->
         <div class="success-box" id="successState">
-          <div class="success-icon">
-            <i class="ti ti-check" aria-hidden="true"></i>
-          </div>
+          <div class="success-icon"><i class="ti ti-check"></i></div>
           <div class="success-title">Credit Sent!</div>
           <div class="success-sub">You have successfully credited</div>
           <div class="success-detail" id="successDetail"></div>
           <div class="success-ref" id="successRef"></div>
           <div class="success-note">
-            The user's balance has been updated.<br />
-            Keep this reference for your records.
+            The user's balance has been updated.<br />Keep this reference for
+            your records.
           </div>
           <div class="modal-actions" style="padding-top: 18px">
             <button class="btn-submit" style="flex: 1" onclick="closeModal()">
-              <i class="ti ti-check" aria-hidden="true"></i> Done
+              <i class="ti ti-check"></i> Done
             </button>
           </div>
         </div>
       </div>
     </div>
-    <!-- /modal -->
+
+    <!-- ════════════════════════════════
+         WITHDRAWAL REQUESTS MODAL
+    ════════════════════════════════ -->
+    <div
+      class="modal-bg"
+      id="wdModalBg"
+      onclick="if (event.target === this) closeWithdrawals();"
+    >
+      <div class="wd-modal">
+        <div class="modal-handle"></div>
+
+        <div class="wd-header">
+          <div class="wd-header-row">
+            <div class="wd-title">Withdrawal Requests</div>
+            <div class="wd-badge" id="wdBadge">—</div>
+          </div>
+          <div class="wd-sub">
+            Review and action pending withdrawal requests from users.
+          </div>
+        </div>
+
+        <div class="wd-list" id="wdList">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="wd-footer">
+          <button class="wd-close-btn" onclick="closeWithdrawals()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script>
-      const AGENT_BALANCE = {{ agent.balance }};
-      let lookupTimer = null;
+            const AGENT_BALANCE = {{ agent.balance }};
 
-      /* ── Open / close modal ── */
-      function openModal() {
-        resetModal();
-        document.getElementById("modalBg").classList.add("open");
-        setTimeout(() => document.getElementById("usernameInput").focus(), 300);
-      }
-
-      function closeModal() {
-        document.getElementById("modalBg").classList.remove("open");
-      }
-
-      function handleBgClick(e) {
-        if (e.target === document.getElementById("modalBg")) closeModal();
-      }
-
-      function resetModal() {
-        document.getElementById("formState").style.display = "block";
-        document.getElementById("successState").style.display = "none";
-        // document.getElementById("usernameInput").value = "";
-        document.getElementById("amountInput").value = "";
-        document.getElementById("summaryBox").style.display = "none";
-        document.getElementById("userErr").classList.remove("show");
-        document.getElementById("amtErr").classList.remove("show");
-        document.getElementById("lookupFound").className = "lookup-status";
-        document.getElementById("lookupNotFound").className = "lookup-status";
-        document.getElementById("usernameInput").classList.remove("error");
-        document.getElementById("amountInput").classList.remove("error");
-      }
-
-      /* ── Simulate username lookup ── */
-      /* Replace the setTimeout with a real fetch to /agent/lookup-user/?username=X */
-      function onUsernameInput() {
-        const val = document.getElementById("usernameInput").value.trim();
-        document.getElementById("lookupFound").className = "lookup-status";
-        document.getElementById("lookupNotFound").className = "lookup-status";
-        document.getElementById("summaryBox").style.display = "none";
-        // clearTimeout(lookupTimer);
-        if (!val) return;
-
-        fetch(
-          `/dashboard/agent/lookup-user/?username=${encodeURIComponent(val)}`,
-        )
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.found) {
-              document.getElementById("lookupFound").className =
-                "lookup-status found";
-              document.getElementById("lookupFoundText").textContent =
-                data.full_name + " found";
-            } else {
-              document.getElementById("lookupNotFound").className =
-                "lookup-status notfound";
+            /* ══════════════════════════════════
+               CREDIT MODAL (unchanged logic)
+            ══════════════════════════════════ */
+            function openModal() {
+              resetModal();
+              document.getElementById("modalBg").classList.add("open");
+              setTimeout(() => document.getElementById("usernameInput").focus(), 300);
             }
-            updateSummary();
-          });
-      }
-
-      /* ── Update summary box ── */
-      function updateSummary() {
-        const username = document.getElementById("usernameInput").value.trim();
-        const amount = parseFloat(document.getElementById("amountInput").value);
-        const found = document
-          .getElementById("lookupFound")
-          .classList.contains("found");
-
-        if (username && amount > 0 && found) {
-          const after = AGENT_BALANCE - amount;
-          document.getElementById("summaryUser").textContent = "@" + username;
-          document.getElementById("summaryAmount").textContent =
-            "$" + amount.toFixed(2);
-          document.getElementById("summaryAfter").textContent =
-            after >= 0 ? "$" + after.toFixed(2) : "Insufficient balance";
-          document.getElementById("summaryBox").style.display = "flex";
-        } else {
-          document.getElementById("summaryBox").style.display = "none";
-        }
-      }
-
-      /* ── Submit ── */
-      function submitCredit() {
-        const username = document.getElementById("usernameInput").value.trim();
-        const amount = parseFloat(document.getElementById("amountInput").value);
-        let valid = true;
-
-        /* Validate */
-        if (!username) {
-          document.getElementById("userErr").classList.add("show");
-          document.getElementById("usernameInput").classList.add("error");
-          valid = false;
-        } else {
-          document.getElementById("userErr").classList.remove("show");
-          document.getElementById("usernameInput").classList.remove("error");
-        }
-
-        if (!amount || amount <= 0) {
-          document.getElementById("amtErr").classList.add("show");
-          document.getElementById("amountInput").classList.add("error");
-          valid = false;
-        } else {
-          document.getElementById("amtErr").classList.remove("show");
-          document.getElementById("amountInput").classList.remove("error");
-        }
-
-        if (!valid) return;
-
-        if (amount > AGENT_BALANCE) {
-          document.getElementById("amtErr").classList.add("show");
-          document.querySelector("#amtErr").lastChild.textContent =
-            " Insufficient agent balance.";
-          document.getElementById("amountInput").classList.add("error");
-          return;
-        }
-
-        /* Show spinner */
-        const btn = document.getElementById("submitBtn");
-        const label = document.getElementById("submitLabel");
-        const spinner = document.getElementById("spinner");
-        btn.disabled = true;
-        label.style.display = "none";
-        spinner.style.display = "block";
-
-        fetch("/dashboard/agent/credit-user/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: `username=${encodeURIComponent(username)}&amount=${amount}`,
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            btn.disabled = false;
-            label.style.display = "flex";
-            spinner.style.display = "none";
-            if (data.success) {
-              showSuccess(username, amount, data.reference);
-              document.getElementById("agentBalance").textContent =   `$${data.new_balance}`;
-            } else if(data.is_min_deposit_error){
-
-              document.getElementById("userErr").classList.add("show");
-              document
-                .getElementById("userErr")
-                .querySelector("span").textContent = " " + data.error;
+            function closeModal() {
+              document.getElementById("modalBg").classList.remove("open");
+            }
+            function handleBgClick(e) {
+              if (e.target === document.getElementById("modalBg")) closeModal();
+            }
+            function resetModal() {
+              document.getElementById("formState").style.display = "block";
+              document.getElementById("successState").style.display = "none";
+              document.getElementById("amountInput").value = "";
+              document.getElementById("summaryBox").style.display = "none";
+              document.getElementById("userErr").classList.remove("show");
+              document.getElementById("amtErr").classList.remove("show");
+              document.getElementById("lookupFound").className = "lookup-status";
+              document.getElementById("lookupNotFound").className = "lookup-status";
+              document.getElementById("usernameInput").classList.remove("error");
+              document.getElementById("amountInput").classList.remove("error");
+            }
+            function onUsernameInput() {
+              const val = document.getElementById("usernameInput").value.trim();
+              document.getElementById("lookupFound").className = "lookup-status";
+              document.getElementById("lookupNotFound").className = "lookup-status";
+              document.getElementById("summaryBox").style.display = "none";
+              if (!val) return;
+              fetch(`/dashboard/agent/lookup-user/?username=${encodeURIComponent(val)}`)
+                .then(r => r.json())
+                .then(data => {
+                  if (data.found) {
+                    document.getElementById("lookupFound").className = "lookup-status found";
+                    document.getElementById("lookupFoundText").textContent = data.full_name + " found";
+                  } else {
+                    document.getElementById("lookupNotFound").className = "lookup-status notfound";
+                  }
+                  updateSummary();
+                });
+            }
+            function updateSummary() {
+              const username = document.getElementById("usernameInput").value.trim();
+              const amount   = parseFloat(document.getElementById("amountInput").value);
+              const found    = document.getElementById("lookupFound").classList.contains("found");
+              if (username && amount > 0 && found) {
+                const after = AGENT_BALANCE - amount;
+                document.getElementById("summaryUser").textContent   = "@" + username;
+                document.getElementById("summaryAmount").textContent = "$" + amount.toFixed(2);
+                document.getElementById("summaryAfter").textContent  = after >= 0 ? "$" + after.toFixed(2) : "Insufficient balance";
+                document.getElementById("summaryBox").style.display  = "flex";
+              } else {
+                document.getElementById("summaryBox").style.display = "none";
+              }
+            }
+            function submitCredit() {
+              const username = document.getElementById("usernameInput").value.trim();
+              const amount   = parseFloat(document.getElementById("amountInput").value);
+              let valid = true;
+              if (!username) {
+                document.getElementById("userErr").classList.add("show");
+                document.getElementById("usernameInput").classList.add("error");
+                valid = false;
+              } else {
+                document.getElementById("userErr").classList.remove("show");
+                document.getElementById("usernameInput").classList.remove("error");
+              }
+              if (!amount || amount <= 0) {
+                document.getElementById("amtErr").classList.add("show");
+                document.getElementById("amountInput").classList.add("error");
+                valid = false;
+              } else {
+                document.getElementById("amtErr").classList.remove("show");
+                document.getElementById("amountInput").classList.remove("error");
+              }
+              if (!valid) return;
+              if (amount > AGENT_BALANCE) {
+                document.getElementById("amtErr").classList.add("show");
+                document.getElementById("amtErr").querySelector("span").textContent = " Insufficient agent balance.";
+                document.getElementById("amountInput").classList.add("error");
+                return;
+              }
+              const btn = document.getElementById("submitBtn");
+              document.getElementById("submitLabel").style.display = "none";
+              document.getElementById("spinner").style.display = "block";
+              btn.disabled = true;
+              fetch("/dashboard/agent/credit-user/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCookie("csrftoken") },
+                body: `username=${encodeURIComponent(username)}&amount=${amount}`,
+              })
+                .then(r => r.json())
+                .then(data => {
+                  btn.disabled = false;
+                  document.getElementById("submitLabel").style.display = "flex";
+                  document.getElementById("spinner").style.display = "none";
+                  if (data.success) {
+                    showSuccess(username, amount, data.reference);
+                    document.getElementById("agentBalance").textContent = `$${data.new_balance}`;
+                  } else {
+                    document.getElementById("userErr").classList.add("show");
+                    document.getElementById("userErr").querySelector("span").textContent = " " + data.error;
+                  }
+                });
+            }
+            function showSuccess(username, amount, ref) {
+              document.getElementById("successDetail").textContent = "@" + username + "  ·  $" + parseFloat(amount).toFixed(2);
+              document.getElementById("successRef").textContent = ref;
+              document.getElementById("formState").style.display = "none";
+              document.getElementById("successState").style.display = "block";
             }
 
-             else {
-              document.getElementById("userErr").classList.add("show");
-              document
-                .getElementById("userErr")
-                .querySelector("span").textContent = " " + data.error;
+            /* ══════════════════════════════════
+               WITHDRAWAL REQUESTS MODAL
+            ══════════════════════════════════ */
+            let withdrawals = [];
+
+            function openWithdrawals() {
+              document.getElementById("wdModalBg").classList.add("open");
+              loadWithdrawals();
             }
-          });
-      }
 
-      function showSuccess(username, amount, ref) {
-        document.getElementById("successDetail").textContent =
-          "@" + username + "  ·  $" + parseFloat(amount).toFixed(2);
-        document.getElementById("successRef").textContent = ref;
-        document.getElementById("formState").style.display = "none";
-        document.getElementById("successState").style.display = "block";
-      }
+            function closeWithdrawals() {
+              document.getElementById("wdModalBg").classList.remove("open");
+            }
 
-      /* ── Cookie helper for CSRF ── */
-      function getCookie(name) {
-        const v = document.cookie.match(
-          "(^|;)\\s*" + name + "\\s*=\\s*([^;]+)",
-        );
-        return v ? v.pop() : "";
-      }
+            function loadWithdrawals() {
+              const list = document.getElementById("wdList");
+              list.innerHTML = `
+                <div style="text-align:center;padding:32px;color:#9ca3af;font-size:13px">
+                  <i class="ti ti-loader ti-spin" style="font-size:24px;display:block;margin-bottom:8px"></i>
+                  Loading requests...
+                </div>`;
+
+              fetch("/dashboard/agent/withdrawal-requests/")
+                .then(r => r.json())
+                .then(data => {
+                  const withdrawals = (data.pending_withdrawals || []).map(item => item.fields);
+
+      console.log(withdrawals);
+                  renderWithdrawals();
+                })
+                .catch(() => {
+                  list.innerHTML = `<div style="text-align:center;padding:32px;color:#e85d35;font-size:13px">Failed to load. Tap to retry.</div>`;
+                });
+            }
+
+            function renderWithdrawals() {
+              const list  = document.getElementById("wdList");
+              const badge = document.getElementById("wdBadge");
+              const pending = withdrawals.filter(w => w.status === "pending");
+
+              badge.textContent = pending.length
+                ? `${pending.length} pending`
+                : "All clear";
+              badge.style.background = pending.length ? "#fef0ec" : "#e6f8f2";
+              badge.style.color      = pending.length ? "#e85d35" : "#00a878";
+
+              if (!withdrawals.length) {
+                list.innerHTML = `
+                  <div class="wd-empty">
+                    <i class="ti ti-inbox"></i>
+                    <p>No withdrawal requests yet.<br>They'll appear here when users request a withdrawal.</p>
+                  </div>`;
+                return;
+              }
+
+              list.innerHTML = withdrawals.map(w => {
+                const initials = w.username.slice(0, 2).toUpperCase();
+                const isPending = w.status === "pending";
+
+                const actions = isPending
+                  ? `<div class="wd-card-actions">
+                      <button class="wd-action-btn complete" onclick="actionWithdrawal(${w.id}, 'complete')">
+                        <i class="ti ti-circle-check"></i> Mark Complete
+                      </button>
+                      <button class="wd-action-btn reject" onclick="actionWithdrawal(${w.id}, 'fail')">
+                        <i class="ti ti-circle-x"></i> Decline
+                      </button>
+                     </div>`
+                  : `<div class="wd-actioned ${w.status === 'completed' ? 'completed' : 'failed'}">
+                      <i class="ti ti-${w.status === 'completed' ? 'circle-check' : 'circle-x'}"></i>
+                      ${w.status === 'completed' ? 'Marked as completed' : 'Declined'}
+                      · ${w.actioned_at || ''}
+                     </div>`;
+
+                return `
+                  <div class="wd-card" id="wd-card-${w.id}">
+                    <div class="wd-card-top">
+                      <div class="wd-avatar">${initials}</div>
+                      <div>
+                        <div class="wd-user-name">@${w.username}</div>
+                        <div class="wd-user-ref">${w.reference}</div>
+                      </div>
+                      <div class="wd-amount">$${parseFloat(w.amount).toFixed(2)}</div>
+                    </div>
+                    <div class="wd-card-meta">
+                      <span class="wd-meta-pill">
+                        <i class="ti ti-calendar"></i> ${w.created_at}
+                      </span>
+                      <span class="wd-meta-pill">
+                        <i class="ti ti-credit-card"></i> ${w.method_display}
+                      </span>
+                      ${w.agent_name ? `<span class="wd-meta-pill"><i class="ti ti-user"></i> ${w.agent_name}</span>` : ''}
+                    </div>
+                    ${actions}
+                  </div>`;
+              }).join("");
+            }
+
+            function actionWithdrawal(id, action) {
+              const card = document.getElementById(`wd-card-${id}`);
+              const btns = card.querySelectorAll(".wd-action-btn");
+              btns.forEach(b => { b.disabled = true; b.classList.add("processing"); });
+
+              fetch("/dashboard/agent/action-withdrawal/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+                body: JSON.stringify({ transaction_id: id, action }),
+              })
+                .then(r => r.json())
+                .then(data => {
+                  if (data.success) {
+                    // update local state and re-render
+                    const idx = withdrawals.findIndex(w => w.id === id);
+                    if (idx >= 0) {
+                      withdrawals[idx].status     = action === "complete" ? "completed" : "failed";
+                      withdrawals[idx].actioned_at = "just now";
+                    }
+                    renderWithdrawals();
+                  } else {
+                    btns.forEach(b => { b.disabled = false; b.classList.remove("processing"); });
+                    alert(data.error || "Something went wrong.");
+                  }
+                });
+            }
+
+            /* ── Cookie helper ── */
+            function getCookie(name) {
+              const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
+              return v ? v.pop() : "";
+            }
     </script>
-    <!--  -->
+
     {% include "partials/pwa_script.html" %}
   </body>
 </html>

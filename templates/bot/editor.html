@@ -1764,6 +1764,17 @@
                 0 / 0
               </div>
             </div>
+            <div>
+              <div style="font-size: 10px; color: #9ca3af; margin-bottom: 3px">
+                Balance
+              </div>
+              <div
+                style="font-size: 15px; font-weight: 800; color: #111"
+                id="runBalance"
+              >
+                $0.00
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2224,7 +2235,7 @@
   }
 
   /* ══════════════════════════════════════════
-     RUN / STOP
+     RUN / STOP 
   ══════════════════════════════════════════ */
   function toggleRun() {
     if (botRunning) stopBot();
@@ -2288,6 +2299,7 @@
         document.getElementById("runStats").style.display = "block";
         document.getElementById("tradeList").innerHTML = "";
         document.getElementById("runProgress").textContent = `0 / ${runTotal}`;
+        document.getElementById("runBalance").textContent = `$${data.balance}`;
       });
   }
 
@@ -2339,6 +2351,7 @@
     document.getElementById("runPnl").style.color =
       runPnl >= 0 ? "#00a878" : "#e85d35";
     document.getElementById("runWL").textContent = `${runWon} / ${runLost}`;
+    document.getElementById("runBalance").textContent = `$${d.balance}`;
 
     const row = document.getElementById(`tr-${d.trade_number}`);
     if (row) {

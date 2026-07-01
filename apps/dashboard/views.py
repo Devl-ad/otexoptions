@@ -20,6 +20,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from baseapp import notify
+from django.core.serializers import serialize
 
 from apps.dashboard.decorator import withdrawal_confirm_required
 from .constant import SUPPORTED_BANK_DEPOSIT_CURRENCIES
@@ -751,6 +752,28 @@ def agent_dashboard(request):
         "recent_transactions": recent_transactions,
     }
     return render(request, "dashboard/agent.html", context)
+
+
+@login_required
+def agent_withdrawal_requests(request):
+    """
+    Only accessible by users who are linked to an Agent record.
+    Shows pending withdrawal requests from users.
+    """
+    agent = get_object_or_404(Agent, user=request.user, is_active=True)
+
+    pending_withdrawals = (
+        Transaction.objects.filter(
+            agent=agent,
+            transaction_type=Transaction.TransactionType.WITHDRAWAL,
+            status=Transaction.Status.PENDING,
+        )
+        .select_related("user")
+        .order_by("-created_at")
+    )
+
+    data = serialize("json", pending_withdrawals)
+    return JsonResponse({"pending_withdrawals": json.loads(data)})
 
 
 # ─────────────────────────────────────────────

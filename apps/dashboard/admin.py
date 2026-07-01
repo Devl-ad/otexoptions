@@ -1,4 +1,6 @@
 # dashboard/admin.py
+from decimal import Decimal
+
 from django.db import models
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
@@ -442,6 +444,11 @@ class TransactionAdmin(ModelAdmin):
 
                 wallet = Wallet.objects.get(user=transaction.user)
                 wallet.credit(float(transaction.net_amount), mode="live")
+            # elif transaction.transaction_type == Transaction.TransactionType.WITHDRAWAL:
+            #     if transaction.method == Transaction.Method.AGENT and transaction.agent:
+            #         transaction.agent.balance += Decimal(transaction.net_amount)
+            #         transaction.agent.save()
+
         except Exception as e:
             self.message_user(request, f"Wallet credit failed: {e}", level="error")
 
