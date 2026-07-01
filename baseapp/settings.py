@@ -243,15 +243,15 @@ KORAPAY_SECRET_KEY = env("KORAPAY_SECRET_KEY")
 
 
 # tell Django it's behind a  proxy
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# security headers
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# # security headers
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 FLW_PUBLIC_KEY = env("FLW_PUBLIC_KEY")
 FLW_SECRET_KEY = env("FLW_SECRET_KEY")
@@ -300,6 +300,11 @@ UNFOLD = {
                         "title": _("Platform Analytics"),
                         "icon": "monitoring",
                         "link": reverse_lazy("admin:platform_analytics"),
+                    },
+                    {
+                        "title": _("Mass Email"),
+                        "icon": "email",
+                        "link": reverse_lazy("admin:mass_email"),
                     },
                 ],
             },

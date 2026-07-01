@@ -1,0 +1,5 @@
+Hi {{ user.first_name }},
+
+Meet the new OTEX Bot Platform. Log in to check it out: {{ platform_url }}
+
+— The OTEX Team

@@ -24,6 +24,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 
+from .email_templates import EMAIL_TEMPLATES
+from .email_task import send_template_email_task
+
 from .analytics import get_platform_analytics
 
 # ── Actions ───────────────────────────────────────────────────────────────────
@@ -46,6 +49,11 @@ def get_urls():
             "analytics/",
             admin.site.admin_view(platform_analytics_view),
             name="platform_analytics",
+        ),
+        path(
+            "mass-email/",
+            admin.site.admin_view(mass_email_view),
+            name="mass_email",
         ),
     ]
     return custom_urls + original_get_urls()
@@ -80,6 +88,49 @@ def platform_analytics_view(request):
         "data": data,
     }
     return render(request, "admin/platform_analytics.html", context)
+
+
+def mass_email_view(request):
+    users = User.objects.filter(is_active=True).exclude(email="").order_by("email")
+
+    if request.method == "POST":
+        template_key = request.POST.get("template_key")
+        selected_ids = request.POST.getlist("user_ids")
+        send_to_all = request.POST.get("send_to_all") == "on"
+        test_mode = request.POST.get("test_mode") == "on"
+
+        if template_key not in EMAIL_TEMPLATES:
+            messages.error(request, "Please select a valid email template.")
+            return redirect("admin:mass_email")
+
+        if test_mode:
+            # send only to the logged-in admin, for preview
+            send_template_email_task.delay(request.user.id, template_key)
+            messages.success(request, f"Test email queued to {request.user.email}.")
+            return redirect("admin:mass_email")
+
+        target_qs = users if send_to_all else users.filter(id__in=selected_ids)
+        count = 0
+        for user in target_qs:
+            send_template_email_task.delay(user.id, template_key)
+            count += 1
+
+        if count == 0:
+            messages.warning(request, "No users selected — nothing was sent.")
+        else:
+            messages.success(
+                request,
+                f"Queued '{EMAIL_TEMPLATES[template_key]['label']}' for {count} users.",
+            )
+        return redirect("admin:mass_email")
+
+    context = {
+        **admin.site.each_context(request),
+        "title": "Mass Email",
+        "users": users,
+        "templates": EMAIL_TEMPLATES,
+    }
+    return render(request, "admin/mass_email.html", context)
 
 
 @admin.register(PlatformSettings)
