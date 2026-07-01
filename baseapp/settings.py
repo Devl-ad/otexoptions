@@ -233,7 +233,7 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 EMAIL_USE_SSL = False
 
 
-SERVER_EMAIL = "info@otexoption.com"
+SERVER_EMAIL = "support@otexoption.com"
 
 
 EMAIL_SUBJECT_PREFIX = "otexoption.com"
