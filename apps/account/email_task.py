@@ -35,7 +35,6 @@ def send_template_email_task(self, user_id, template_key, extra_context=None):
         email = EmailMultiAlternatives(
             subject=tpl["subject"],
             body=text_body,
-            from_email="info@otexoption.com",
             to=[user.email],
         )
         email.attach_alternative(html_body, "text/html")
