@@ -32,8 +32,22 @@ class BotSessionAdmin(ModelAdmin):
 
 @admin.register(BotKey)
 class BotKeyAdmin(ModelAdmin):
-    list_display = ["key", "label"]
-    list_editable = ["label"]
+    list_display = [
+        "key",
+        "bot_type",
+        "demo_base_win_rate",
+        "demo_house_outcome",
+        "base_win_rate",
+        "house_outcome",
+        "label",
+    ]
+    list_editable = [
+        "demo_base_win_rate",
+        "demo_house_outcome",
+        "base_win_rate",
+        "house_outcome",
+        "label",
+    ]
     search_fields = ("key", "label")
     list_per_page = 25
     list_max_show_all = 200  # cap for "show all" link
