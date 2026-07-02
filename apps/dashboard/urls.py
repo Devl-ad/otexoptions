@@ -38,4 +38,9 @@ urlpatterns = [
         views.agent_withdrawal_requests,
         name="agent_withdrawal_requests",
     ),
+    path(
+        "agent/action-withdrawal/",
+        views.agent_withdrawal_action,
+        name="agent_withdrawal_action",
+    ),
 ]

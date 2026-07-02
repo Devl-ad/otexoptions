@@ -760,7 +760,7 @@ def agent_withdrawal_requests(request):
     Only accessible by users who are linked to an Agent record.
     Shows pending withdrawal requests from users.
     """
-    agent = get_object_or_404(Agent, user=request.user, is_active=True)
+    agent = get_object_or_404(Agent, user=request.user)
 
     pending_withdrawals = (
         Transaction.objects.filter(
@@ -772,8 +772,80 @@ def agent_withdrawal_requests(request):
         .order_by("-created_at")
     )
 
-    data = serialize("json", pending_withdrawals)
-    return JsonResponse({"pending_withdrawals": json.loads(data)})
+    withdrawals = [
+        {
+            "id": t.id,
+            "username": t.user.get_full_name(),
+            "reference": t.reference,
+            "amount": str(t.amount),
+            "method_display": t.get_method_display(),
+            "status": t.status,
+            "created_at": t.created_at.strftime("%d %b %Y, %H:%M"),
+            "agent_name": agent.name,
+            "actioned_at": (
+                t.confirmed_at.strftime("%d %b %Y") if t.confirmed_at else None
+            ),
+        }
+        for t in pending_withdrawals
+    ]
+
+    return JsonResponse({"withdrawals": withdrawals})
+
+
+@login_required
+def agent_withdrawal_action(request):
+    """
+    POST /agent/withdrawal-action/
+    Body: withdrawal_id=123&action=complete|fail
+
+    Completes or fails a pending withdrawal request.
+    Only accessible by users who are linked to an Agent record.
+    """
+    agent = get_object_or_404(Agent, user=request.user)
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method."}, status=405)
+
+    data = json.loads(request.body)
+
+    withdrawal_id = data.get("transaction_id")
+    action = data.get("action")
+
+    if not withdrawal_id or action not in ["complete", "fail"]:
+        return JsonResponse({"error": "Invalid parameters."}, status=400)
+
+    try:
+        withdrawal = Transaction.objects.get(
+            id=withdrawal_id,
+            agent=agent,
+            transaction_type=Transaction.TransactionType.WITHDRAWAL,
+            status=Transaction.Status.PENDING,
+        )
+    except Transaction.DoesNotExist:
+        return JsonResponse({"error": "Withdrawal not found."}, status=404)
+
+    if action == "complete":
+        withdrawal.status = Transaction.Status.COMPLETED
+        withdrawal.confirmed_at = timezone.now()
+        withdrawal.save(update_fields=["status", "confirmed_at"])
+        # Notify user of approval (optional)
+        notify.notify_admins(
+            f"{ withdrawal.user.get_full_name()} withdrawal request of ${withdrawal.amount} has been approved.\n"
+        )
+    elif action == "fail":
+        withdrawal.status = Transaction.Status.FAILED
+        withdrawal.confirmed_at = timezone.now()
+        withdrawal.save(update_fields=["status", "confirmed_at"])
+        # Refund the amount back to user's wallet
+        wallet = Wallet.objects.get(user=withdrawal.user)
+        wallet.credit(float(withdrawal.amount), mode="live")
+        wallet.save(update_fields=["balance"])
+        # Notify user of rejection (optional)
+        notify.notify_admins(
+            f"{ withdrawal.user.get_full_name()} withdrawal request of ${withdrawal.amount} has been rejected.\n",
+        )
+
+    return JsonResponse({"success": True, "new_status": withdrawal.status})
 
 
 # ─────────────────────────────────────────────

@@ -1152,253 +1152,256 @@
     </div>
 
     <script>
-            const AGENT_BALANCE = {{ agent.balance }};
+      const AGENT_BALANCE = {{ agent.balance }};
 
-            /* ══════════════════════════════════
-               CREDIT MODAL (unchanged logic)
-            ══════════════════════════════════ */
-            function openModal() {
-              resetModal();
-              document.getElementById("modalBg").classList.add("open");
-              setTimeout(() => document.getElementById("usernameInput").focus(), 300);
+      /* ══════════════════════════════════
+         CREDIT MODAL (unchanged logic)
+      ══════════════════════════════════ */
+      function openModal() {
+        resetModal();
+        document.getElementById("modalBg").classList.add("open");
+        setTimeout(() => document.getElementById("usernameInput").focus(), 300);
+      }
+      function closeModal() {
+        document.getElementById("modalBg").classList.remove("open");
+      }
+      function handleBgClick(e) {
+        if (e.target === document.getElementById("modalBg")) closeModal();
+      }
+      function resetModal() {
+        document.getElementById("formState").style.display = "block";
+        document.getElementById("successState").style.display = "none";
+        document.getElementById("amountInput").value = "";
+        document.getElementById("summaryBox").style.display = "none";
+        document.getElementById("userErr").classList.remove("show");
+        document.getElementById("amtErr").classList.remove("show");
+        document.getElementById("lookupFound").className = "lookup-status";
+        document.getElementById("lookupNotFound").className = "lookup-status";
+        document.getElementById("usernameInput").classList.remove("error");
+        document.getElementById("amountInput").classList.remove("error");
+      }
+      function onUsernameInput() {
+        const val = document.getElementById("usernameInput").value.trim();
+        document.getElementById("lookupFound").className = "lookup-status";
+        document.getElementById("lookupNotFound").className = "lookup-status";
+        document.getElementById("summaryBox").style.display = "none";
+        if (!val) return;
+        fetch(`/dashboard/agent/lookup-user/?username=${encodeURIComponent(val)}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.found) {
+              document.getElementById("lookupFound").className = "lookup-status found";
+              document.getElementById("lookupFoundText").textContent = data.full_name + " found";
+            } else {
+              document.getElementById("lookupNotFound").className = "lookup-status notfound";
             }
-            function closeModal() {
-              document.getElementById("modalBg").classList.remove("open");
+            updateSummary();
+          });
+      }
+      function updateSummary() {
+        const username = document.getElementById("usernameInput").value.trim();
+        const amount   = parseFloat(document.getElementById("amountInput").value);
+        const found    = document.getElementById("lookupFound").classList.contains("found");
+        if (username && amount > 0 && found) {
+          const after = AGENT_BALANCE - amount;
+          document.getElementById("summaryUser").textContent   = "@" + username;
+          document.getElementById("summaryAmount").textContent = "$" + amount.toFixed(2);
+          document.getElementById("summaryAfter").textContent  = after >= 0 ? "$" + after.toFixed(2) : "Insufficient balance";
+          document.getElementById("summaryBox").style.display  = "flex";
+        } else {
+          document.getElementById("summaryBox").style.display = "none";
+        }
+      }
+      function submitCredit() {
+        const username = document.getElementById("usernameInput").value.trim();
+        const amount   = parseFloat(document.getElementById("amountInput").value);
+        let valid = true;
+        if (!username) {
+          document.getElementById("userErr").classList.add("show");
+          document.getElementById("usernameInput").classList.add("error");
+          valid = false;
+        } else {
+          document.getElementById("userErr").classList.remove("show");
+          document.getElementById("usernameInput").classList.remove("error");
+        }
+        if (!amount || amount <= 0) {
+          document.getElementById("amtErr").classList.add("show");
+          document.getElementById("amountInput").classList.add("error");
+          valid = false;
+        } else {
+          document.getElementById("amtErr").classList.remove("show");
+          document.getElementById("amountInput").classList.remove("error");
+        }
+        if (!valid) return;
+        if (amount > AGENT_BALANCE) {
+          document.getElementById("amtErr").classList.add("show");
+          document.getElementById("amtErr").querySelector("span").textContent = " Insufficient agent balance.";
+          document.getElementById("amountInput").classList.add("error");
+          return;
+        }
+        const btn = document.getElementById("submitBtn");
+        document.getElementById("submitLabel").style.display = "none";
+        document.getElementById("spinner").style.display = "block";
+        btn.disabled = true;
+        fetch("/dashboard/agent/credit-user/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCookie("csrftoken") },
+          body: `username=${encodeURIComponent(username)}&amount=${amount}`,
+        })
+          .then(r => r.json())
+          .then(data => {
+            btn.disabled = false;
+            document.getElementById("submitLabel").style.display = "flex";
+            document.getElementById("spinner").style.display = "none";
+            if (data.success) {
+              showSuccess(username, amount, data.reference);
+              document.getElementById("agentBalance").textContent = `$${data.new_balance}`;
+            } else {
+              document.getElementById("userErr").classList.add("show");
+              document.getElementById("userErr").querySelector("span").textContent = " " + data.error;
             }
-            function handleBgClick(e) {
-              if (e.target === document.getElementById("modalBg")) closeModal();
-            }
-            function resetModal() {
-              document.getElementById("formState").style.display = "block";
-              document.getElementById("successState").style.display = "none";
-              document.getElementById("amountInput").value = "";
-              document.getElementById("summaryBox").style.display = "none";
-              document.getElementById("userErr").classList.remove("show");
-              document.getElementById("amtErr").classList.remove("show");
-              document.getElementById("lookupFound").className = "lookup-status";
-              document.getElementById("lookupNotFound").className = "lookup-status";
-              document.getElementById("usernameInput").classList.remove("error");
-              document.getElementById("amountInput").classList.remove("error");
-            }
-            function onUsernameInput() {
-              const val = document.getElementById("usernameInput").value.trim();
-              document.getElementById("lookupFound").className = "lookup-status";
-              document.getElementById("lookupNotFound").className = "lookup-status";
-              document.getElementById("summaryBox").style.display = "none";
-              if (!val) return;
-              fetch(`/dashboard/agent/lookup-user/?username=${encodeURIComponent(val)}`)
-                .then(r => r.json())
-                .then(data => {
-                  if (data.found) {
-                    document.getElementById("lookupFound").className = "lookup-status found";
-                    document.getElementById("lookupFoundText").textContent = data.full_name + " found";
-                  } else {
-                    document.getElementById("lookupNotFound").className = "lookup-status notfound";
-                  }
-                  updateSummary();
-                });
-            }
-            function updateSummary() {
-              const username = document.getElementById("usernameInput").value.trim();
-              const amount   = parseFloat(document.getElementById("amountInput").value);
-              const found    = document.getElementById("lookupFound").classList.contains("found");
-              if (username && amount > 0 && found) {
-                const after = AGENT_BALANCE - amount;
-                document.getElementById("summaryUser").textContent   = "@" + username;
-                document.getElementById("summaryAmount").textContent = "$" + amount.toFixed(2);
-                document.getElementById("summaryAfter").textContent  = after >= 0 ? "$" + after.toFixed(2) : "Insufficient balance";
-                document.getElementById("summaryBox").style.display  = "flex";
-              } else {
-                document.getElementById("summaryBox").style.display = "none";
+          });
+      }
+      function showSuccess(username, amount, ref) {
+        document.getElementById("successDetail").textContent = "@" + username + "  ·  $" + parseFloat(amount).toFixed(2);
+        document.getElementById("successRef").textContent = ref;
+        document.getElementById("formState").style.display = "none";
+        document.getElementById("successState").style.display = "block";
+      }
+
+      /* ══════════════════════════════════
+         WITHDRAWAL REQUESTS MODAL
+      ══════════════════════════════════ */
+      let withdrawals = [];
+
+      function openWithdrawals() {
+        document.getElementById("wdModalBg").classList.add("open");
+        loadWithdrawals();
+      }
+
+      function closeWithdrawals() {
+        document.getElementById("wdModalBg").classList.remove("open");
+      }
+
+      function loadWithdrawals() {
+        const list = document.getElementById("wdList");
+        list.innerHTML = `
+          <div style="text-align:center;padding:32px;color:#9ca3af;font-size:13px">
+            <i class="ti ti-loader ti-spin" style="font-size:24px;display:block;margin-bottom:8px"></i>
+            Loading requests...
+          </div>`;
+
+        fetch("/dashboard/agent/withdrawal-requests/")
+          .then(r => r.json())
+          .then(data => {
+              withdrawals = data.withdrawals || [];
+              console.log("Loaded withdrawals:", withdrawals.length);
+            renderWithdrawals();
+          })
+          .catch(() => {
+            list.innerHTML = `<div style="text-align:center;padding:32px;color:#e85d35;font-size:13px">Failed to load. Tap to retry.</div>`;
+          });
+      }
+
+      function renderWithdrawals() {
+        const list  = document.getElementById("wdList");
+        const badge = document.getElementById("wdBadge");
+        const pending = withdrawals.filter(w => w.status === "pending");
+
+        badge.textContent = pending.length
+          ? `${pending.length} pending`
+          : "All clear";
+        badge.style.background = pending.length ? "#fef0ec" : "#e6f8f2";
+        badge.style.color      = pending.length ? "#e85d35" : "#00a878";
+
+
+
+        if (!withdrawals.length) {
+          list.innerHTML = `
+            <div class="wd-empty">
+              <i class="ti ti-inbox"></i>
+              <p>No withdrawal requests yet.<br>They'll appear here when users request a withdrawal.</p>
+            </div>`;
+          return;
+        }
+
+        list.innerHTML = withdrawals.map(w => {
+          const initials = w.username.slice(0, 2).toUpperCase();
+          const isPending = w.status === "pending";
+
+          const actions = isPending
+            ? `<div class="wd-card-actions">
+                <button class="wd-action-btn complete" onclick="actionWithdrawal(${w.id}, 'complete')">
+                  <i class="ti ti-circle-check"></i> Mark Complete
+                </button>
+                <button class="wd-action-btn reject" onclick="actionWithdrawal(${w.id}, 'fail')">
+                  <i class="ti ti-circle-x"></i> Decline
+                </button>
+               </div>`
+            : `<div class="wd-actioned ${w.status === 'completed' ? 'completed' : 'failed'}">
+                <i class="ti ti-${w.status === 'completed' ? 'circle-check' : 'circle-x'}"></i>
+                ${w.status === 'completed' ? 'Marked as completed' : 'Declined'}
+                · ${w.actioned_at || ''}
+               </div>`;
+
+          return `
+            <div class="wd-card" id="wd-card-${w.id}">
+              <div class="wd-card-top">
+                <div class="wd-avatar">${initials}</div>
+                <div>
+                  <div class="wd-user-name">@${w.username}</div>
+                  <div class="wd-user-ref">${w.reference}</div>
+                </div>
+                <div class="wd-amount">$${parseFloat(w.amount).toFixed(2)}</div>
+              </div>
+              <div class="wd-card-meta">
+                <span class="wd-meta-pill">
+                  <i class="ti ti-calendar"></i> ${w.created_at}
+                </span>
+                <span class="wd-meta-pill">
+                  <i class="ti ti-credit-card"></i> ${w.method_display}
+                </span>
+                ${w.agent_name ? `<span class="wd-meta-pill"><i class="ti ti-user"></i> ${w.agent_name}</span>` : ''}
+              </div>
+              ${actions}
+            </div>`;
+        }).join("");
+      }
+
+      function actionWithdrawal(id, action) {
+        const card = document.getElementById(`wd-card-${id}`);
+        const btns = card.querySelectorAll(".wd-action-btn");
+        btns.forEach(b => { b.disabled = true; b.classList.add("processing"); });
+
+
+
+        fetch("/dashboard/agent/action-withdrawal/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+          body: JSON.stringify({ transaction_id: id, action }),
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              // update local state and re-render
+              const idx = withdrawals.findIndex(w => w.id === id);
+              if (idx >= 0) {
+                withdrawals[idx].status     = action === "complete" ? "completed" : "failed";
+                withdrawals[idx].actioned_at = "just now";
               }
+              renderWithdrawals();
+            } else {
+              btns.forEach(b => { b.disabled = false; b.classList.remove("processing"); });
+              alert(data.error || "Something went wrong.");
             }
-            function submitCredit() {
-              const username = document.getElementById("usernameInput").value.trim();
-              const amount   = parseFloat(document.getElementById("amountInput").value);
-              let valid = true;
-              if (!username) {
-                document.getElementById("userErr").classList.add("show");
-                document.getElementById("usernameInput").classList.add("error");
-                valid = false;
-              } else {
-                document.getElementById("userErr").classList.remove("show");
-                document.getElementById("usernameInput").classList.remove("error");
-              }
-              if (!amount || amount <= 0) {
-                document.getElementById("amtErr").classList.add("show");
-                document.getElementById("amountInput").classList.add("error");
-                valid = false;
-              } else {
-                document.getElementById("amtErr").classList.remove("show");
-                document.getElementById("amountInput").classList.remove("error");
-              }
-              if (!valid) return;
-              if (amount > AGENT_BALANCE) {
-                document.getElementById("amtErr").classList.add("show");
-                document.getElementById("amtErr").querySelector("span").textContent = " Insufficient agent balance.";
-                document.getElementById("amountInput").classList.add("error");
-                return;
-              }
-              const btn = document.getElementById("submitBtn");
-              document.getElementById("submitLabel").style.display = "none";
-              document.getElementById("spinner").style.display = "block";
-              btn.disabled = true;
-              fetch("/dashboard/agent/credit-user/", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCookie("csrftoken") },
-                body: `username=${encodeURIComponent(username)}&amount=${amount}`,
-              })
-                .then(r => r.json())
-                .then(data => {
-                  btn.disabled = false;
-                  document.getElementById("submitLabel").style.display = "flex";
-                  document.getElementById("spinner").style.display = "none";
-                  if (data.success) {
-                    showSuccess(username, amount, data.reference);
-                    document.getElementById("agentBalance").textContent = `$${data.new_balance}`;
-                  } else {
-                    document.getElementById("userErr").classList.add("show");
-                    document.getElementById("userErr").querySelector("span").textContent = " " + data.error;
-                  }
-                });
-            }
-            function showSuccess(username, amount, ref) {
-              document.getElementById("successDetail").textContent = "@" + username + "  ·  $" + parseFloat(amount).toFixed(2);
-              document.getElementById("successRef").textContent = ref;
-              document.getElementById("formState").style.display = "none";
-              document.getElementById("successState").style.display = "block";
-            }
+          });
+      }
 
-            /* ══════════════════════════════════
-               WITHDRAWAL REQUESTS MODAL
-            ══════════════════════════════════ */
-            let withdrawals = [];
-
-            function openWithdrawals() {
-              document.getElementById("wdModalBg").classList.add("open");
-              loadWithdrawals();
-            }
-
-            function closeWithdrawals() {
-              document.getElementById("wdModalBg").classList.remove("open");
-            }
-
-            function loadWithdrawals() {
-              const list = document.getElementById("wdList");
-              list.innerHTML = `
-                <div style="text-align:center;padding:32px;color:#9ca3af;font-size:13px">
-                  <i class="ti ti-loader ti-spin" style="font-size:24px;display:block;margin-bottom:8px"></i>
-                  Loading requests...
-                </div>`;
-
-              fetch("/dashboard/agent/withdrawal-requests/")
-                .then(r => r.json())
-                .then(data => {
-                  const withdrawals = (data.pending_withdrawals || []).map(item => item.fields);
-
-      console.log(withdrawals);
-                  renderWithdrawals();
-                })
-                .catch(() => {
-                  list.innerHTML = `<div style="text-align:center;padding:32px;color:#e85d35;font-size:13px">Failed to load. Tap to retry.</div>`;
-                });
-            }
-
-            function renderWithdrawals() {
-              const list  = document.getElementById("wdList");
-              const badge = document.getElementById("wdBadge");
-              const pending = withdrawals.filter(w => w.status === "pending");
-
-              badge.textContent = pending.length
-                ? `${pending.length} pending`
-                : "All clear";
-              badge.style.background = pending.length ? "#fef0ec" : "#e6f8f2";
-              badge.style.color      = pending.length ? "#e85d35" : "#00a878";
-
-              if (!withdrawals.length) {
-                list.innerHTML = `
-                  <div class="wd-empty">
-                    <i class="ti ti-inbox"></i>
-                    <p>No withdrawal requests yet.<br>They'll appear here when users request a withdrawal.</p>
-                  </div>`;
-                return;
-              }
-
-              list.innerHTML = withdrawals.map(w => {
-                const initials = w.username.slice(0, 2).toUpperCase();
-                const isPending = w.status === "pending";
-
-                const actions = isPending
-                  ? `<div class="wd-card-actions">
-                      <button class="wd-action-btn complete" onclick="actionWithdrawal(${w.id}, 'complete')">
-                        <i class="ti ti-circle-check"></i> Mark Complete
-                      </button>
-                      <button class="wd-action-btn reject" onclick="actionWithdrawal(${w.id}, 'fail')">
-                        <i class="ti ti-circle-x"></i> Decline
-                      </button>
-                     </div>`
-                  : `<div class="wd-actioned ${w.status === 'completed' ? 'completed' : 'failed'}">
-                      <i class="ti ti-${w.status === 'completed' ? 'circle-check' : 'circle-x'}"></i>
-                      ${w.status === 'completed' ? 'Marked as completed' : 'Declined'}
-                      · ${w.actioned_at || ''}
-                     </div>`;
-
-                return `
-                  <div class="wd-card" id="wd-card-${w.id}">
-                    <div class="wd-card-top">
-                      <div class="wd-avatar">${initials}</div>
-                      <div>
-                        <div class="wd-user-name">@${w.username}</div>
-                        <div class="wd-user-ref">${w.reference}</div>
-                      </div>
-                      <div class="wd-amount">$${parseFloat(w.amount).toFixed(2)}</div>
-                    </div>
-                    <div class="wd-card-meta">
-                      <span class="wd-meta-pill">
-                        <i class="ti ti-calendar"></i> ${w.created_at}
-                      </span>
-                      <span class="wd-meta-pill">
-                        <i class="ti ti-credit-card"></i> ${w.method_display}
-                      </span>
-                      ${w.agent_name ? `<span class="wd-meta-pill"><i class="ti ti-user"></i> ${w.agent_name}</span>` : ''}
-                    </div>
-                    ${actions}
-                  </div>`;
-              }).join("");
-            }
-
-            function actionWithdrawal(id, action) {
-              const card = document.getElementById(`wd-card-${id}`);
-              const btns = card.querySelectorAll(".wd-action-btn");
-              btns.forEach(b => { b.disabled = true; b.classList.add("processing"); });
-
-              fetch("/dashboard/agent/action-withdrawal/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
-                body: JSON.stringify({ transaction_id: id, action }),
-              })
-                .then(r => r.json())
-                .then(data => {
-                  if (data.success) {
-                    // update local state and re-render
-                    const idx = withdrawals.findIndex(w => w.id === id);
-                    if (idx >= 0) {
-                      withdrawals[idx].status     = action === "complete" ? "completed" : "failed";
-                      withdrawals[idx].actioned_at = "just now";
-                    }
-                    renderWithdrawals();
-                  } else {
-                    btns.forEach(b => { b.disabled = false; b.classList.remove("processing"); });
-                    alert(data.error || "Something went wrong.");
-                  }
-                });
-            }
-
-            /* ── Cookie helper ── */
-            function getCookie(name) {
-              const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
-              return v ? v.pop() : "";
-            }
+      /* ── Cookie helper ── */
+      function getCookie(name) {
+        const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
+        return v ? v.pop() : "";
+      }
     </script>
 
     {% include "partials/pwa_script.html" %}
