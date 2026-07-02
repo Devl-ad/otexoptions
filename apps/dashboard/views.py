@@ -828,6 +828,8 @@ def agent_withdrawal_action(request):
         withdrawal.status = Transaction.Status.COMPLETED
         withdrawal.confirmed_at = timezone.now()
         withdrawal.save(update_fields=["status", "confirmed_at"])
+        agent.balance += Decimal(withdrawal.amount)
+        agent.save(update_fields=["balance"])
         # Notify user of approval (optional)
         notify.notify_admins(
             f"{ withdrawal.user.get_full_name()} withdrawal request of ${withdrawal.amount} has been approved.\n"
